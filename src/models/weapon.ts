@@ -1,30 +1,32 @@
 import mongoose, { Schema } from 'mongoose';
 
-const characterSchema = new Schema({
+const weaponSchema = new Schema({
   id: {
-    required: true,
     type: Number,
+    required: true,
     unique: true
   },
   name: {
-    required: true,
     type: String,
-    unique: true
+    required: true
   },
-  constellation: {
-    required: true,
+  type: {
     type: Number,
+    required: true
   },
-  level: {
-    required: true,
+  type_name: {
+    type: String,
+    required: true
+  },
+  rarity: {
     type: Number,
+    required: true
   },
-  character: {
-    type: Schema.Types.ObjectId,
-    ref: 'Player',
+  desc: {
+    type: Number,
     required: true
   }
 },
 {timestamps: true});
 
-export default mongoose.model('Character', characterSchema);
+export default mongoose.model('Weapon', weaponSchema);

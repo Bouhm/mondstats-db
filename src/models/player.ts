@@ -2,13 +2,13 @@ import mongoose, { Schema } from 'mongoose';
 
 const playerSchema = new Schema({
   uid: {
-    required: true,
     type: Number,
+    required: true,
     unique: true
   },
   clearedAbyss: {
-    required: true,
-    type: Boolean
+    type: Boolean,
+    required: true
   },
   characters: [{
     type: Schema.Types.ObjectId,

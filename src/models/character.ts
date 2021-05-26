@@ -2,22 +2,21 @@ import mongoose, { Schema } from 'mongoose';
 
 const characterSchema = new Schema({
   id: {
-    required: true,
     type: Number,
+    required: true,
     unique: true
   },
   name: {
-    required: true,
     type: String,
-    unique: true
+    required: true
   },
   constellation: {
-    required: true,
     type: Number,
+    required: true
   },
   level: {
-    required: true,
     type: Number,
+    required: true
   },
   weapon: {
     type: Schema.Types.ObjectId,
@@ -28,12 +27,7 @@ const characterSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'ArtifactSet',
     required: true
-  }],
-  player: {
-    type: Schema.Types.ObjectId,
-    ref: 'Player',
-    required: true
-  }
+  }]
 },
 {timestamps: true});
 

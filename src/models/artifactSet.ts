@@ -2,14 +2,13 @@ import mongoose, { Schema } from 'mongoose';
 
 const artifactSetSchema = new Schema({
   id: {
-    required: true,
     type: Number,
+    required: true,
     unique: true
   },
   name: {
-    required: true,
     type: String,
-    unique: true
+    required: true
   },
   affixes: [{
     activation_number: Number,
