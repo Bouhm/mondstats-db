@@ -6,14 +6,22 @@ const playerSchema = new Schema({
     required: true,
     unique: true
   },
-  clearedAbyss: {
-    type: Boolean,
-    required: true
-  },
   characters: [{
     type: Schema.Types.ObjectId,
-    ref: 'Character'
-  }]
+    ref: 'Character',
+    required: true
+  }],
+  abyss: [{
+    type: Schema.Types.ObjectId,
+    ref: 'AbyssBattle',
+    required: true
+  }],
+  max_floor: {
+    type: String
+  },
+  total_star: {
+    type: Number
+  }
 },
 {timestamps: true});
 

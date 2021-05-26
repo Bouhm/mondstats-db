@@ -7,26 +7,28 @@ const characterSchema = new Schema({
     unique: true
   },
   name: {
-    type: String,
-    required: true
+    type: String
   },
-  constellation: {
-    type: Number,
-    required: true
+  constellations: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Constellation'
+  }],
+  element: {
+    type: String
   },
   level: {
-    type: Number,
-    required: true
+    type: Number
+  },
+  fetter: {
+    type: Number
   },
   weapon: {
     type: Schema.Types.ObjectId,
-    ref: 'Weapon',
-    required: true 
+    ref: 'Weapon'
   },
   artifactSets: [{
     type: Schema.Types.ObjectId,
-    ref: 'ArtifactSet',
-    required: true
+    ref: 'ArtifactSet'
   }]
 },
 {timestamps: true});

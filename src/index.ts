@@ -4,7 +4,7 @@ import graphqlHTTP from 'express-graphql';
 
 import resolver from './graphql/resolvers';
 import schema from './graphql/schema';
-import colorRoutes from './routes';
+import playerCharacterRoutes from './routes';
 import connectDb from './util/connection';
 
 const app = express();
@@ -17,6 +17,6 @@ app.use(
     schema
   })
 );
-app.use('/json', colorRoutes);
+app.use('/json', playerCharacterRoutes);
 
 connectDb().then(() => app.listen(process.env.PORT || 8080));

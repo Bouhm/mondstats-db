@@ -7,21 +7,20 @@ const artifactSchema = new Schema({
     unique: true
   },
   name: {
-    type: String,
-    required: true
+    type: String
   },
   pos: {
-    type: Number,
-    required: true
+    type: Number
+  },
+  pos_name: {
+    type: String
   },
   rarity: {
-    type: Number,
-    required: true
+    type: Number
   },
   set: {
     type: Schema.Types.ObjectId,
-    ref: 'ArtifactSet',
-    required: true
+    ref: 'ArtifactSet'
   }
 },
 {timestamps: true});

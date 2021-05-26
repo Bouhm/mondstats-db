@@ -7,8 +7,7 @@ const artifactSetSchema = new Schema({
     unique: true
   },
   name: {
-    type: String,
-    required: true
+    type: String
   },
   affixes: [{
     activation_number: Number,

@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 
-const weaponSchema = new Schema({
+const constellationSchema = new Schema({
   id: {
     type: Number,
     required: true,
@@ -9,19 +9,16 @@ const weaponSchema = new Schema({
   name: {
     type: String
   },
-  type: {
-    type: Number
-  },
-  type_name: {
+  effect: {
     type: String
   },
-  rarity: {
-    type: Number
+  is_actived: {
+    type: Boolean
   },
-  desc: {
+  pos: {
     type: Number
   }
 },
 {timestamps: true});
 
-export default mongoose.model('Weapon', weaponSchema);
+export default mongoose.model('Constellation', constellationSchema);
