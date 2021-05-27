@@ -1,19 +1,19 @@
 import mongoose, { Schema } from 'mongoose';
 
 const constellationSchema = new Schema({
-  id: {
-    type: Number,
-    required: true,
-    unique: true
-  },
-  name: {
-    type: String
-  },
   effect: {
     type: String
   },
+  id: {
+    required: true,
+    type: Number,
+    unique: true
+  },
   is_actived: {
     type: Boolean
+  },
+  name: {
+    type: String
   },
   pos: {
     type: Number

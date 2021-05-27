@@ -1,26 +1,26 @@
 import mongoose, { Schema } from 'mongoose';
 
 const playerSchema = new Schema({
-  uid: {
-    type: Number,
-    required: true,
-    unique: true
-  },
-  characters: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Character',
-    required: true
-  }],
   abyss: [{
-    type: Schema.Types.ObjectId,
     ref: 'AbyssBattle',
-    required: true
+    required: true,
+    type: Schema.Types.ObjectId
+  }],
+  characters: [{
+    ref: 'Character',
+    required: true,
+    type: Schema.Types.ObjectId
   }],
   max_floor: {
     type: String
   },
   total_star: {
     type: Number
+  },
+  uid: {
+    required: true,
+    type: Number,
+    unique: true
   }
 },
 {timestamps: true});

@@ -1,29 +1,29 @@
 import mongoose, { Schema } from 'mongoose';
 
 const abyssBattleSchema = new Schema({
-  floor: {
-    type: Number,
-    required: true
-  },
-  stage: {
-    type: Number,
-    required: true
-  },
   battle: {
-    type: Number,
-    required: true
+    required: true,
+    type: Number
+  },
+  characters: [{
+    ref: 'Character',
+    required: true,
+    type: Schema.Types.ObjectId
+  }],
+  floor: {
+    required: true,
+    type: Number
   },
   max_star: {
     type: Number
   },
-  star: {
+  stage: {
+    required: true,
     type: Number
   },
-  characters: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Character',
-    required: true
-  }]
+  star: {
+    type: Number
+  }
 },
 {timestamps: true});
 

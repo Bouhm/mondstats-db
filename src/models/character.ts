@@ -1,35 +1,35 @@
 import mongoose, { Schema } from 'mongoose';
 
 const characterSchema = new Schema({
-  id: {
-    type: Number,
-    required: true,
-    unique: true
-  },
-  name: {
-    type: String
-  },
+  artifactSets: [{
+    ref: 'ArtifactSet',
+    type: Schema.Types.ObjectId
+  }],
   constellations: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Constellation'
+    ref: 'Constellation',
+    type: Schema.Types.ObjectId
   }],
   element: {
     type: String
   },
-  level: {
-    type: Number
-  },
   fetter: {
     type: Number
   },
-  weapon: {
-    type: Schema.Types.ObjectId,
-    ref: 'Weapon'
+  id: {
+    required: true,
+    type: Number,
+    unique: true
   },
-  artifactSets: [{
-    type: Schema.Types.ObjectId,
-    ref: 'ArtifactSet'
-  }]
+  level: {
+    type: Number
+  },
+  name: {
+    type: String
+  },
+  weapon: {
+    ref: 'Weapon',
+    type: Schema.Types.ObjectId
+  }
 },
 {timestamps: true});
 

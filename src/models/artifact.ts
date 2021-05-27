@@ -2,8 +2,8 @@ import mongoose, { Schema } from 'mongoose';
 
 const artifactSchema = new Schema({
   id: {
-    type: Number,
     required: true,
+    type: Number,
     unique: true
   },
   name: {
@@ -19,8 +19,8 @@ const artifactSchema = new Schema({
     type: Number
   },
   set: {
-    type: Schema.Types.ObjectId,
-    ref: 'ArtifactSet'
+    ref: 'ArtifactSet',
+    type: Schema.Types.ObjectId
   }
 },
 {timestamps: true});

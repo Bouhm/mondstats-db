@@ -1,18 +1,18 @@
 import mongoose, { Schema } from 'mongoose';
 
 const artifactSetSchema = new Schema({
+  affixes: [{
+    activation_number: Number,
+    effect: String
+  }],
   id: {
-    type: Number,
     required: true,
+    type: Number,
     unique: true
   },
   name: {
     type: String
-  },
-  affixes: [{
-    activation_number: Number,
-    effect: String
-  }]
+  }
 },
 {timestamps: true});
 
