@@ -1,0 +1,2838 @@
+{
+  "retcode": 0,
+  "message": "OK",
+  "data": {
+    "avatars": [
+      {
+        "id": 10000015,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Kaeya@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Kaeya.png",
+        "name": "Kaeya",
+        "element": "Cryo",
+        "fetter": 10,
+        "level": 90,
+        "rarity": 4,
+        "weapon": {
+          "id": 11406,
+          "name": "Prototype Rancour",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Sword_Proto.png",
+          "type": 1,
+          "rarity": 4,
+          "level": 90,
+          "promote_level": 6,
+          "type_name": "Sword",
+          "desc": "An ancient longsword discovered in the Blackcliff Forge that cuts through rocks like a hot knife through butter.",
+          "affix_level": 5
+        },
+        "reliquaries": [
+          {
+            "id": 75544,
+            "name": "Gladiator's Nostalgia",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15001_4.png",
+            "pos": 1,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150011,
+              "name": "Gladiator's Finale",
+              "affixes": [
+                { "activation_number": 2, "effect": "ATK +18%." },
+                {
+                  "activation_number": 4,
+                  "effect": "If the wielder of this artifact set uses a Sword, Claymore or Polearm, increases their Normal Attack DMG by 35%."
+                }
+              ]
+            },
+            "pos_name": "Flower of Life"
+          },
+          {
+            "id": 75523,
+            "name": "Gladiator's Destiny",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15001_2.png",
+            "pos": 2,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150011,
+              "name": "Gladiator's Finale",
+              "affixes": [
+                { "activation_number": 2, "effect": "ATK +18%." },
+                {
+                  "activation_number": 4,
+                  "effect": "If the wielder of this artifact set uses a Sword, Claymore or Polearm, increases their Normal Attack DMG by 35%."
+                }
+              ]
+            },
+            "pos_name": "Plume of Death"
+          },
+          {
+            "id": 75553,
+            "name": "Gladiator's Longing",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15001_5.png",
+            "pos": 3,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150011,
+              "name": "Gladiator's Finale",
+              "affixes": [
+                { "activation_number": 2, "effect": "ATK +18%." },
+                {
+                  "activation_number": 4,
+                  "effect": "If the wielder of this artifact set uses a Sword, Claymore or Polearm, increases their Normal Attack DMG by 35%."
+                }
+              ]
+            },
+            "pos_name": "Sands of Eon"
+          },
+          {
+            "id": 77513,
+            "name": "Wanderer's String-Kettle",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15003_1.png",
+            "pos": 4,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150031,
+              "name": "Wanderer's Troupe",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Elemental Mastery by 80."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Increases Charged Attack DMG by 35% if the character uses a Catalyst or a Bow."
+                }
+              ]
+            },
+            "pos_name": "Goblet of Eonothem"
+          },
+          {
+            "id": 75533,
+            "name": "Gladiator's Triumphus",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15001_3.png",
+            "pos": 5,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150011,
+              "name": "Gladiator's Finale",
+              "affixes": [
+                { "activation_number": 2, "effect": "ATK +18%." },
+                {
+                  "activation_number": 4,
+                  "effect": "If the wielder of this artifact set uses a Sword, Claymore or Polearm, increases their Normal Attack DMG by 35%."
+                }
+              ]
+            },
+            "pos_name": "Circlet of Logos"
+          }
+        ],
+        "constellations": [
+          {
+            "id": 151,
+            "name": "Excellent Blood",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Kaeya_01.png",
+            "effect": "The CRIT Rate of Kaeya's Normal and Charge Attacks against opponents affected by \u003ccolor=#99FFFFFF\u003eCryo\u003c/color\u003e is increased by 15%.",
+            "is_actived": false,
+            "pos": 1
+          },
+          {
+            "id": 152,
+            "name": "Never-Ending Performance",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Kaeya_02.png",
+            "effect": "Every time \u003ccolor=#FFD780FF\u003eGlacial Waltz\u003c/color\u003e defeats an opponent during its duration, its duration is increased by 2.5s, up to a maximum of 15s.",
+            "is_actived": false,
+            "pos": 2
+          },
+          {
+            "id": 153,
+            "name": "Dance of Frost",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Kaeya_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eFrostgnaw\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 3
+          },
+          {
+            "id": 154,
+            "name": "Frozen Kiss",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Kaeya_03.png",
+            "effect": "Triggers automatically when Kaeya's HP falls below 20%:\\nCreates a shield that absorbs damage equal to 30% of Kaeya's Max HP. Lasts for 20s.\\nThis shield absorbs \u003ccolor=#99FFFFFF\u003eCryo DMG\u003c/color\u003e with 250% efficiency.\\nCan only occur once every 60s.",
+            "is_actived": false,
+            "pos": 4
+          },
+          {
+            "id": 155,
+            "name": "Frostbiting Embrace",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Kaeya_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eGlacial Waltz\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 5
+          },
+          {
+            "id": 156,
+            "name": "Glacial Whirlwind",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Kaeya_04.png",
+            "effect": "\u003ccolor=#FFD780FF\u003eGlacial Waltz\u003c/color\u003e will generate 1 additional icicle, and will regenerate 15 Energy when cast.",
+            "is_actived": false,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000021,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Ambor@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Ambor.png",
+        "name": "Amber",
+        "element": "Pyro",
+        "fetter": 10,
+        "level": 80,
+        "rarity": 4,
+        "weapon": {
+          "id": 15401,
+          "name": "Favonius Warbow",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Bow_Zephyrus.png",
+          "type": 12,
+          "rarity": 4,
+          "level": 80,
+          "promote_level": 5,
+          "type_name": "Bow",
+          "desc": "A standard-issue recurve bow of the Knights of Favonius. Only the best archers can unleash its full potential.",
+          "affix_level": 5
+        },
+        "reliquaries": [
+          {
+            "id": 77543,
+            "name": "Troupe's Dawnlight",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15003_4.png",
+            "pos": 1,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150031,
+              "name": "Wanderer's Troupe",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Elemental Mastery by 80."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Increases Charged Attack DMG by 35% if the character uses a Catalyst or a Bow."
+                }
+              ]
+            },
+            "pos_name": "Flower of Life"
+          },
+          {
+            "id": 77524,
+            "name": "Bard's Arrow Feather",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15003_2.png",
+            "pos": 2,
+            "rarity": 5,
+            "level": 12,
+            "set": {
+              "id": 2150031,
+              "name": "Wanderer's Troupe",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Elemental Mastery by 80."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Increases Charged Attack DMG by 35% if the character uses a Catalyst or a Bow."
+                }
+              ]
+            },
+            "pos_name": "Plume of Death"
+          },
+          {
+            "id": 77553,
+            "name": "Concert's Final Hour",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15003_5.png",
+            "pos": 3,
+            "rarity": 5,
+            "level": 12,
+            "set": {
+              "id": 2150031,
+              "name": "Wanderer's Troupe",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Elemental Mastery by 80."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Increases Charged Attack DMG by 35% if the character uses a Catalyst or a Bow."
+                }
+              ]
+            },
+            "pos_name": "Sands of Eon"
+          },
+          {
+            "id": 89513,
+            "name": "Summer Night's Waterballoon",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15015_1.png",
+            "pos": 4,
+            "rarity": 5,
+            "level": 12,
+            "set": {
+              "id": 2150151,
+              "name": "Retracing Bolide",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Shield Strength by 35%."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "While protected by a shield, gain an additional 40% Normal and Charged Attack DMG."
+                }
+              ]
+            },
+            "pos_name": "Goblet of Eonothem"
+          },
+          {
+            "id": 77432,
+            "name": "Conductor's Top Hat",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15003_3.png",
+            "pos": 5,
+            "rarity": 4,
+            "level": 12,
+            "set": {
+              "id": 2150031,
+              "name": "Wanderer's Troupe",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Elemental Mastery by 80."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Increases Charged Attack DMG by 35% if the character uses a Catalyst or a Bow."
+                }
+              ]
+            },
+            "pos_name": "Circlet of Logos"
+          }
+        ],
+        "constellations": [
+          {
+            "id": 211,
+            "name": "One Arrow to Rule Them All",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Ambor_01.png",
+            "effect": "Fires 2 arrows per \u003ccolor=#FFD780FF\u003eAimed Shot\u003c/color\u003e. The second arrow deals 20% of the first arrow's DMG.",
+            "is_actived": true,
+            "pos": 1
+          },
+          {
+            "id": 212,
+            "name": "Bunny Triggered",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Ambor_02.png",
+            "effect": "Baron Bunny, new and improved! Hitting Baron Bunny's foot with a fully-charged Aimed Shot manually detonates it.\\nExplosion via manual detonation deals 200% additional DMG.",
+            "is_actived": true,
+            "pos": 2
+          },
+          {
+            "id": 213,
+            "name": "It Burns!",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Ambor_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eFiery Rain\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": true,
+            "pos": 3
+          },
+          {
+            "id": 214,
+            "name": "It's Not Just Any Doll...",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Ambor_03.png",
+            "effect": "Decreases \u003ccolor=#FFD780FF\u003eExplosive Puppet\u003c/color\u003e's CD by 20%. Adds 1 additional charge.",
+            "is_actived": true,
+            "pos": 4
+          },
+          {
+            "id": 215,
+            "name": "It's Baron Bunny!",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Ambor_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eExplosive Puppet\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": true,
+            "pos": 5
+          },
+          {
+            "id": 216,
+            "name": "Wildfire",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Ambor_04.png",
+            "effect": "\u003ccolor=#FFD780FF\u003eFiery Rain\u003c/color\u003e increases all party members' Movement SPD by 15% and ATK by 15% for 10s.",
+            "is_actived": false,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000023,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Xiangling@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Xiangling.png",
+        "name": "Xiangling",
+        "element": "Pyro",
+        "fetter": 10,
+        "level": 80,
+        "rarity": 4,
+        "weapon": {
+          "id": 13403,
+          "name": "Crescent Pike",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Pole_Exotic.png",
+          "type": 13,
+          "rarity": 4,
+          "level": 80,
+          "promote_level": 5,
+          "type_name": "Polearm",
+          "desc": "An exotic weapon with an extremely long blade on the top and a crescent blade at the bottom. It found its way into Liyue through foreign traders. With practice, it can deal heavy damage.",
+          "affix_level": 3
+        },
+        "reliquaries": [
+          {
+            "id": 80543,
+            "name": "Witch's Flower of Blaze",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15006_4.png",
+            "pos": 1,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150061,
+              "name": "Crimson Witch of Flames",
+              "affixes": [
+                { "activation_number": 2, "effect": "Pyro DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "Increases Overloaded and Burning DMG by 40%. Increases Vaporize and Melt DMG by 15%. Using Elemental Skill increases the 2-Piece Set Bonus by 50% of its starting value for 10s. Max 3 stacks."
+                }
+              ]
+            },
+            "pos_name": "Flower of Life"
+          },
+          {
+            "id": 80524,
+            "name": "Witch's Ever-Burning Plume",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15006_2.png",
+            "pos": 2,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150061,
+              "name": "Crimson Witch of Flames",
+              "affixes": [
+                { "activation_number": 2, "effect": "Pyro DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "Increases Overloaded and Burning DMG by 40%. Increases Vaporize and Melt DMG by 15%. Using Elemental Skill increases the 2-Piece Set Bonus by 50% of its starting value for 10s. Max 3 stacks."
+                }
+              ]
+            },
+            "pos_name": "Plume of Death"
+          },
+          {
+            "id": 80553,
+            "name": "Witch's End Time",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15006_5.png",
+            "pos": 3,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150061,
+              "name": "Crimson Witch of Flames",
+              "affixes": [
+                { "activation_number": 2, "effect": "Pyro DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "Increases Overloaded and Burning DMG by 40%. Increases Vaporize and Melt DMG by 15%. Using Elemental Skill increases the 2-Piece Set Bonus by 50% of its starting value for 10s. Max 3 stacks."
+                }
+              ]
+            },
+            "pos_name": "Sands of Eon"
+          },
+          {
+            "id": 80514,
+            "name": "Witch's Heart Flames",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15006_1.png",
+            "pos": 4,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150061,
+              "name": "Crimson Witch of Flames",
+              "affixes": [
+                { "activation_number": 2, "effect": "Pyro DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "Increases Overloaded and Burning DMG by 40%. Increases Vaporize and Melt DMG by 15%. Using Elemental Skill increases the 2-Piece Set Bonus by 50% of its starting value for 10s. Max 3 stacks."
+                }
+              ]
+            },
+            "pos_name": "Goblet of Eonothem"
+          },
+          {
+            "id": 82534,
+            "name": "Bloodstained Iron Mask",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15008_3.png",
+            "pos": 5,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150081,
+              "name": "Bloodstained Chivalry",
+              "affixes": [
+                { "activation_number": 2, "effect": "Physical DMG +25%" },
+                {
+                  "activation_number": 4,
+                  "effect": "After defeating an opponent, increases Charged Attack DMG by 50%, and reduces its Stamina cost to 0 for 10s."
+                }
+              ]
+            },
+            "pos_name": "Circlet of Logos"
+          }
+        ],
+        "constellations": [
+          {
+            "id": 231,
+            "name": "Crispy Outside, Tender Inside",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Xiangling_01.png",
+            "effect": "Opponents hit by Guoba's attacks have their \u003ccolor=#FF9999FF\u003ePyro RES\u003c/color\u003e reduced by 15% for 6s.",
+            "is_actived": true,
+            "pos": 1
+          },
+          {
+            "id": 232,
+            "name": "Oil Meets Fire",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Xiangling_02.png",
+            "effect": "The last attack in a Normal Attack sequence applies the Implode status onto the opponent for 2s. An explosion will occur once this duration ends, dealing 75% of Xiangling's ATK as \u003ccolor=#FF9999FF\u003eAoE Pyro DMG\u003c/color\u003e.",
+            "is_actived": true,
+            "pos": 2
+          },
+          {
+            "id": 233,
+            "name": "Deepfry",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Xiangling_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003ePyronado\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": true,
+            "pos": 3
+          },
+          {
+            "id": 234,
+            "name": "Slowbake",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Xiangling_03.png",
+            "effect": "\u003ccolor=#FFD780FF\u003ePyronado\u003c/color\u003e's duration is increased by 40%.",
+            "is_actived": true,
+            "pos": 4
+          },
+          {
+            "id": 235,
+            "name": "Guoba Mad",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Xiangling_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eGuoba Attack\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": true,
+            "pos": 5
+          },
+          {
+            "id": 236,
+            "name": "Condensed Pyronado",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Xiangling_04.png",
+            "effect": "For the duration of \u003ccolor=#FFD780FF\u003ePyronado\u003c/color\u003e, all party members receive a 15% \u003ccolor=#FF9999FF\u003ePyro DMG Bonus\u003c/color\u003e.",
+            "is_actived": false,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000025,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Xingqiu@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Xingqiu.png",
+        "name": "Xingqiu",
+        "element": "Hydro",
+        "fetter": 10,
+        "level": 80,
+        "rarity": 4,
+        "weapon": {
+          "id": 11403,
+          "name": "Sacrificial Sword",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Sword_Fossil.png",
+          "type": 1,
+          "rarity": 4,
+          "level": 80,
+          "promote_level": 5,
+          "type_name": "Sword",
+          "desc": "A ceremonial sword that has become petrified over time. The trinkets on it are still visible. It grants the wielder the power to withstand the winds of time.",
+          "affix_level": 3
+        },
+        "reliquaries": [
+          {
+            "id": 81544,
+            "name": "Royal Flora",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15007_4.png",
+            "pos": 1,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150071,
+              "name": "Noblesse Oblige",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Elemental Burst DMG +20%"
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Burst increases all party members' ATK by 20% for 12s. This effect cannot stack."
+                }
+              ]
+            },
+            "pos_name": "Flower of Life"
+          },
+          {
+            "id": 90524,
+            "name": "Gust of Nostalgia",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15016_2.png",
+            "pos": 2,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150161,
+              "name": "Heart of Depth",
+              "affixes": [
+                { "activation_number": 2, "effect": "Hydro DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "After using Elemental Skill, increases Normal Attack and Charged Attack DMG by 30% for 15s."
+                }
+              ]
+            },
+            "pos_name": "Plume of Death"
+          },
+          {
+            "id": 81553,
+            "name": "Royal Pocket Watch",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15007_5.png",
+            "pos": 3,
+            "rarity": 5,
+            "level": 8,
+            "set": {
+              "id": 2150071,
+              "name": "Noblesse Oblige",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Elemental Burst DMG +20%"
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Burst increases all party members' ATK by 20% for 12s. This effect cannot stack."
+                }
+              ]
+            },
+            "pos_name": "Sands of Eon"
+          },
+          {
+            "id": 55413,
+            "name": "Berserker's Bone Goblet",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_10005_1.png",
+            "pos": 4,
+            "rarity": 4,
+            "level": 16,
+            "set": {
+              "id": 2100051,
+              "name": "Berserker",
+              "affixes": [
+                { "activation_number": 2, "effect": "CRIT Rate +12%" },
+                {
+                  "activation_number": 4,
+                  "effect": "When HP is below 70%, CRIT Rate increases by an additional 24%."
+                }
+              ]
+            },
+            "pos_name": "Goblet of Eonothem"
+          },
+          {
+            "id": 90533,
+            "name": "Wine-Stained Tricorne",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15016_3.png",
+            "pos": 5,
+            "rarity": 5,
+            "level": 16,
+            "set": {
+              "id": 2150161,
+              "name": "Heart of Depth",
+              "affixes": [
+                { "activation_number": 2, "effect": "Hydro DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "After using Elemental Skill, increases Normal Attack and Charged Attack DMG by 30% for 15s."
+                }
+              ]
+            },
+            "pos_name": "Circlet of Logos"
+          }
+        ],
+        "constellations": [
+          {
+            "id": 251,
+            "name": "The Scent Remained",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Xingqiu_01.png",
+            "effect": "Increases the maximum number of Rain Swords by 1.",
+            "is_actived": true,
+            "pos": 1
+          },
+          {
+            "id": 252,
+            "name": "Rainbow Upon the Azure Sky",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Xingqiu_02.png",
+            "effect": "Extends the duration of \u003ccolor=#FFD780FF\u003eGuhua Sword: Raincutter\u003c/color\u003e by 3s.\\nDecreases the \u003ccolor=#80C0FFFF\u003eHydro RES\u003c/color\u003e of opponents hit by sword rain attacks by 15% for 4s.",
+            "is_actived": true,
+            "pos": 2
+          },
+          {
+            "id": 253,
+            "name": "Weaver of Verses",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Xingqiu_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eGuhua Sword: Raincutter\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": true,
+            "pos": 3
+          },
+          {
+            "id": 254,
+            "name": "Evilsoother",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Xingqiu_03.png",
+            "effect": "Throughout the duration of \u003ccolor=#FFD780FF\u003eGuhua Sword: Raincutter\u003c/color\u003e, the DMG dealt by \u003ccolor=#FFD780FF\u003eGuhua Sword: Fatal Rainscreen\u003c/color\u003e is increased by 50%.",
+            "is_actived": true,
+            "pos": 4
+          },
+          {
+            "id": 255,
+            "name": "Embrace of Rain",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Xingqiu_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eGuhua Sword: Fatal Rainscreen\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": true,
+            "pos": 5
+          },
+          {
+            "id": 256,
+            "name": "Hence, Call Them My Own Verses",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Xingqiu_04.png",
+            "effect": "Activating 2 of \u003ccolor=#FFD780FF\u003eGuhua Sword: Raincutter\u003c/color\u003e's sword rain attacks greatly enhances the third sword rain attack. On hit, the third sword rain attack also regenerates 3 Energy for Xingqiu.",
+            "is_actived": true,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000037,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Ganyu@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Ganyu.png",
+        "name": "Ganyu",
+        "element": "Cryo",
+        "fetter": 10,
+        "level": 70,
+        "rarity": 5,
+        "weapon": {
+          "id": 15502,
+          "name": "Amos' Bow",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Bow_Amos.png",
+          "type": 12,
+          "rarity": 5,
+          "level": 90,
+          "promote_level": 6,
+          "type_name": "Bow",
+          "desc": "An extremely ancient bow that has retained its power despite its original master being long gone. It draws power from everyone and everything in the world, and the further away you are from that which your heart desires, the more powerful it is.",
+          "affix_level": 1
+        },
+        "reliquaries": [
+          {
+            "id": 71543,
+            "name": "Snowswept Memory",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_14001_4.png",
+            "pos": 1,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2140011,
+              "name": "Blizzard Strayer",
+              "affixes": [
+                { "activation_number": 2, "effect": "Cryo DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "When a character attacks an opponent affected by Cryo, their CRIT Rate is increased by 20%. If the opponent is Frozen, CRIT Rate is increased by an additional 20%."
+                }
+              ]
+            },
+            "pos_name": "Flower of Life"
+          },
+          {
+            "id": 71524,
+            "name": "Icebreaker's Resolve",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_14001_2.png",
+            "pos": 2,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2140011,
+              "name": "Blizzard Strayer",
+              "affixes": [
+                { "activation_number": 2, "effect": "Cryo DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "When a character attacks an opponent affected by Cryo, their CRIT Rate is increased by 20%. If the opponent is Frozen, CRIT Rate is increased by an additional 20%."
+                }
+              ]
+            },
+            "pos_name": "Plume of Death"
+          },
+          {
+            "id": 75553,
+            "name": "Gladiator's Longing",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15001_5.png",
+            "pos": 3,
+            "rarity": 5,
+            "level": 4,
+            "set": {
+              "id": 2150011,
+              "name": "Gladiator's Finale",
+              "affixes": [
+                { "activation_number": 2, "effect": "ATK +18%." },
+                {
+                  "activation_number": 4,
+                  "effect": "If the wielder of this artifact set uses a Sword, Claymore or Polearm, increases their Normal Attack DMG by 35%."
+                }
+              ]
+            },
+            "pos_name": "Sands of Eon"
+          },
+          {
+            "id": 71514,
+            "name": "Frost-Weaved Dignity",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_14001_1.png",
+            "pos": 4,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2140011,
+              "name": "Blizzard Strayer",
+              "affixes": [
+                { "activation_number": 2, "effect": "Cryo DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "When a character attacks an opponent affected by Cryo, their CRIT Rate is increased by 20%. If the opponent is Frozen, CRIT Rate is increased by an additional 20%."
+                }
+              ]
+            },
+            "pos_name": "Goblet of Eonothem"
+          },
+          {
+            "id": 71534,
+            "name": "Broken Rime's Echo",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_14001_3.png",
+            "pos": 5,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2140011,
+              "name": "Blizzard Strayer",
+              "affixes": [
+                { "activation_number": 2, "effect": "Cryo DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "When a character attacks an opponent affected by Cryo, their CRIT Rate is increased by 20%. If the opponent is Frozen, CRIT Rate is increased by an additional 20%."
+                }
+              ]
+            },
+            "pos_name": "Circlet of Logos"
+          }
+        ],
+        "constellations": [
+          {
+            "id": 371,
+            "name": "Dew-Drinker",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Ganyu_01.png",
+            "effect": "Taking DMG from a Charge Level 2 Frostflake Arrow or Frostflake Arrow Bloom decreases opponents' \u003ccolor=#99FFFFFF\u003eCryo RES\u003c/color\u003e by 15% for 6s.\\nA hit regenerates 2 Energy for Ganyu. This effect can only occur once per Charge Level 2 Frostflake Arrow, regardless if Frostflake Arrow itself or its Bloom hit the target.",
+            "is_actived": false,
+            "pos": 1
+          },
+          {
+            "id": 372,
+            "name": "The Auspicious",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Ganyu_02.png",
+            "effect": "\u003ccolor=#FFD780FF\u003eTrail of the Qilin\u003c/color\u003e gains 1 additional charge.",
+            "is_actived": false,
+            "pos": 2
+          },
+          {
+            "id": 373,
+            "name": "Cloud-Strider",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Ganyu_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eCelestial Shower\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 3
+          },
+          {
+            "id": 374,
+            "name": "Westward Sojourn",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Ganyu_03.png",
+            "effect": "Opponents standing within the AoE of \u003ccolor=#FFD780FF\u003eCelestial Shower\u003c/color\u003e take increased DMG. This effect strengthens over time.\\nIncreased DMG taken begins at 5% and increases by 5% every 3s, up to a maximum of 25%.\\nThe effect lingers for 3s after the opponent leaves the AoE.",
+            "is_actived": false,
+            "pos": 4
+          },
+          {
+            "id": 375,
+            "name": "The Merciful",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Ganyu_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eTrail of the Qilin\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 5
+          },
+          {
+            "id": 376,
+            "name": "The Clement",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Ganyu_04.png",
+            "effect": "Using \u003ccolor=#FFD780FF\u003eTrail of the Qilin\u003c/color\u003e causes the next Frostflake Arrow shot within 30s to not require charging.",
+            "is_actived": false,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000034,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Noel@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Noel.png",
+        "name": "Noelle",
+        "element": "Geo",
+        "fetter": 9,
+        "level": 80,
+        "rarity": 4,
+        "weapon": {
+          "id": 12407,
+          "name": "Whiteblind",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Claymore_Exotic.png",
+          "type": 11,
+          "rarity": 4,
+          "level": 90,
+          "promote_level": 6,
+          "type_name": "Claymore",
+          "desc": "An exotic sword with one section of the blade left blunt. It made its way into Liyue via the hands of foreign traders. Incredibly powerful in the hands of someone who knows how to use it.",
+          "affix_level": 4
+        },
+        "reliquaries": [
+          {
+            "id": 89543,
+            "name": "Summer Night's Bloom",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15015_4.png",
+            "pos": 1,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150151,
+              "name": "Retracing Bolide",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Shield Strength by 35%."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "While protected by a shield, gain an additional 40% Normal and Charged Attack DMG."
+                }
+              ]
+            },
+            "pos_name": "Flower of Life"
+          },
+          {
+            "id": 89523,
+            "name": "Summer Night's Finale",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15015_2.png",
+            "pos": 2,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150151,
+              "name": "Retracing Bolide",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Shield Strength by 35%."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "While protected by a shield, gain an additional 40% Normal and Charged Attack DMG."
+                }
+              ]
+            },
+            "pos_name": "Plume of Death"
+          },
+          {
+            "id": 89553,
+            "name": "Summer Night's Moment",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15015_5.png",
+            "pos": 3,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150151,
+              "name": "Retracing Bolide",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Shield Strength by 35%."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "While protected by a shield, gain an additional 40% Normal and Charged Attack DMG."
+                }
+              ]
+            },
+            "pos_name": "Sands of Eon"
+          },
+          {
+            "id": 80513,
+            "name": "Witch's Heart Flames",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15006_1.png",
+            "pos": 4,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150061,
+              "name": "Crimson Witch of Flames",
+              "affixes": [
+                { "activation_number": 2, "effect": "Pyro DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "Increases Overloaded and Burning DMG by 40%. Increases Vaporize and Melt DMG by 15%. Using Elemental Skill increases the 2-Piece Set Bonus by 50% of its starting value for 10s. Max 3 stacks."
+                }
+              ]
+            },
+            "pos_name": "Goblet of Eonothem"
+          },
+          {
+            "id": 89534,
+            "name": "Summer Night's Mask",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15015_3.png",
+            "pos": 5,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150151,
+              "name": "Retracing Bolide",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Shield Strength by 35%."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "While protected by a shield, gain an additional 40% Normal and Charged Attack DMG."
+                }
+              ]
+            },
+            "pos_name": "Circlet of Logos"
+          }
+        ],
+        "constellations": [
+          {
+            "id": 341,
+            "name": "I Got Your Back",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Noel_01.png",
+            "effect": "While \u003ccolor=#FFD780FF\u003eSweeping Time\u003c/color\u003e and \u003ccolor=#FFD780FF\u003eBreastplate\u003c/color\u003e are both in effect, the chance of Breastplate's healing effects activating is increased to 100%.",
+            "is_actived": true,
+            "pos": 1
+          },
+          {
+            "id": 342,
+            "name": "Combat Maid",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Noel_02.png",
+            "effect": "Decreases the Stamina Consumption of Noelle's Charged Attacks by 20% and increases her Charged Attack DMG by 15%.",
+            "is_actived": true,
+            "pos": 2
+          },
+          {
+            "id": 343,
+            "name": "Invulnerable Maid",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Noel_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eBreastplate\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": true,
+            "pos": 3
+          },
+          {
+            "id": 344,
+            "name": "To Be Cleaned",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Noel_03.png",
+            "effect": "When \u003ccolor=#FFD780FF\u003eBreastplate\u003c/color\u003e's duration expires or it is destroyed by DMG, it will deal 400% ATK of \u003ccolor=#FFE699FF\u003eGeo DMG\u003c/color\u003e to surrounding opponents.",
+            "is_actived": true,
+            "pos": 4
+          },
+          {
+            "id": 345,
+            "name": "Favonius Sweeper Master",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Noel_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eSweeping Time\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 5
+          },
+          {
+            "id": 346,
+            "name": "Must Be Spotless",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Noel_04.png",
+            "effect": "\u003ccolor=#FFD780FF\u003eSweeping Time\u003c/color\u003e increases Noelle's ATK by an additional 50% of her DEF.\\nAdditionally, every opponent defeated during the skill's duration adds 1s to the duration, up to 10s.",
+            "is_actived": false,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000006,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Lisa@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Lisa.png",
+        "name": "Lisa",
+        "element": "Electro",
+        "fetter": 7,
+        "level": 70,
+        "rarity": 4,
+        "weapon": {
+          "id": 14302,
+          "name": "Thrilling Tales of Dragon Slayers",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Catalyst_Pulpfic.png",
+          "type": 10,
+          "rarity": 3,
+          "level": 1,
+          "promote_level": 0,
+          "type_name": "Catalyst",
+          "desc": "A fictional story of a band of five heroes who go off on a dragon hunt. It is poorly written and structurally incoherent. Its value lies in the many lessons that can be learned from failure.",
+          "affix_level": 5
+        },
+        "reliquaries": [
+          {
+            "id": 81543,
+            "name": "Royal Flora",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15007_4.png",
+            "pos": 1,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150071,
+              "name": "Noblesse Oblige",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Elemental Burst DMG +20%"
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Burst increases all party members' ATK by 20% for 12s. This effect cannot stack."
+                }
+              ]
+            },
+            "pos_name": "Flower of Life"
+          },
+          {
+            "id": 81523,
+            "name": "Royal Plume",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15007_2.png",
+            "pos": 2,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150071,
+              "name": "Noblesse Oblige",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Elemental Burst DMG +20%"
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Burst increases all party members' ATK by 20% for 12s. This effect cannot stack."
+                }
+              ]
+            },
+            "pos_name": "Plume of Death"
+          },
+          {
+            "id": 81553,
+            "name": "Royal Pocket Watch",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15007_5.png",
+            "pos": 3,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150071,
+              "name": "Noblesse Oblige",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Elemental Burst DMG +20%"
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Burst increases all party members' ATK by 20% for 12s. This effect cannot stack."
+                }
+              ]
+            },
+            "pos_name": "Sands of Eon"
+          },
+          {
+            "id": 58412,
+            "name": "Gambler's Dice Cup",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_10008_1.png",
+            "pos": 4,
+            "rarity": 4,
+            "level": 0,
+            "set": {
+              "id": 2100081,
+              "name": "Gambler",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Elemental Skill DMG by 20%."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Defeating an opponent has a 100% chance to remove Elemental Skill CD. Can only occur once every 15s."
+                }
+              ]
+            },
+            "pos_name": "Goblet of Eonothem"
+          },
+          {
+            "id": 81432,
+            "name": "Royal Masque",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15007_3.png",
+            "pos": 5,
+            "rarity": 4,
+            "level": 0,
+            "set": {
+              "id": 2150071,
+              "name": "Noblesse Oblige",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Elemental Burst DMG +20%"
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Burst increases all party members' ATK by 20% for 12s. This effect cannot stack."
+                }
+              ]
+            },
+            "pos_name": "Circlet of Logos"
+          }
+        ],
+        "constellations": [
+          {
+            "id": 41,
+            "name": "Infinite Circuit",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Lisa_01.png",
+            "effect": "Lisa regenerates 2 Energy for every opponent hit while holding \u003ccolor=#FFD780FF\u003eViolet Arc\u003c/color\u003e.\\nA maximum of 10 Energy can be regenerated in this manner at any one time.",
+            "is_actived": true,
+            "pos": 1
+          },
+          {
+            "id": 42,
+            "name": "Electromagnetic Field",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Lisa_02.png",
+            "effect": "Holding \u003ccolor=#FFD780FF\u003eViolet Arc\u003c/color\u003e has the following effects:\\n·Increases DEF by 25%.\\n·Increases Lisa's resistance to interruption.",
+            "is_actived": true,
+            "pos": 2
+          },
+          {
+            "id": 43,
+            "name": "Resonant Thunder",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Lisa_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eLightning Rose\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": true,
+            "pos": 3
+          },
+          {
+            "id": 44,
+            "name": "Plasma Eruption",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Lisa_03.png",
+            "effect": "Increases the number of lightning bolts released by \u003ccolor=#FFD780FF\u003eLightning Rose\u003c/color\u003e by 1-3.",
+            "is_actived": false,
+            "pos": 4
+          },
+          {
+            "id": 45,
+            "name": "Electrocute",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Lisa_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eViolet Arc\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 5
+          },
+          {
+            "id": 46,
+            "name": "Pulsating Witch",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Lisa_04.png",
+            "effect": "When Lisa takes the field, she applies 3 stacks of \u003ccolor=#FFD780FF\u003eViolet Arc\u003c/color\u003e's Conductive status onto nearby opponents.\\nThis effect can only occur once every 5s.",
+            "is_actived": false,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000003,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Qin@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Qin.png",
+        "name": "Jean",
+        "element": "Anemo",
+        "fetter": 7,
+        "level": 60,
+        "rarity": 5,
+        "weapon": {
+          "id": 11408,
+          "name": "Blackcliff Longsword",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Sword_Blackrock.png",
+          "type": 1,
+          "rarity": 4,
+          "level": 90,
+          "promote_level": 6,
+          "type_name": "Sword",
+          "desc": "A sword made of a material known as \"blackcliff.\" It has a dark crimson glow on its black blade.",
+          "affix_level": 1
+        },
+        "reliquaries": [
+          {
+            "id": 75543,
+            "name": "Gladiator's Nostalgia",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15001_4.png",
+            "pos": 1,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150011,
+              "name": "Gladiator's Finale",
+              "affixes": [
+                { "activation_number": 2, "effect": "ATK +18%." },
+                {
+                  "activation_number": 4,
+                  "effect": "If the wielder of this artifact set uses a Sword, Claymore or Polearm, increases their Normal Attack DMG by 35%."
+                }
+              ]
+            },
+            "pos_name": "Flower of Life"
+          },
+          {
+            "id": 59422,
+            "name": "Exile's Feather",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_10009_2.png",
+            "pos": 2,
+            "rarity": 4,
+            "level": 12,
+            "set": {
+              "id": 2100091,
+              "name": "The Exile",
+              "affixes": [
+                { "activation_number": 2, "effect": "Energy Recharge +20%" },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Burst regenerates 2 Energy for all party members (excluding the wearer) every 2s for 6s. This effect cannot stack."
+                }
+              ]
+            },
+            "pos_name": "Plume of Death"
+          },
+          {
+            "id": 74452,
+            "name": "Maiden's Passing Youth",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_14004_5.png",
+            "pos": 3,
+            "rarity": 4,
+            "level": 0,
+            "set": {
+              "id": 2140041,
+              "name": "Maiden Beloved",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Character Healing Effectiveness +15%"
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Skill or Burst increases healing received by all party members by 20% for 10s."
+                }
+              ]
+            },
+            "pos_name": "Sands of Eon"
+          },
+          {
+            "id": 74513,
+            "name": "Maiden's Fleeting Leisure",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_14004_1.png",
+            "pos": 4,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2140041,
+              "name": "Maiden Beloved",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Character Healing Effectiveness +15%"
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Skill or Burst increases healing received by all party members by 20% for 10s."
+                }
+              ]
+            },
+            "pos_name": "Goblet of Eonothem"
+          },
+          {
+            "id": 75433,
+            "name": "Gladiator's Triumphus",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15001_3.png",
+            "pos": 5,
+            "rarity": 4,
+            "level": 0,
+            "set": {
+              "id": 2150011,
+              "name": "Gladiator's Finale",
+              "affixes": [
+                { "activation_number": 2, "effect": "ATK +18%." },
+                {
+                  "activation_number": 4,
+                  "effect": "If the wielder of this artifact set uses a Sword, Claymore or Polearm, increases their Normal Attack DMG by 35%."
+                }
+              ]
+            },
+            "pos_name": "Circlet of Logos"
+          }
+        ],
+        "constellations": [
+          {
+            "id": 31,
+            "name": "Spiraling Tempest",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Qin_01.png",
+            "effect": "Increases the pulling speed of \u003ccolor=#FFD780FF\u003eGale Blade\u003c/color\u003e after holding for more than 1s, and increases the DMG dealt by 40%.",
+            "is_actived": true,
+            "pos": 1
+          },
+          {
+            "id": 32,
+            "name": "People's Aegis",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Qin_02.png",
+            "effect": "When Jean picks up an Elemental Orb/Particle, all party members have their Movement SPD and ATK SPD increased by 15% for 15s.",
+            "is_actived": false,
+            "pos": 2
+          },
+          {
+            "id": 33,
+            "name": "When the West Wind Arises",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Qin_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eDandelion Breeze\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 3
+          },
+          {
+            "id": 34,
+            "name": "Lands of Dandelion",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Qin_03.png",
+            "effect": "Within the Field created by \u003ccolor=#FFD780FF\u003eDandelion Breeze\u003c/color\u003e, all opponents have their \u003ccolor=#80FFD7FF\u003eAnemo RES\u003c/color\u003e decreased by 40%.",
+            "is_actived": false,
+            "pos": 4
+          },
+          {
+            "id": 35,
+            "name": "Outbursting Gust",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Qin_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eGale Blade\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 5
+          },
+          {
+            "id": 36,
+            "name": "Lion's Fang, Fair Protector of Mondstadt",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Qin_04.png",
+            "effect": "Incoming DMG is decreased by 35% within the Field created by \u003ccolor=#FFD780FF\u003eDandelion Breeze\u003c/color\u003e. Upon leaving the Dandelion Field, this effect lasts for 3 attacks or 10s.",
+            "is_actived": false,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000022,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Venti@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Venti.png",
+        "name": "Venti",
+        "element": "Anemo",
+        "fetter": 5,
+        "level": 60,
+        "rarity": 5,
+        "weapon": {
+          "id": 15413,
+          "name": "Windblume Ode",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Bow_Fleurfair.png",
+          "type": 12,
+          "rarity": 4,
+          "level": 60,
+          "promote_level": 3,
+          "type_name": "Bow",
+          "desc": "A bow adorned with nameless flowers that bears the earnest hopes of an equally nameless person.",
+          "affix_level": 5
+        },
+        "reliquaries": [
+          {
+            "id": 76442,
+            "name": "In Remembrance of Viridescent Fields",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15002_4.png",
+            "pos": 1,
+            "rarity": 4,
+            "level": 0,
+            "set": {
+              "id": 2150021,
+              "name": "Viridescent Venerer",
+              "affixes": [
+                { "activation_number": 2, "effect": "Anemo DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "Increases Swirl DMG by 60%. Decreases opponent's Elemental RES to the element infused in the Swirl by 40% for 10s."
+                }
+              ]
+            },
+            "pos_name": "Flower of Life"
+          },
+          {
+            "id": 76422,
+            "name": "Viridescent Arrow Feather",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15002_2.png",
+            "pos": 2,
+            "rarity": 4,
+            "level": 0,
+            "set": {
+              "id": 2150021,
+              "name": "Viridescent Venerer",
+              "affixes": [
+                { "activation_number": 2, "effect": "Anemo DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "Increases Swirl DMG by 60%. Decreases opponent's Elemental RES to the element infused in the Swirl by 40% for 10s."
+                }
+              ]
+            },
+            "pos_name": "Plume of Death"
+          },
+          {
+            "id": 76554,
+            "name": "Viridescent Venerer's Determination",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15002_5.png",
+            "pos": 3,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150021,
+              "name": "Viridescent Venerer",
+              "affixes": [
+                { "activation_number": 2, "effect": "Anemo DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "Increases Swirl DMG by 60%. Decreases opponent's Elemental RES to the element infused in the Swirl by 40% for 10s."
+                }
+              ]
+            },
+            "pos_name": "Sands of Eon"
+          },
+          {
+            "id": 90514,
+            "name": "Goblet of Thundering Deep",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15016_1.png",
+            "pos": 4,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150161,
+              "name": "Heart of Depth",
+              "affixes": [
+                { "activation_number": 2, "effect": "Hydro DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "After using Elemental Skill, increases Normal Attack and Charged Attack DMG by 30% for 15s."
+                }
+              ]
+            },
+            "pos_name": "Goblet of Eonothem"
+          },
+          {
+            "id": 76533,
+            "name": "Viridescent Venerer's Diadem",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15002_3.png",
+            "pos": 5,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150021,
+              "name": "Viridescent Venerer",
+              "affixes": [
+                { "activation_number": 2, "effect": "Anemo DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "Increases Swirl DMG by 60%. Decreases opponent's Elemental RES to the element infused in the Swirl by 40% for 10s."
+                }
+              ]
+            },
+            "pos_name": "Circlet of Logos"
+          }
+        ],
+        "constellations": [
+          {
+            "id": 221,
+            "name": "Splitting Gales",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Venti_01.png",
+            "effect": "Fires 2 additional arrows per \u003ccolor=#FFD780FF\u003eAimed Shot\u003c/color\u003e, each dealing 33% of the original arrow's DMG.",
+            "is_actived": false,
+            "pos": 1
+          },
+          {
+            "id": 222,
+            "name": "Breeze of Reminiscence",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Venti_02.png",
+            "effect": "\u003ccolor=#FFD780FF\u003eSkyward Sonnet\u003c/color\u003e decreases opponents' \u003ccolor=#80FFD7FF\u003eAnemo RES\u003c/color\u003e and Physical RES by 12% for 10s.\\nOpponents launched by \u003ccolor=#FFD780FF\u003eSkyward Sonnet\u003c/color\u003e suffer an additional 12% \u003ccolor=#80FFD7FF\u003eAnemo RES\u003c/color\u003e and Physical RES decrease while airborne.",
+            "is_actived": false,
+            "pos": 2
+          },
+          {
+            "id": 223,
+            "name": "Ode to Thousand Winds",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Venti_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eWind's Grand Ode\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 3
+          },
+          {
+            "id": 224,
+            "name": "Hurricane of Freedom",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Venti_03.png",
+            "effect": "When Venti picks up an Elemental Orb or Particle, he receives a 25% \u003ccolor=#80FFD7FF\u003eAnemo DMG Bonus\u003c/color\u003e for 10s.",
+            "is_actived": false,
+            "pos": 4
+          },
+          {
+            "id": 225,
+            "name": "Concerto dal Cielo",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Venti_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eSkyward Sonnet\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 5
+          },
+          {
+            "id": 226,
+            "name": "Storm of Defiance",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Venti_04.png",
+            "effect": "Targets who take DMG from \u003ccolor=#FFD780FF\u003eWind's Grand Ode\u003c/color\u003e have their \u003ccolor=#80FFD7FF\u003eAnemo RES\u003c/color\u003e decreased by 20%.\\nIf an Elemental Absorption occurred, then their RES towards the corresponding Element is also decreased by 20%.",
+            "is_actived": false,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000032,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Bennett@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Bennett.png",
+        "name": "Bennett",
+        "element": "Pyro",
+        "fetter": 5,
+        "level": 60,
+        "rarity": 4,
+        "weapon": {
+          "id": 11401,
+          "name": "Favonius Sword",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Sword_Zephyrus.png",
+          "type": 1,
+          "rarity": 4,
+          "level": 60,
+          "promote_level": 3,
+          "type_name": "Sword",
+          "desc": "A standard-issue longsword of the Knights of Favonius. When you're armed with this agile and sharp weapon, channeling the power of the elements has never been so easy!",
+          "affix_level": 3
+        },
+        "reliquaries": [
+          {
+            "id": 77543,
+            "name": "Troupe's Dawnlight",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15003_4.png",
+            "pos": 1,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2150031,
+              "name": "Wanderer's Troupe",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Elemental Mastery by 80."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Increases Charged Attack DMG by 35% if the character uses a Catalyst or a Bow."
+                }
+              ]
+            },
+            "pos_name": "Flower of Life"
+          },
+          {
+            "id": 81524,
+            "name": "Royal Plume",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15007_2.png",
+            "pos": 2,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150071,
+              "name": "Noblesse Oblige",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Elemental Burst DMG +20%"
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Burst increases all party members' ATK by 20% for 12s. This effect cannot stack."
+                }
+              ]
+            },
+            "pos_name": "Plume of Death"
+          },
+          {
+            "id": 81553,
+            "name": "Royal Pocket Watch",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15007_5.png",
+            "pos": 3,
+            "rarity": 5,
+            "level": 4,
+            "set": {
+              "id": 2150071,
+              "name": "Noblesse Oblige",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Elemental Burst DMG +20%"
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Burst increases all party members' ATK by 20% for 12s. This effect cannot stack."
+                }
+              ]
+            },
+            "pos_name": "Sands of Eon"
+          },
+          {
+            "id": 81412,
+            "name": "Royal Silver Urn",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15007_1.png",
+            "pos": 4,
+            "rarity": 4,
+            "level": 8,
+            "set": {
+              "id": 2150071,
+              "name": "Noblesse Oblige",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Elemental Burst DMG +20%"
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Burst increases all party members' ATK by 20% for 12s. This effect cannot stack."
+                }
+              ]
+            },
+            "pos_name": "Goblet of Eonothem"
+          },
+          {
+            "id": 81533,
+            "name": "Royal Masque",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15007_3.png",
+            "pos": 5,
+            "rarity": 5,
+            "level": 4,
+            "set": {
+              "id": 2150071,
+              "name": "Noblesse Oblige",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Elemental Burst DMG +20%"
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Burst increases all party members' ATK by 20% for 12s. This effect cannot stack."
+                }
+              ]
+            },
+            "pos_name": "Circlet of Logos"
+          }
+        ],
+        "constellations": [
+          {
+            "id": 321,
+            "name": "Grand Expectation",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Bennett_01.png",
+            "effect": "\u003ccolor=#FFD780FF\u003eFantastic Voyage\u003c/color\u003e's ATK increase no longer has an HP restriction, and gains an additional 20% of Bennett's Base ATK.",
+            "is_actived": false,
+            "pos": 1
+          },
+          {
+            "id": 322,
+            "name": "Impasse Conqueror",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Bennett_02.png",
+            "effect": "When Bennett's HP falls below 70%, his Energy Recharge is increased by 30%.",
+            "is_actived": false,
+            "pos": 2
+          },
+          {
+            "id": 323,
+            "name": "Unstoppable Fervor",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Bennett_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003ePassion Overload\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 3
+          },
+          {
+            "id": 324,
+            "name": "Unexpected Odyssey",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Bennett_03.png",
+            "effect": "Using a Normal Attack when executing the second attack of \u003ccolor=#FFD780FF\u003ePassion Overload\u003c/color\u003e's Charge Level 1 allows an additional attack to be performed.\\nThis additional attack does 135% of the second attack's DMG.",
+            "is_actived": false,
+            "pos": 4
+          },
+          {
+            "id": 325,
+            "name": "True Explorer",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Bennett_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eFantastic Voyage\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 5
+          },
+          {
+            "id": 326,
+            "name": "Fire Ventures with Me",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Bennett_04.png",
+            "effect": "Sword, Claymore, or Polearm-wielding characters inside \u003ccolor=#FFD780FF\u003eFantastic Voyage\u003c/color\u003e's radius gain a 15% \u003ccolor=#FF9999FF\u003ePyro DMG Bonus\u003c/color\u003e and their weapons are infused with \u003ccolor=#FF9999FF\u003ePyro\u003c/color\u003e.",
+            "is_actived": false,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000020,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Razor@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Razor.png",
+        "name": "Razor",
+        "element": "Electro",
+        "fetter": 4,
+        "level": 20,
+        "rarity": 4,
+        "weapon": {
+          "id": 12411,
+          "name": "Snow-Tombed Starsilver",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Claymore_Dragonfell.png",
+          "type": 11,
+          "rarity": 4,
+          "level": 1,
+          "promote_level": 0,
+          "type_name": "Claymore",
+          "desc": "An ancient greatsword that was stored between frescoes. Forged from Starsilver, it has the power to cleave through ice and snow.",
+          "affix_level": 1
+        },
+        "reliquaries": [],
+        "constellations": [
+          {
+            "id": 201,
+            "name": "Wolf's Instinct",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Razor_01.png",
+            "effect": "Picking up an Elemental Orb or Particle increases Razor's DMG by 10% for 8s.",
+            "is_actived": true,
+            "pos": 1
+          },
+          {
+            "id": 202,
+            "name": "Suppression",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Razor_02.png",
+            "effect": "Increases CRIT Rate against opponents with less than 30% HP by 10%.",
+            "is_actived": false,
+            "pos": 2
+          },
+          {
+            "id": 203,
+            "name": "Soul Companion",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Razor_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eLightning Fang\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 3
+          },
+          {
+            "id": 204,
+            "name": "Bite",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Razor_03.png",
+            "effect": "#When casting \u003ccolor=#FFD780FF\u003eClaw and Thunder\u003c/color\u003e ({LAYOUT_MOBILE#Tap}{LAYOUT_PC#Press}{LAYOUT_PS#Press}), opponents hit will have their DEF decreased by 15% for 7s.",
+            "is_actived": false,
+            "pos": 4
+          },
+          {
+            "id": 205,
+            "name": "Sharpened Claws",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Razor_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eClaw and Thunder\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 5
+          },
+          {
+            "id": 206,
+            "name": "Lupus Fulguris",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Razor_04.png",
+            "effect": "Every 10s, Razor's sword charges up, causing the next Normal Attack to release lightning that deals 100% of Razor's ATK as \u003ccolor=#FFACFFFF\u003eElectro DMG\u003c/color\u003e.\\nWhen Razor is not using \u003ccolor=#FFD780FF\u003eLightning Fang\u003c/color\u003e, a lightning strike on an opponent will grant Razor an Electro Sigil for \u003ccolor=#FFD780FF\u003eClaw and Thunder\u003c/color\u003e.",
+            "is_actived": false,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000014,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Barbara@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Barbara.png",
+        "name": "Barbara",
+        "element": "Hydro",
+        "fetter": 2,
+        "level": 60,
+        "rarity": 4,
+        "weapon": {
+          "id": 14302,
+          "name": "Thrilling Tales of Dragon Slayers",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Catalyst_Pulpfic.png",
+          "type": 10,
+          "rarity": 3,
+          "level": 20,
+          "promote_level": 0,
+          "type_name": "Catalyst",
+          "desc": "A fictional story of a band of five heroes who go off on a dragon hunt. It is poorly written and structurally incoherent. Its value lies in the many lessons that can be learned from failure.",
+          "affix_level": 5
+        },
+        "reliquaries": [
+          {
+            "id": 91543,
+            "name": "Flower of Accolades",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15017_4.png",
+            "pos": 1,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150171,
+              "name": "Tenacity of the Millelith",
+              "affixes": [
+                { "activation_number": 2, "effect": "HP increased by 20%." },
+                {
+                  "activation_number": 4,
+                  "effect": "When an Elemental Skill hits an opponent, the ATK of all nearby party members is increased by 20% and their Shield Strength is increased by 30% for 3s. This effect can be triggered once every 0.5s. This effect can still be triggered even when the character who is using this artifact set is not on the field."
+                }
+              ]
+            },
+            "pos_name": "Flower of Life"
+          },
+          {
+            "id": 91523,
+            "name": "Ceremonial War-Plume",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15017_2.png",
+            "pos": 2,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150171,
+              "name": "Tenacity of the Millelith",
+              "affixes": [
+                { "activation_number": 2, "effect": "HP increased by 20%." },
+                {
+                  "activation_number": 4,
+                  "effect": "When an Elemental Skill hits an opponent, the ATK of all nearby party members is increased by 20% and their Shield Strength is increased by 30% for 3s. This effect can be triggered once every 0.5s. This effect can still be triggered even when the character who is using this artifact set is not on the field."
+                }
+              ]
+            },
+            "pos_name": "Plume of Death"
+          },
+          {
+            "id": 91452,
+            "name": "Orichalceous Time-Dial",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15017_5.png",
+            "pos": 3,
+            "rarity": 4,
+            "level": 0,
+            "set": {
+              "id": 2150171,
+              "name": "Tenacity of the Millelith",
+              "affixes": [
+                { "activation_number": 2, "effect": "HP increased by 20%." },
+                {
+                  "activation_number": 4,
+                  "effect": "When an Elemental Skill hits an opponent, the ATK of all nearby party members is increased by 20% and their Shield Strength is increased by 30% for 3s. This effect can be triggered once every 0.5s. This effect can still be triggered even when the character who is using this artifact set is not on the field."
+                }
+              ]
+            },
+            "pos_name": "Sands of Eon"
+          },
+          {
+            "id": 91413,
+            "name": "Noble's Pledging Vessel",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15017_1.png",
+            "pos": 4,
+            "rarity": 4,
+            "level": 0,
+            "set": {
+              "id": 2150171,
+              "name": "Tenacity of the Millelith",
+              "affixes": [
+                { "activation_number": 2, "effect": "HP increased by 20%." },
+                {
+                  "activation_number": 4,
+                  "effect": "When an Elemental Skill hits an opponent, the ATK of all nearby party members is increased by 20% and their Shield Strength is increased by 30% for 3s. This effect can be triggered once every 0.5s. This effect can still be triggered even when the character who is using this artifact set is not on the field."
+                }
+              ]
+            },
+            "pos_name": "Goblet of Eonothem"
+          },
+          {
+            "id": 91534,
+            "name": "General's Ancient Helm",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15017_3.png",
+            "pos": 5,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150171,
+              "name": "Tenacity of the Millelith",
+              "affixes": [
+                { "activation_number": 2, "effect": "HP increased by 20%." },
+                {
+                  "activation_number": 4,
+                  "effect": "When an Elemental Skill hits an opponent, the ATK of all nearby party members is increased by 20% and their Shield Strength is increased by 30% for 3s. This effect can be triggered once every 0.5s. This effect can still be triggered even when the character who is using this artifact set is not on the field."
+                }
+              ]
+            },
+            "pos_name": "Circlet of Logos"
+          }
+        ],
+        "constellations": [
+          {
+            "id": 141,
+            "name": "Gleeful Songs",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Barbara_01.png",
+            "effect": "Barbara regenerates 1 Energy every 10s.",
+            "is_actived": true,
+            "pos": 1
+          },
+          {
+            "id": 142,
+            "name": "Vitality Burst",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Barbara_02.png",
+            "effect": "Decreases the CD of \u003ccolor=#FFD780FF\u003eLet the Show Begin♪\u003c/color\u003e by 15%.\\nDuring the ability's duration, your active character gains a 15% \u003ccolor=#80C0FFFF\u003eHydro DMG Bonus\u003c/color\u003e.",
+            "is_actived": false,
+            "pos": 2
+          },
+          {
+            "id": 143,
+            "name": "Star of Tomorrow",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Barbara_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eShining Miracle♪\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 3
+          },
+          {
+            "id": 144,
+            "name": "Attentiveness be My Power",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Barbara_03.png",
+            "effect": "Every opponent Barbara hits with her Charged Attack regenerates 1 Energy for her.\\nA maximum of 5 energy can be regenerated in this manner with any one Charged Attack.",
+            "is_actived": false,
+            "pos": 4
+          },
+          {
+            "id": 145,
+            "name": "The Purest Companionship",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Barbara_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eLet the Show Begin♪\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 5
+          },
+          {
+            "id": 146,
+            "name": "Dedicating Everything to You",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Barbara_04.png",
+            "effect": "When Barbara is in the party but not on the field, and one of your own party members falls:\\n·Automatically revives the fallen character.\\n·Fully restores the revived character's HP to 100%.\\nThis effect can only occur once every 15 mins.",
+            "is_actived": false,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000036,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Chongyun@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Chongyun.png",
+        "name": "Chongyun",
+        "element": "Cryo",
+        "fetter": 2,
+        "level": 60,
+        "rarity": 4,
+        "weapon": {
+          "id": 12402,
+          "name": "The Bell",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Claymore_Troupe.png",
+          "type": 11,
+          "rarity": 4,
+          "level": 1,
+          "promote_level": 0,
+          "type_name": "Claymore",
+          "desc": "A heavy greatsword. A clock is embedded within it, though its internal mechanisms have long been damaged.",
+          "affix_level": 4
+        },
+        "reliquaries": [
+          {
+            "id": 81442,
+            "name": "Royal Flora",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15007_4.png",
+            "pos": 1,
+            "rarity": 4,
+            "level": 0,
+            "set": {
+              "id": 2150071,
+              "name": "Noblesse Oblige",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Elemental Burst DMG +20%"
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Burst increases all party members' ATK by 20% for 12s. This effect cannot stack."
+                }
+              ]
+            },
+            "pos_name": "Flower of Life"
+          },
+          {
+            "id": 81523,
+            "name": "Royal Plume",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15007_2.png",
+            "pos": 2,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150071,
+              "name": "Noblesse Oblige",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Elemental Burst DMG +20%"
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Burst increases all party members' ATK by 20% for 12s. This effect cannot stack."
+                }
+              ]
+            },
+            "pos_name": "Plume of Death"
+          },
+          {
+            "id": 81553,
+            "name": "Royal Pocket Watch",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15007_5.png",
+            "pos": 3,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150071,
+              "name": "Noblesse Oblige",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Elemental Burst DMG +20%"
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Burst increases all party members' ATK by 20% for 12s. This effect cannot stack."
+                }
+              ]
+            },
+            "pos_name": "Sands of Eon"
+          },
+          {
+            "id": 88513,
+            "name": "Goblet of Chiseled Crag",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15014_1.png",
+            "pos": 4,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150141,
+              "name": "Archaic Petra",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Gain a 15% Geo DMG Bonus."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Upon obtaining an Elemental Shard created through a Crystallize Reaction, all party members gain a 35% DMG Bonus for that particular element for 10s. Only one form of Elemental DMG Bonus can be gained in this manner at any one time."
+                }
+              ]
+            },
+            "pos_name": "Goblet of Eonothem"
+          },
+          {
+            "id": 81533,
+            "name": "Royal Masque",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15007_3.png",
+            "pos": 5,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150071,
+              "name": "Noblesse Oblige",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Elemental Burst DMG +20%"
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Using an Elemental Burst increases all party members' ATK by 20% for 12s. This effect cannot stack."
+                }
+              ]
+            },
+            "pos_name": "Circlet of Logos"
+          }
+        ],
+        "constellations": [
+          {
+            "id": 361,
+            "name": "Ice Unleashed",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Chongyun_01.png",
+            "effect": "The last attack of Chongyun's Normal Attack combo releases 3 ice blades. Each blade deals 50% of Chongyun's ATK as \u003ccolor=#99FFFFFF\u003eCryo DMG\u003c/color\u003e to all opponents in its path.",
+            "is_actived": true,
+            "pos": 1
+          },
+          {
+            "id": 362,
+            "name": "Atmospheric Revolution",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Chongyun_02.png",
+            "effect": "Elemental Skills and Elemental Bursts cast within the Frost Field created by \u003ccolor=#FFD780FF\u003eSpirit Blade: Chonghua's Layered Frost\u003c/color\u003e have their CD time decreased by 15%.",
+            "is_actived": false,
+            "pos": 2
+          },
+          {
+            "id": 363,
+            "name": "Cloudburst",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Chongyun_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eSpirit Blade: Cloud-parting Star\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 3
+          },
+          {
+            "id": 364,
+            "name": "Frozen Skies",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Chongyun_03.png",
+            "effect": "Chongyun regenerates 1 Energy every time he hits an opponent affected by \u003ccolor=#99FFFFFF\u003eCryo\u003c/color\u003e.\\nThis effect can only occur once every 2s.",
+            "is_actived": false,
+            "pos": 4
+          },
+          {
+            "id": 365,
+            "name": "The True Path",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Chongyun_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eSpirit Blade: Chonghua's Layered Frost\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 5
+          },
+          {
+            "id": 366,
+            "name": "Rally of Four Blades",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Chongyun_04.png",
+            "effect": "\u003ccolor=#FFD780FF\u003eSpirit Blade: Cloud-parting Star\u003c/color\u003e deals 15% more DMG to opponents with a lower percentage of their Max HP remaining than Chongyun.\\nThis skill will also summon 1 additional spirit blade.",
+            "is_actived": false,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000039,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Diona@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Diona.png",
+        "name": "Diona",
+        "element": "Cryo",
+        "fetter": 2,
+        "level": 60,
+        "rarity": 4,
+        "weapon": {
+          "id": 15403,
+          "name": "Sacrificial Bow",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Bow_Fossil.png",
+          "type": 12,
+          "rarity": 4,
+          "level": 40,
+          "promote_level": 2,
+          "type_name": "Bow",
+          "desc": "A ceremonial hunting bow that has become petrified over time. The trinkets on it are still visible. It grants the wielder the power to withstand the winds of time.",
+          "affix_level": 3
+        },
+        "reliquaries": [
+          {
+            "id": 71543,
+            "name": "Snowswept Memory",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_14001_4.png",
+            "pos": 1,
+            "rarity": 5,
+            "level": 20,
+            "set": {
+              "id": 2140011,
+              "name": "Blizzard Strayer",
+              "affixes": [
+                { "activation_number": 2, "effect": "Cryo DMG Bonus +15%" },
+                {
+                  "activation_number": 4,
+                  "effect": "When a character attacks an opponent affected by Cryo, their CRIT Rate is increased by 20%. If the opponent is Frozen, CRIT Rate is increased by an additional 20%."
+                }
+              ]
+            },
+            "pos_name": "Flower of Life"
+          },
+          {
+            "id": 91524,
+            "name": "Ceremonial War-Plume",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15017_2.png",
+            "pos": 2,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150171,
+              "name": "Tenacity of the Millelith",
+              "affixes": [
+                { "activation_number": 2, "effect": "HP increased by 20%." },
+                {
+                  "activation_number": 4,
+                  "effect": "When an Elemental Skill hits an opponent, the ATK of all nearby party members is increased by 20% and their Shield Strength is increased by 30% for 3s. This effect can be triggered once every 0.5s. This effect can still be triggered even when the character who is using this artifact set is not on the field."
+                }
+              ]
+            },
+            "pos_name": "Plume of Death"
+          },
+          {
+            "id": 91553,
+            "name": "Orichalceous Time-Dial",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15017_5.png",
+            "pos": 3,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150171,
+              "name": "Tenacity of the Millelith",
+              "affixes": [
+                { "activation_number": 2, "effect": "HP increased by 20%." },
+                {
+                  "activation_number": 4,
+                  "effect": "When an Elemental Skill hits an opponent, the ATK of all nearby party members is increased by 20% and their Shield Strength is increased by 30% for 3s. This effect can be triggered once every 0.5s. This effect can still be triggered even when the character who is using this artifact set is not on the field."
+                }
+              ]
+            },
+            "pos_name": "Sands of Eon"
+          },
+          {
+            "id": 91513,
+            "name": "Noble's Pledging Vessel",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15017_1.png",
+            "pos": 4,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150171,
+              "name": "Tenacity of the Millelith",
+              "affixes": [
+                { "activation_number": 2, "effect": "HP increased by 20%." },
+                {
+                  "activation_number": 4,
+                  "effect": "When an Elemental Skill hits an opponent, the ATK of all nearby party members is increased by 20% and their Shield Strength is increased by 30% for 3s. This effect can be triggered once every 0.5s. This effect can still be triggered even when the character who is using this artifact set is not on the field."
+                }
+              ]
+            },
+            "pos_name": "Goblet of Eonothem"
+          },
+          {
+            "id": 91533,
+            "name": "General's Ancient Helm",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15017_3.png",
+            "pos": 5,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150171,
+              "name": "Tenacity of the Millelith",
+              "affixes": [
+                { "activation_number": 2, "effect": "HP increased by 20%." },
+                {
+                  "activation_number": 4,
+                  "effect": "When an Elemental Skill hits an opponent, the ATK of all nearby party members is increased by 20% and their Shield Strength is increased by 30% for 3s. This effect can be triggered once every 0.5s. This effect can still be triggered even when the character who is using this artifact set is not on the field."
+                }
+              ]
+            },
+            "pos_name": "Circlet of Logos"
+          }
+        ],
+        "constellations": [
+          {
+            "id": 391,
+            "name": "A Lingering Flavor",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Diona_01.png",
+            "effect": "Regenerates 15 Energy for Diona after the effects of \u003ccolor=#FFD780FF\u003eSignature Mix\u003c/color\u003e end.",
+            "is_actived": true,
+            "pos": 1
+          },
+          {
+            "id": 392,
+            "name": "Shaken, Not Purred",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Diona_02.png",
+            "effect": "Increases \u003ccolor=#FFD780FF\u003eIcy Paws\u003c/color\u003e' DMG by 15%, and increases its shield's DMG Absorption by 15%.\\nAdditionally, when paws hit their targets, creates a shield for other nearby characters on the field with 50% of the \u003ccolor=#FFD780FF\u003eIcy Paws\u003c/color\u003e shield's DMG Absorption for 5s.",
+            "is_actived": true,
+            "pos": 2
+          },
+          {
+            "id": 393,
+            "name": "A—Another Round?",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Diona_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eSignature Mix\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 3
+          },
+          {
+            "id": 394,
+            "name": "Wine Industry Slayer",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Diona_03.png",
+            "effect": "Within the radius of \u003ccolor=#FFD780FF\u003eSignature Mix\u003c/color\u003e, Diona's charge time for aimed shots is reduced by 60%",
+            "is_actived": false,
+            "pos": 4
+          },
+          {
+            "id": 395,
+            "name": "Double Shot, On The Rocks",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Diona_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eIcy Paws\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 5
+          },
+          {
+            "id": 396,
+            "name": "Cat's Tail Closing Time",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Diona_04.png",
+            "effect": "Characters within \u003ccolor=#FFD780FF\u003eSignature Mix\u003c/color\u003e's radius will gain the following effects based on their HP amounts:\\n·Increases Incoming Healing Bonus by 30% when HP falls below or is equal to 50%.\\n·Elemental Mastery increased by 200 when HP is above 50%.",
+            "is_actived": false,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000048,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Feiyan@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Feiyan.png",
+        "name": "Yanfei",
+        "element": "Pyro",
+        "fetter": 2,
+        "level": 20,
+        "rarity": 4,
+        "weapon": {
+          "id": 14403,
+          "name": "Sacrificial Fragments",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Catalyst_Fossil.png",
+          "type": 10,
+          "rarity": 4,
+          "level": 1,
+          "promote_level": 0,
+          "type_name": "Catalyst",
+          "desc": "A weathered script, the text of which is no longer legible. A cursed item eroded by the winds of time.",
+          "affix_level": 1
+        },
+        "reliquaries": [],
+        "constellations": [
+          {
+            "id": 481,
+            "name": "The Law Knows No Kindness",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Feiyan_01.png",
+            "effect": "When Yanfei uses her Charged Attack, each existing Scarlet Seal additionally reduces the stamina cost of this Charged Attack by 10% and increases resistance against interruption during its release.",
+            "is_actived": true,
+            "pos": 1
+          },
+          {
+            "id": 482,
+            "name": "Right of Final Interpretation",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Feiyan_02.png",
+            "effect": "Increases Yanfei's Charged Attack CRIT Rate by 20% against enemies below 50% HP.",
+            "is_actived": false,
+            "pos": 2
+          },
+          {
+            "id": 483,
+            "name": "Samadhi Fire-Forged",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Feiyan_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eSigned Edict\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 3
+          },
+          {
+            "id": 484,
+            "name": "Supreme Amnesty",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Feiyan_03.png",
+            "effect": "When \u003ccolor=#FFD780FF\u003eDone Deal\u003c/color\u003e is used:\\nCreates a shield that absorbs up to 45% of Yanfei's Max HP for 15s.\\nThis shield absorbs \u003ccolor=#FF9999FF\u003ePyro DMG\u003c/color\u003e 250% more effectively.",
+            "is_actived": false,
+            "pos": 4
+          },
+          {
+            "id": 485,
+            "name": "Abiding Affidavit",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Feiyan_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eDone Deal\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 5
+          },
+          {
+            "id": 486,
+            "name": "Extra Clause",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Feiyan_04.png",
+            "effect": "Increases the maximum number of Scarlet Seals by 1.",
+            "is_actived": false,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000027,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Ningguang@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Ningguang.png",
+        "name": "Ningguang",
+        "element": "Geo",
+        "fetter": 1,
+        "level": 20,
+        "rarity": 4,
+        "weapon": {
+          "id": 14402,
+          "name": "The Widsith",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Catalyst_Troupe.png",
+          "type": 10,
+          "rarity": 4,
+          "level": 60,
+          "promote_level": 3,
+          "type_name": "Catalyst",
+          "desc": "A heavy notebook filled with musical scores. Though suffering from moth damage and heavy wear-and-tear, there is still much power to be found among the hand-written words within.",
+          "affix_level": 1
+        },
+        "reliquaries": [],
+        "constellations": [
+          {
+            "id": 271,
+            "name": "Piercing Fragments",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Ningguang_01.png",
+            "effect": "When a Normal Attack hits, it deals AoE DMG.",
+            "is_actived": false,
+            "pos": 1
+          },
+          {
+            "id": 272,
+            "name": "Shock Effect",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Ningguang_05.png",
+            "effect": "When \u003ccolor=#FFD780FF\u003eJade Screen\u003c/color\u003e is shattered, its CD will reset.\\nCan occur once every 6s.",
+            "is_actived": false,
+            "pos": 2
+          },
+          {
+            "id": 273,
+            "name": "Majesty be the Array of Stars",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Ningguang_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eStarshatter\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 3
+          },
+          {
+            "id": 274,
+            "name": "Exquisite be the Jade, Outshining All Beneath",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Ningguang_03.png",
+            "effect": "\u003ccolor=#FFD780FF\u003eJade Screen\u003c/color\u003e increases nearby characters' Elemental RES by 10%.",
+            "is_actived": false,
+            "pos": 4
+          },
+          {
+            "id": 275,
+            "name": "Invincible be the Jade Screen",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Ningguang_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eJade Screen\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 5
+          },
+          {
+            "id": 276,
+            "name": "Grandeur be the Seven Stars",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Ningguang_04.png",
+            "effect": "When \u003ccolor=#FFD780FF\u003eStarshatter\u003c/color\u003e is used, Ningguang gains 7 Star Jades.",
+            "is_actived": false,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000031,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_Fischl@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Fischl.png",
+        "name": "Fischl",
+        "element": "Electro",
+        "fetter": 1,
+        "level": 20,
+        "rarity": 4,
+        "weapon": {
+          "id": 15406,
+          "name": "Prototype Crescent",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Bow_Proto.png",
+          "type": 12,
+          "rarity": 4,
+          "level": 70,
+          "promote_level": 4,
+          "type_name": "Bow",
+          "desc": "A prototype longbow discovered in the Blackcliff Forge. The arrow fired from this bow glimmers like a ray of moonlight.",
+          "affix_level": 1
+        },
+        "reliquaries": [],
+        "constellations": [
+          {
+            "id": 311,
+            "name": "Gaze of the Deep",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Fischl_01.png",
+            "effect": "Even when Oz is not present in combat, he can still watch over Fischl through his raven eyes. When Fischl performs a Normal Attack against an opponent, Oz fires a joint attack, dealing DMG equal to 22% of Fischl's ATK.",
+            "is_actived": false,
+            "pos": 1
+          },
+          {
+            "id": 312,
+            "name": "Devourer of All Sins",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Fischl_02.png",
+            "effect": "When \u003ccolor=#FFD780FF\u003eNightrider\u003c/color\u003e is used, it deals an additional 200% ATK as DMG, and its AoE is increased by 50%.",
+            "is_actived": false,
+            "pos": 2
+          },
+          {
+            "id": 313,
+            "name": "Wings of Nightmare",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Fischl_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eNightrider\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 3
+          },
+          {
+            "id": 314,
+            "name": "Her Pilgrimage of Bleak",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Fischl_03.png",
+            "effect": "When \u003ccolor=#FFD780FF\u003eMidnight Phantasmagoria\u003c/color\u003e is used, it deals 222% of ATK as \u003ccolor=#FFACFFFF\u003eElectro DMG\u003c/color\u003e to surrounding opponents.\\nWhen the skill duration ends, Fischl regenerates 20% of her HP.",
+            "is_actived": false,
+            "pos": 4
+          },
+          {
+            "id": 315,
+            "name": "Against the Fleeing Light",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_Fischl_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eMidnight Phantasmagoria\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": false,
+            "pos": 5
+          },
+          {
+            "id": 316,
+            "name": "Evernight Raven",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_Fischl_04.png",
+            "effect": "Extends the duration of Oz's presence on the field by 2s. Additionally, Oz performs joint attacks with your active character when present, dealing 30% of Fischl's ATK as \u003ccolor=#FFACFFFF\u003eElectro DMG\u003c/color\u003e.",
+            "is_actived": false,
+            "pos": 6
+          }
+        ]
+      },
+      {
+        "id": 10000005,
+        "image": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_image/UI_AvatarIcon_PlayerBoy@2x.png",
+        "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_PlayerBoy.png",
+        "name": "Traveler",
+        "element": "None",
+        "fetter": 1,
+        "level": 80,
+        "rarity": 5,
+        "weapon": {
+          "id": 11407,
+          "name": "Iron Sting",
+          "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_EquipIcon_Sword_Exotic.png",
+          "type": 1,
+          "rarity": 4,
+          "level": 40,
+          "promote_level": 1,
+          "type_name": "Sword",
+          "desc": "An exotic long-bladed rapier that somehow found its way into Liyue via foreign traders. It is light, agile, and sharp.",
+          "affix_level": 1
+        },
+        "reliquaries": [
+          {
+            "id": 57442,
+            "name": "Instructor's Brooch",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_10007_4.png",
+            "pos": 1,
+            "rarity": 4,
+            "level": 16,
+            "set": {
+              "id": 2100071,
+              "name": "Instructor",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Elemental Mastery by 80."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Upon triggering an Elemental Reaction, increases all party members' Elemental Mastery by 120 for 8s."
+                }
+              ]
+            },
+            "pos_name": "Flower of Life"
+          },
+          {
+            "id": 57422,
+            "name": "Instructor's Feather Accessory",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_10007_2.png",
+            "pos": 2,
+            "rarity": 4,
+            "level": 0,
+            "set": {
+              "id": 2100071,
+              "name": "Instructor",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Elemental Mastery by 80."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Upon triggering an Elemental Reaction, increases all party members' Elemental Mastery by 120 for 8s."
+                }
+              ]
+            },
+            "pos_name": "Plume of Death"
+          },
+          {
+            "id": 57452,
+            "name": "Instructor's Pocket Watch",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_10007_5.png",
+            "pos": 3,
+            "rarity": 4,
+            "level": 16,
+            "set": {
+              "id": 2100071,
+              "name": "Instructor",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Elemental Mastery by 80."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Upon triggering an Elemental Reaction, increases all party members' Elemental Mastery by 120 for 8s."
+                }
+              ]
+            },
+            "pos_name": "Sands of Eon"
+          },
+          {
+            "id": 77513,
+            "name": "Wanderer's String-Kettle",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_15003_1.png",
+            "pos": 4,
+            "rarity": 5,
+            "level": 0,
+            "set": {
+              "id": 2150031,
+              "name": "Wanderer's Troupe",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Elemental Mastery by 80."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Increases Charged Attack DMG by 35% if the character uses a Catalyst or a Bow."
+                }
+              ]
+            },
+            "pos_name": "Goblet of Eonothem"
+          },
+          {
+            "id": 57432,
+            "name": "Instructor's Cap",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/equip/UI_RelicIcon_10007_3.png",
+            "pos": 5,
+            "rarity": 4,
+            "level": 0,
+            "set": {
+              "id": 2100071,
+              "name": "Instructor",
+              "affixes": [
+                {
+                  "activation_number": 2,
+                  "effect": "Increases Elemental Mastery by 80."
+                },
+                {
+                  "activation_number": 4,
+                  "effect": "Upon triggering an Elemental Reaction, increases all party members' Elemental Mastery by 120 for 8s."
+                }
+              ]
+            },
+            "pos_name": "Circlet of Logos"
+          }
+        ],
+        "constellations": [
+          {
+            "id": 71,
+            "name": "Raging Vortex",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_PlayerWind_01.png",
+            "effect": "\u003ccolor=#FFD780FF\u003ePalm Vortex\u003c/color\u003e pulls in opponents and objects within a 5m radius.",
+            "is_actived": true,
+            "pos": 1
+          },
+          {
+            "id": 72,
+            "name": "Uprising Whirlwind",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_PlayerWind_02.png",
+            "effect": "Increases Energy Recharge by 16%.",
+            "is_actived": true,
+            "pos": 2
+          },
+          {
+            "id": 73,
+            "name": "Sweeping Gust",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_PlayerWind_02.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003eGust Surge\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": true,
+            "pos": 3
+          },
+          {
+            "id": 74,
+            "name": "Cherishing Breezes",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_PlayerWind_03.png",
+            "effect": "Reduces DMG taken while casting \u003ccolor=#FFD780FF\u003ePalm Vortex\u003c/color\u003e by 10%.",
+            "is_actived": true,
+            "pos": 4
+          },
+          {
+            "id": 75,
+            "name": "Vortex Stellaris",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_U_PlayerWind_01.png",
+            "effect": "Increases the Level of \u003ccolor=#FFD780FF\u003ePalm Vortex\u003c/color\u003e by 3.\\nMaximum upgrade level is 15.",
+            "is_actived": true,
+            "pos": 5
+          },
+          {
+            "id": 76,
+            "name": "Intertwined Winds",
+            "icon": "https://upload-os-bbs.mihoyo.com/game_record/genshin/constellation_icon/UI_Talent_S_PlayerWind_04.png",
+            "effect": "Targets who take DMG from \u003ccolor=#FFD780FF\u003eGust Surge\u003c/color\u003e have their \u003ccolor=#80FFD7FF\u003eAnemo RES\u003c/color\u003e decreased by 20%.\\nIf an Elemental Absorption occurred, then their RES towards the corresponding Element is also decreased by 20%.",
+            "is_actived": true,
+            "pos": 6
+          }
+        ]
+      }
+    ]
+  }
+}

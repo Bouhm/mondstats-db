@@ -5,7 +5,7 @@ import Axios from 'axios';
 import fs from 'fs';
 import fsAsync from 'fs/promises';
 import https from 'https';
-import _, { chunk } from 'lodash';
+import _ from 'lodash';
 
 import {
     IAbyss, IAbyssData, IAbyssLevels, IAffix, IArtifactDb, IArtifactSet, ICharacter, ICharacterDb,
@@ -55,9 +55,9 @@ const _incrementAccIdx = async () => {
     }
 
     // Clamp
-    let restMs = Math.min(Math.max(maxRest - (Date.now() - iterationStart), 0), maxRest) + 1000;
-    iterationStart = Date.now();
-    await _sleep(restMs);
+    // let restMs = Math.min(Math.max(maxRest - (Date.now() - iterationStart), 0), maxRest) + 1000;
+    // iterationStart = Date.now();
+    await _sleep(maxRest);
   }
 
   // if (DEVELOPMENT) console.log("using next acc... " + accIdx);
