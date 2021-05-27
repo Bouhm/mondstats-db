@@ -1,5 +1,20 @@
 import mongoose, { Schema } from 'mongoose';
 
+import { IArtifactSet } from './artifactSet';
+import { IConstellation } from './constellation';
+import { IWeapon } from './weapon';
+
+export interface ICharacter extends Document {
+  artifactSets?: IArtifactSet[],
+  constellations: IConstellation[],
+  element: string,
+  fetter?: number,
+  id: number,
+  level?: number,
+  name: number,
+  weapon?: IWeapon,
+}
+
 const characterSchema = new Schema({
   artifactSets: [{
     ref: 'ArtifactSet',

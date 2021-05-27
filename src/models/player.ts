@@ -1,5 +1,16 @@
 import mongoose, { Schema } from 'mongoose';
 
+import { IAbyssBattle } from './abyssBattle';
+import { ICharacter } from './character';
+
+export interface IPlayer extends Document {
+  abyss: IAbyssBattle[],
+  characters: ICharacter[],
+  max_floor: string,
+  total_star: number,
+  uid: number
+}
+
 const playerSchema = new Schema({
   abyss: [{
     ref: 'AbyssBattle',

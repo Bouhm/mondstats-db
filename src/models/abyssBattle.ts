@@ -1,4 +1,15 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
+
+import { ICharacter } from './character';
+
+export interface IAbyssBattle extends Document {
+  battle: number,
+  characters: ICharacter[],
+  floor: number,
+  max_star: number,
+  stage: number,
+  star: number
+}
 
 const abyssBattleSchema = new Schema({
   battle: {
@@ -27,4 +38,4 @@ const abyssBattleSchema = new Schema({
 },
 {timestamps: true});
 
-export default mongoose.model('AbyssBattle', abyssBattleSchema);
+export default mongoose.model<IAbyssBattle>('AbyssBattle', abyssBattleSchema);

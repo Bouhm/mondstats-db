@@ -1,5 +1,13 @@
 import mongoose, { Schema } from 'mongoose';
 
+export interface IConstellation {
+  effect: string,
+  id: number,
+  is_actived?: boolean,
+  name: string, 
+  pos: number
+}
+
 const constellationSchema = new Schema({
   effect: {
     type: String

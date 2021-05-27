@@ -1,16 +1,15 @@
 "use strict";
-import mongoose from 'mongoose';
-import connectDb from '../util/connection';
 import Axios from 'axios';
-import fs from 'fs';
-import fsAsync from 'fs/promises';
 import https from 'https';
 import _ from 'lodash';
+import mongoose from 'mongoose';
 
-import {
-    IAbyss, IAbyssData, IAbyssLevels, IAffix, IArtifactDb, IArtifactSet, ICharacter, ICharacterDb,
-    ICharData, IChunkData, IData, IWeaponDb, newAbyss, newChunk
-} from './types';
+import { IAbyssBattle } from '../models/abyssBattle';
+import { IArtifact } from '../models/artifact';
+import { IAffix, IArtifactSet } from '../models/artifactSet';
+import { ICharacter } from '../models/character';
+import { IWeapon } from '../models/weapon';
+import connectDb from '../util/connection';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
 const DEVELOPMENT = true
@@ -96,22 +95,16 @@ const getHeaders = () => ({
 });
 
 let validUids: number[] = [];
-let characterDb: ICharacterDb = {};
-let weaponDb: IWeaponDb = {};
-let artifactDb: IArtifactDb = {};
-let chunkData: IChunkData = newChunk;
-let playerAbyssData: IAbyss = { floors: [] };
-let abyssClearers: Set<number> = new Set();
+let playerAbyssData: IAbyssBattle[] = [];
+let playerCharacters: ICharacter[] = [];
 let playerTraveler = {
   id: 100,
   element: "Anemo"
 }
-let dataKeys = new Set(["all"]);
 
 const chunkSize = 2000;
 const server = "asia";
 
-const dataGroups = ["mains", "abyssClears", "all"]
 const charactersPath = "./db/characters.json"
 const weaponsPath = "./db/weapons.json"
 const artifactsPath = "./db/artifacts.json"
@@ -187,175 +180,8 @@ function _getServerFromUid(uid: number) {
   }
 }
 
-const loadFromDatabases = () => {
-  TOKENS = _.shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
-  PROXIES = _.shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
-  characterDb = JSON.parse(fs.readFileSync(charactersPath, 'utf-8'));
-  weaponDb = JSON.parse(fs.readFileSync(weaponsPath, 'utf-8'));
-  artifactDb = JSON.parse(fs.readFileSync(artifactsPath, 'utf-8'));
-  validUids = JSON.parse(fs.readFileSync(uidsPath, 'utf-8'));
-}
-
-const writeToDatabases = (chunk: number, server: string) => {
-  return [
-    fsAsync.writeFile(charactersPath, JSON.stringify(characterDb)),
-    fsAsync.writeFile(weaponsPath, JSON.stringify(weaponDb)),
-    fsAsync.writeFile(artifactsPath, JSON.stringify(artifactDb)),
-    fsAsync.writeFile(uidsPath, JSON.stringify(validUids)),
-    fsAsync.writeFile(getChunkPath(chunk, server), JSON.stringify(chunkData)),
-  ]
-}
-
-function _mergeCharData(src: { [id: string]: ICharData }, charData: ICharData, charId: string) {
-  if (src[charId]) {
-    src[charId] = charData;
-  } else {
-    let allChar = src[charId]
-
-    // Constellations
-    allChar.constellations = _.mergeWith(allChar.constellations, charData.constellations, (v1, v2) => v1 + v2);
-
-    // Levels
-    allChar.avgLevel = Math.floor((allChar.avgLevel + charData.avgLevel) / 2);
-
-    // Totals
-    allChar.total += charData.total;
-
-    // Builds
-    _.forEach(charData.builds, build => {
-      let setIdx = _.findIndex(allChar.builds, ({ artifacts }) => _.isEqual(artifacts, build.artifacts))
-      if (setIdx > -1) {
-        let totalBuild = allChar.builds[setIdx];
-
-        // Weapons
-        _.forEach(build.weapons, weapon => {
-          let wepIdx = _.findIndex(totalBuild.weapons, ({ id: weapon.id }))
-
-          if (wepIdx > -1) {
-            totalBuild.weapons[wepIdx].count += weapon.count
-          } else {
-            totalBuild.weapons.push(weapon)
-          }
-        })
-
-        // Artifact Sets count
-        totalBuild.count += build.count
-      } else {
-        allChar.builds.push(build)
-      }
-    })
-  }
-} 
-
-function _mergeAbyssData(src: IAbyssData, floor: IAbyssLevels, floorNum: string) {
-  _.forIn(floor, (stage, stageNum) => {
-    _.forEach(stage, (battle, half) => {  
-      src[floorNum][stageNum][half].total += battle.total;
-
-      _.forEach(battle.teams, (team) => {
-        let partyIdx = _.findIndex(src[floorNum][stageNum][half].teams, { party: team.party })
-
-        if (partyIdx > -1) {
-          src[floorNum][stageNum][half].teams[partyIdx].count += team.count
-        } else {
-          src[floorNum][stageNum][half].teams.push(team)
-        }
-      })
-    })
-  })
-}
-
-const mergeChunkData = () => {
-  let chunks: IChunkData[] = [];
-
-  fs.readdirSync(getChunksDir).forEach(fileName => {
-    if (fileName.endsWith('.json')) {
-      let chunkPath = `./db/${server}/chunks/${fileName}`;
-      chunks.push(JSON.parse(fs.readFileSync(chunkPath, 'utf-8')));
-    }
-  })
-
-  let groupData = chunks.splice(0, 1).pop();
-
-  return Promise.all(
-    _.map(dataGroups, key => { 
-      _.forEach(chunks, chunk => {
-        _.forIn(chunk[key as keyof IChunkData].characters, (chunkChar, charId) => {
-          let allCharacters = groupData![key as keyof IChunkData].characters! || {};
-          _mergeCharData(allCharacters, chunkChar, charId)
-        })
-          
-        _.forIn(chunk[key as keyof IChunkData].abyss, (floor, floorNum) => {
-          let allAbyss = groupData![key as keyof IChunkData].abyss!;
-          _mergeAbyssData(allAbyss, floor, floorNum);
-        })
-      })
-
-      if (key === "all") {
-        _weedOut(groupData![key as keyof IChunkData]);
-      }
-
-      return fsAsync.writeFile(getDataPath(key), JSON.stringify(groupData![key as keyof IChunkData]))
-    })
-  );
-}
-
-// const mergeAllData = () => {
-//   let mains = JSON.parse(fs.readFileSync(getDataPath("mains"), 'utf-8'));
-//   let abyssClears = JSON.parse(fs.readFileSync(getDataPath("abyssClears"), 'utf-8'));
-//   let allData = JSON.parse(fs.readFileSync(getDataPath("all"), 'utf-8'));
-
-//   _.forEach([mains, abyssClears], group => {
-//     _.forIn(group.characters, (char, charId) => {
-//       _mergeCharData(allData, char, charId)
-//     })
-      
-//     _.forIn(group.abyss, (floor, floorNum) => {
-//       _mergeAbyssData(allData.abyss, floor, floorNum);
-//     })
-//   })
-
-//   _weedOut(allData);
-//   return fsAsync.writeFile(getDataPath("all"), JSON.stringify(allData));
-// }
-
-const _weedOut = async (data: IData) => {
-  if (!data) return;
-  const threshold = 0.05
-
-  // Remove any builds below a threshold 
-  _.forEach(data.characters, charData => {
-    let filteredBuilds = _.filter(charData.builds, build => (build.count / charData.total) > threshold)
-    charData.builds = filteredBuilds
-
-    // Filter out weapons
-    _.forEach(charData.builds, build => {
-      build.weapons = _.filter(build.weapons, weapon => (weapon.count / build.count) > threshold)
-    })
-  })
-
-  // Filter out abyss party
-  _.forEach(data.abyss, (floor) => {
-    _.forEach(floor, (stage) => {
-      _.forEach(stage, (battle) => {        
-        _.forEach(battle.teams, (team, i) => {
-          if (team && (team.count / battle.total) < threshold) {
-            battle.teams.splice(i, 1)
-          }
-        })
-      })
-    })
-  })
-}
-
-const _updateChunk = async (dataNum: number) => {
-  console.log("updating chunk...")
-  let chunk = Math.ceil(dataNum / chunkSize);
-  await Promise.all(writeToDatabases(chunk, server))
-  await mergeChunkData()
-  console.log("pushing up database updates...")
-
-  chunkData = newChunk;
+function loadWeaponsDb() {
+  
 }
 
 function _cleanArtifactData(artifact: any) {
@@ -461,7 +287,7 @@ const getSpiralAbyssThreshold = async (server: string, uid: number, threshold = 
 
     if (maxFloor.split("-")[0] >= threshold) {
       if (maxFloor === "12-3" && resp.data.data["total_star"] >= 33) {
-        dataKeys.add("abyssClears")
+        // Abyss cleared
       }
       playerAbyssData = resp.data.data;
       return true
@@ -534,7 +360,7 @@ const aggregateCharacterData = (char: ICharacter) => {
   if (buildIdNum < 1 || !artifactSetCombinations.length || (artifactSetCombinations.length === 1 && artifactSetCombinations[0].activation_number < 4)) return;
 
   if (char.level === maxLevel) {
-    dataKeys.add("mains")
+    // Main
   } 
 
   let constellations = new Array(7).fill(0);
@@ -550,54 +376,49 @@ const aggregateCharacterData = (char: ICharacter) => {
   let charDat = _cleanCharacterData(char)
   characterDb[charDat.id] = charDat;
 
-  _.forEach([...dataKeys], key => {
-    let data = chunkData[key as keyof IChunkData];
-    if (key === "abyssClears" && !abyssClearers.has(charDat.id)) return;
-
-    if (data.characters[charDat.id]) {
-      data.characters[charDat.id].constellations[cNum]++;
-    
-      const buildIdx = _.findIndex(data.characters[charDat.id].builds, { buildId: buildIdNum.toString() })
-      if (buildIdx < 0) {
-        data.characters[charDat.id].builds.push({
-          buildId: buildIdNum.toString(),
-          weapons: [{ id: char.weapon.id, count: 1 }],
-          artifacts: artifactSetCombinations,
-          count: 1
-        })
-      } else {
-        // Update weapons
-        const weaponIdx = _.findIndex(data.characters[charDat.id].builds[buildIdx].weapons, { id: char.weapon.id })
-        if (weaponIdx < 0) {
-          data.characters[charDat.id].builds[buildIdx].weapons.push({ id: char.weapon.id, count: 1 })
-        } else {
-          data.characters[charDat.id].builds[buildIdx].weapons[weaponIdx].count++;
-        }
+  if (data.characters[charDat.id]) {
+    data.characters[charDat.id].constellations[cNum]++;
   
-        // Update artifact set count
-        data.characters[charDat.id].builds[buildIdx].count++;
-      }
-  
-      data.characters[charDat.id].total++;
-      data.characters[charDat.id].avgLevel = Math.floor(
-        (data.characters[charDat.id].avgLevel * data.characters[charDat.id].total + char.level) / (data.characters[charDat.id].total)
-      );
+    const buildIdx = _.findIndex(data.characters[charDat.id].builds, { buildId: buildIdNum.toString() })
+    if (buildIdx < 0) {
+      data.characters[charDat.id].builds.push({
+        buildId: buildIdNum.toString(),
+        weapons: [{ id: char.weapon.id, count: 1 }],
+        artifacts: artifactSetCombinations,
+        count: 1
+      })
     } else {
-      data.characters[charDat.id] = {
-        id: charDat.id,
-        name: charDat.name,
-        constellations,
-        avgLevel: char.level,
-        builds: [{
-          buildId: buildIdNum.toString(),
-          weapons: [{ id: char.weapon.id, count: 1 }],
-          artifacts: artifactSetCombinations,
-          count: 1
-        }],
-        total: 1
+      // Update weapons
+      const weaponIdx = _.findIndex(data.characters[charDat.id].builds[buildIdx].weapons, { id: char.weapon.id })
+      if (weaponIdx < 0) {
+        data.characters[charDat.id].builds[buildIdx].weapons.push({ id: char.weapon.id, count: 1 })
+      } else {
+        data.characters[charDat.id].builds[buildIdx].weapons[weaponIdx].count++;
       }
+
+      // Update artifact set count
+      data.characters[charDat.id].builds[buildIdx].count++;
     }
-  })
+
+    data.characters[charDat.id].total++;
+    data.characters[charDat.id].avgLevel = Math.floor(
+      (data.characters[charDat.id].avgLevel * data.characters[charDat.id].total + char.level) / (data.characters[charDat.id].total)
+    );
+  } else {
+    data.characters[charDat.id] = {
+      id: charDat.id,
+      name: charDat.name,
+      constellations,
+      avgLevel: char.level,
+      builds: [{
+        buildId: buildIdNum.toString(),
+        weapons: [{ id: char.weapon.id, count: 1 }],
+        artifacts: artifactSetCombinations,
+        count: 1
+      }],
+      total: 1
+    }
+  }
 }
 
 const aggregateAbyssData = (abyssData: IAbyss) => {
@@ -777,32 +598,19 @@ const aggregateAllCharacterData = async (startingUids: number[], startIdx = 0) =
   await _updateChunk(dataNum)
 }
 
-(async () => {
-  // const start = 0;
-  // const count = 10000000;
-  // const servers = ["usa"];
-  // let uids = _generateUids(start, count, servers);
-  const start = 0;
+connectDb();
 
-  loadFromDatabases();
-  // let baseUid = _getBaseUid(server, start)
-  // const startIdx = _.(validUids, indexOf())
+mongoose.connection.once('open', () => {
+  const count = 200; // Limit to 200 colors
+  const colors = [];
 
-  if (isDryRun) {
-    const charData = JSON.parse(fs.readFileSync('./db/sampleChars.json', 'utf-8'));
-    const abyssData = JSON.parse(fs.readFileSync('./db/sampleAbyss.json', 'utf-8'));
-    _.forEach(charData.data.avatars, char => aggregateCharacterData(char))
-    aggregateAbyssData(abyssData)
-    fs.writeFileSync('./db/sample.json', JSON.stringify(chunkData))
-  } else {
-    aggregateAllCharacterData(validUids)
+  for (let i = 0; i < count; i++) {
+    colors.push({
+      hex: ntc.names[i][0],
+      hue: getHueForShade(ntc.names[i][2])
+    });
   }
-})()
 
-
-// connectDb();
-
-// mongoose.connection.once('open', () => {
-
-// });
+  Color.insertMany(colors).then(() => mongoose.disconnect());
+});
 
