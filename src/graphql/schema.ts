@@ -1,15 +1,13 @@
-import { buildSchema } from 'graphql';
+import { gql } from 'apollo-server';
 
-const schema = buildSchema(`
+const schema = gql`
   type Character {
-    id: Number!
-    name: String!
-      
+
   }
+
   type Query {
-    characters: [Color!]!
-    abyss:
+    characters: [Character]!
   }
-`)
+`;
 
 export default schema
