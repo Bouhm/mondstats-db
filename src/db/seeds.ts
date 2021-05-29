@@ -1,14 +1,15 @@
 "use strict";
 import Axios from 'axios';
+import fs from 'fs';
 import https from 'https';
 import _ from 'lodash';
 import mongoose from 'mongoose';
 
 import { IAbyssBattle } from '../models/abyssBattle';
-import { IArtifact } from '../models/artifact';
-import { IAffix, IArtifactSet } from '../models/artifactSet';
-import { ICharacter } from '../models/character';
-import { IWeapon } from '../models/weapon';
+import Artifact, { IArtifact } from '../models/artifact';
+import ArtifactSet, { IAffix, IArtifactSet } from '../models/artifactSet';
+import Character, { ICharacter } from '../models/character';
+import Weapon, { IWeapon } from '../models/weapon';
 import connectDb from '../util/connection';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
@@ -321,296 +322,341 @@ const getPlayerCharacters = async (server: string, uid: number, threshold = 40) 
     })
 }
 
-const aggregateCharacterData = (char: ICharacter) => {
-  // Update database
-  let wepDat = _cleanWeaponData(char.weapon);
-  weaponDb[char.weapon.id] = wepDat;
+// const aggregateCharacterData = (char: ICharacter) => {
+//   // Update database
+//   let wepDat = _cleanWeaponData(char.weapon);
+//   weaponDb[char.weapon.id] = wepDat;
 
-  let artifactSets: IArtifactSet = {};
-  _.forEach(char.reliquaries, relic => {
-    let artiDat = _cleanArtifactData(relic);
-    artifactDb[relic.id] = artiDat;
+//   let artifactSets: IArtifactSet = {};
+//   _.forEach(char.reliquaries, relic => {
+//     let artiDat = _cleanArtifactData(relic);
+//     artifactDb[relic.id] = artiDat;
 
-    if (artifactSets.hasOwnProperty(artiDat.set.id)) {
-      artifactSets[artiDat.set.id].count++
-    } else {
-      artifactSets[artiDat.set.id] = {
-        count: 1,
-        affixes: artiDat.set.affixes
-      }
-    }
-  });
+//     if (artifactSets.hasOwnProperty(artiDat.set.id)) {
+//       artifactSets[artiDat.set.id].count++
+//     } else {
+//       artifactSets[artiDat.set.id] = {
+//         count: 1,
+//         affixes: artiDat.set.affixes
+//       }
+//     }
+//   });
 
-  let buildIdNum = -1;
-  let artifactSetCombinations: { id: number, activation_number: number }[] = [];
+//   let buildIdNum = -1;
+//   let artifactSetCombinations: { id: number, activation_number: number }[] = [];
 
-  _.forIn(artifactSets, (setData, id) => {
-    let activationNum = _getActivationNumber(setData.count, setData.affixes);
-    buildIdNum += parseInt(id) * activationNum;
+//   _.forIn(artifactSets, (setData, id) => {
+//     let activationNum = _getActivationNumber(setData.count, setData.affixes);
+//     buildIdNum += parseInt(id) * activationNum;
 
-    if (activationNum > 0) {
-      artifactSetCombinations.push({
-        id: parseInt(id),
-        activation_number: activationNum
-      })
-    }
-  });
+//     if (activationNum > 0) {
+//       artifactSetCombinations.push({
+//         id: parseInt(id),
+//         activation_number: activationNum
+//       })
+//     }
+//   });
   
-  // Skip incomplete builds
-  if (buildIdNum < 1 || !artifactSetCombinations.length || (artifactSetCombinations.length === 1 && artifactSetCombinations[0].activation_number < 4)) return;
+//   // Skip incomplete builds
+//   if (buildIdNum < 1 || !artifactSetCombinations.length || (artifactSetCombinations.length === 1 && artifactSetCombinations[0].activation_number < 4)) return;
 
-  if (char.level === maxLevel) {
-    // Main
-  } 
+//   if (char.level === maxLevel) {
+//     // Main
+//   } 
 
-  let constellations = new Array(7).fill(0);
-  let cNum = 0;
-  for (let i = 0; i < 6; i++) {
-    if (char.constellations[i].is_actived) {
-      cNum++;
-    }
-  }
-  constellations[cNum] = 1;
+//   let constellations = new Array(7).fill(0);
+//   let cNum = 0;
+//   for (let i = 0; i < 6; i++) {
+//     if (char.constellations[i].is_actived) {
+//       cNum++;
+//     }
+//   }
+//   constellations[cNum] = 1;
 
-  // This should be at the top of character data
-  let charDat = _cleanCharacterData(char)
-  characterDb[charDat.id] = charDat;
+//   // This should be at the top of character data
+//   let charDat = _cleanCharacterData(char)
+//   characterDb[charDat.id] = charDat;
 
-  if (data.characters[charDat.id]) {
-    data.characters[charDat.id].constellations[cNum]++;
+//   if (data.characters[charDat.id]) {
+//     data.characters[charDat.id].constellations[cNum]++;
   
-    const buildIdx = _.findIndex(data.characters[charDat.id].builds, { buildId: buildIdNum.toString() })
-    if (buildIdx < 0) {
-      data.characters[charDat.id].builds.push({
-        buildId: buildIdNum.toString(),
-        weapons: [{ id: char.weapon.id, count: 1 }],
-        artifacts: artifactSetCombinations,
-        count: 1
-      })
-    } else {
-      // Update weapons
-      const weaponIdx = _.findIndex(data.characters[charDat.id].builds[buildIdx].weapons, { id: char.weapon.id })
-      if (weaponIdx < 0) {
-        data.characters[charDat.id].builds[buildIdx].weapons.push({ id: char.weapon.id, count: 1 })
-      } else {
-        data.characters[charDat.id].builds[buildIdx].weapons[weaponIdx].count++;
-      }
+//     const buildIdx = _.findIndex(data.characters[charDat.id].builds, { buildId: buildIdNum.toString() })
+//     if (buildIdx < 0) {
+//       data.characters[charDat.id].builds.push({
+//         buildId: buildIdNum.toString(),
+//         weapons: [{ id: char.weapon.id, count: 1 }],
+//         artifacts: artifactSetCombinations,
+//         count: 1
+//       })
+//     } else {
+//       // Update weapons
+//       const weaponIdx = _.findIndex(data.characters[charDat.id].builds[buildIdx].weapons, { id: char.weapon.id })
+//       if (weaponIdx < 0) {
+//         data.characters[charDat.id].builds[buildIdx].weapons.push({ id: char.weapon.id, count: 1 })
+//       } else {
+//         data.characters[charDat.id].builds[buildIdx].weapons[weaponIdx].count++;
+//       }
 
-      // Update artifact set count
-      data.characters[charDat.id].builds[buildIdx].count++;
-    }
+//       // Update artifact set count
+//       data.characters[charDat.id].builds[buildIdx].count++;
+//     }
 
-    data.characters[charDat.id].total++;
-    data.characters[charDat.id].avgLevel = Math.floor(
-      (data.characters[charDat.id].avgLevel * data.characters[charDat.id].total + char.level) / (data.characters[charDat.id].total)
-    );
-  } else {
-    data.characters[charDat.id] = {
-      id: charDat.id,
-      name: charDat.name,
-      constellations,
-      avgLevel: char.level,
-      builds: [{
-        buildId: buildIdNum.toString(),
-        weapons: [{ id: char.weapon.id, count: 1 }],
-        artifacts: artifactSetCombinations,
-        count: 1
-      }],
-      total: 1
-    }
-  }
-}
+//     data.characters[charDat.id].total++;
+//     data.characters[charDat.id].avgLevel = Math.floor(
+//       (data.characters[charDat.id].avgLevel * data.characters[charDat.id].total + char.level) / (data.characters[charDat.id].total)
+//     );
+//   } else {
+//     data.characters[charDat.id] = {
+//       id: charDat.id,
+//       name: charDat.name,
+//       constellations,
+//       avgLevel: char.level,
+//       builds: [{
+//         buildId: buildIdNum.toString(),
+//         weapons: [{ id: char.weapon.id, count: 1 }],
+//         artifacts: artifactSetCombinations,
+//         count: 1
+//       }],
+//       total: 1
+//     }
+//   }
+// }
 
-const aggregateAbyssData = (abyssData: IAbyss) => {
-  _.forEach(_.filter(abyssData.floors, floor => floor.index > 8), floor => {
-    _.forEach(_.filter(floor.levels, level => level.star > 0), level => {
-      _.forEach(level.battles, battle => {
-        const partyIds: number[] = _.map(battle.avatars, char => {
-          let charId = char.id;
-          if (char.id === 10000005 || char.id === 10000007) {
-            charId = playerTraveler.id
-          }
+// const aggregateAbyssData = (abyssData: IAbyss) => {
+//   _.forEach(_.filter(abyssData.floors, floor => floor.index > 8), floor => {
+//     _.forEach(_.filter(floor.levels, level => level.star > 0), level => {
+//       _.forEach(level.battles, battle => {
+//         const partyIds: number[] = _.map(battle.avatars, char => {
+//           let charId = char.id;
+//           if (char.id === 10000005 || char.id === 10000007) {
+//             charId = playerTraveler.id
+//           }
 
-          if (dataKeys.has("abyssClears")) abyssClearers.add(charId)
+//           if (dataKeys.has("abyssClears")) abyssClearers.add(charId)
 
-          return charId
-        }).sort()
+//           return charId
+//         }).sort()
 
-        if (TEST && !partyIds.includes(testCharId)) return;
+//         if (TEST && !partyIds.includes(testCharId)) return;
 
-        let floorKey = (floor.index + '') as keyof IAbyssData;
-        let levelKey = (level.index + '') as keyof IAbyssLevels;
+//         let floorKey = (floor.index + '') as keyof IAbyssData;
+//         let levelKey = (level.index + '') as keyof IAbyssLevels;
 
-        _.forEach([...dataKeys], key => {
-          let data = chunkData[key as keyof IChunkData];
+//         _.forEach([...dataKeys], key => {
+//           let data = chunkData[key as keyof IChunkData];
 
-          if (!_.isEmpty(data.abyss)) {
-            if (!data.abyss[floorKey][levelKey][battle.index-1].teams) {
-              data.abyss[floorKey][levelKey][battle.index-1] =
-                { teams: [{ party: partyIds, count: 1 }], total: 1 }
-            } else {
-              let levelData = data.abyss[floorKey][levelKey][battle.index-1];
-              let partyIdx = _.findIndex(levelData.teams, { party: partyIds })
+//           if (!_.isEmpty(data.abyss)) {
+//             if (!data.abyss[floorKey][levelKey][battle.index-1].teams) {
+//               data.abyss[floorKey][levelKey][battle.index-1] =
+//                 { teams: [{ party: partyIds, count: 1 }], total: 1 }
+//             } else {
+//               let levelData = data.abyss[floorKey][levelKey][battle.index-1];
+//               let partyIdx = _.findIndex(levelData.teams, { party: partyIds })
 
-              if (partyIdx > -1) {
-                levelData.teams[partyIdx].count++
-              } else {
-                levelData.teams.push({
-                  party: partyIds,
-                  count: 1
-                })
-              }
-              levelData.total++;
-            }
-          } else {
-            data.abyss = newAbyss;
-            data.abyss[floorKey][levelKey][battle.index-1] =
-              { teams: [{ party: partyIds, count: 1 }], total: 1 }
-          }
-        })
-      })
-    })
-  })
-}
+//               if (partyIdx > -1) {
+//                 levelData.teams[partyIdx].count++
+//               } else {
+//                 levelData.teams.push({
+//                   party: partyIds,
+//                   count: 1
+//                 })
+//               }
+//               levelData.total++;
+//             }
+//           } else {
+//             data.abyss = newAbyss;
+//             data.abyss[floorKey][levelKey][battle.index-1] =
+//               { teams: [{ party: partyIds, count: 1 }], total: 1 }
+//           }
+//         })
+//       })
+//     })
+//   })
+// }
 
-const aggregatePlayerData = async (server: string, uid: number, characterIds: number[]) => {
-  let reqBody = {
-    "character_ids": characterIds,
-    "server": `os_${server}`,
-    "role_id": uid
-  }
+// const aggregatePlayerData = async (server: string, uid: number, characterIds: number[]) => {
+//   let reqBody = {
+//     "character_ids": characterIds,
+//     "server": `os_${server}`,
+//     "role_id": uid
+//   }
 
-  return axios.post(charApiUrl, reqBody, { headers: getHeaders(), withCredentials: true })
-    .then(resp => {
-      // Rate limit reached message
-      if (resp.data && resp.data.message && resp.data.message.startsWith("Y")) {
-        return null
-      }
-      // if (resp.data && resp.data.message && DEVELOPMENT) console.log("Third pass : " + resp.data.message);
-      if (!resp.data || !resp.data.data) return false;
+//   return axios.post(charApiUrl, reqBody, { headers: getHeaders(), withCredentials: true })
+//     .then(resp => {
+//       // Rate limit reached message
+//       if (resp.data && resp.data.message && resp.data.message.startsWith("Y")) {
+//         return null
+//       }
+//       // if (resp.data && resp.data.message && DEVELOPMENT) console.log("Third pass : " + resp.data.message);
+//       if (!resp.data || !resp.data.data) return false;
 
-      _.forEach(resp.data.data.avatars, char => {
-        if (dataKeys.has("mains")) dataKeys.delete("mains");
-        if (char.weapon.rarity >= 3 && !_.find(char.reliquaries, relic => relic.rarity <= 3)) {
-          if (TEST && testCharId !== char.id) return;
-          aggregateCharacterData(char);
-        }
-      })
+//       _.forEach(resp.data.data.avatars, char => {
+//         if (dataKeys.has("mains")) dataKeys.delete("mains");
+//         if (char.weapon.rarity >= 3 && !_.find(char.reliquaries, relic => relic.rarity <= 3)) {
+//           if (TEST && testCharId !== char.id) return;
+//           aggregateCharacterData(char);
+//         }
+//       })
 
-      // Abyss data
-      aggregateAbyssData(playerAbyssData);
+//       // Abyss data
+//       aggregateAbyssData(playerAbyssData);
 
-      // Increment totals
-      _.forEach([...dataKeys], key => chunkData[key as keyof IChunkData].totalPlayers++ )
-      return true
-    })
-    .catch(error => {
-      console.log(error)
-    });
-}
+//       // Increment totals
+//       _.forEach([...dataKeys], key => chunkData[key as keyof IChunkData].totalPlayers++ )
+//       return true
+//     })
+//     .catch(error => {
+//       console.log(error)
+//     });
+// }
 
-const aggregateAllCharacterData = async (startingUids: number[], startIdx = 0) => {
-  let firstPass = false;
-  let dataNum = startIdx;
-  let startingUid = startingUids[startingUids.length-1];
-  let total = 50000000;
-  let checkedValidUids = false;
-  let i = startIdx
-  let blockedIdx = 0;
+// const aggregateAllCharacterData = async (startingUids: number[], startIdx = 0) => {
+//   let firstPass = false;
+//   let dataNum = startIdx;
+//   let startingUid = startingUids[startingUids.length-1];
+//   let total = 50000000;
+//   let checkedValidUids = false;
+//   let i = startIdx
+//   let blockedIdx = 0;
 
-  while (i < total) {
-    dataKeys.clear()
-    dataKeys.add("all")
+//   while (i < total) {
+//     dataKeys.clear()
+//     dataKeys.add("all")
 
-    // Convoluted way of going through valid UIDs first, then new ones
-    let uid = 0;
-    if (!checkedValidUids && i < startingUids.length - 1) {
-      uid = startingUids[i]
-    } else {
-      if (!checkedValidUids && startingUids.length > i) {
-        checkedValidUids = true;
-        i = 1;
-      }
-      uid = startingUid + i;
-    } 
+//     // Convoluted way of going through valid UIDs first, then new ones
+//     let uid = 0;
+//     if (!checkedValidUids && i < startingUids.length - 1) {
+//       uid = startingUids[i]
+//     } else {
+//       if (!checkedValidUids && startingUids.length > i) {
+//         checkedValidUids = true;
+//         i = 1;
+//       }
+//       uid = startingUid + i;
+//     } 
 
-    if (DEVELOPMENT) console.log(uid, i, dataNum);
-    // const server = _getServerFromUid(uid);
+//     if (DEVELOPMENT) console.log(uid, i, dataNum);
+//     // const server = _getServerFromUid(uid);
 
-    let shouldCollectData: boolean | null = firstPass;
-    if (!firstPass) {
-      shouldCollectData = await getSpiralAbyssThreshold(server, uid)
-      blockedIdx = accIdx;
-      await _incrementAccIdx();
-    }
+//     let shouldCollectData: boolean | null = firstPass;
+//     if (!firstPass) {
+//       shouldCollectData = await getSpiralAbyssThreshold(server, uid)
+//       blockedIdx = accIdx;
+//       await _incrementAccIdx();
+//     }
     
-    // Blocked
-    if (shouldCollectData === null) {
-      await handleBlock(blockedIdx)
-      if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + i);
+//     // Blocked
+//     if (shouldCollectData === null) {
+//       await handleBlock(blockedIdx)
+//       if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + i);
 
-      continue;
-    } 
-    if (!shouldCollectData) {
-      i++;
-      continue;
-    }
+//       continue;
+//     } 
+//     if (!shouldCollectData) {
+//       i++;
+//       continue;
+//     }
 
-    if (shouldCollectData) {
-      if (!validUids.includes(uid)) validUids.push(uid);
-      firstPass = true;
+//     if (shouldCollectData) {
+//       if (!validUids.includes(uid)) validUids.push(uid);
+//       firstPass = true;
 
-      const characterIds = await getPlayerCharacters(server, uid)
-      blockedIdx = accIdx;
-      await _incrementAccIdx();
+//       const characterIds = await getPlayerCharacters(server, uid)
+//       blockedIdx = accIdx;
+//       await _incrementAccIdx();
 
-      if (characterIds === null) {
-        await handleBlock(blockedIdx)
-        if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + i);
-        continue;
-      } else {
-        if (characterIds.length > 0) {
-          const result = await aggregatePlayerData(server, uid, characterIds)
-          blockedIdx = accIdx;
-          await _incrementAccIdx();
+//       if (characterIds === null) {
+//         await handleBlock(blockedIdx)
+//         if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + i);
+//         continue;
+//       } else {
+//         if (characterIds.length > 0) {
+//           const result = await aggregatePlayerData(server, uid, characterIds)
+//           blockedIdx = accIdx;
+//           await _incrementAccIdx();
           
-          if (result === null) {
-            await handleBlock(blockedIdx)
-            if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + i);
-            continue;
-          } else {
-            firstPass = false;
-            dataNum++;
+//           if (result === null) {
+//             await handleBlock(blockedIdx)
+//             if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + i);
+//             continue;
+//           } else {
+//             firstPass = false;
+//             dataNum++;
 
-            if (dataNum % chunkSize === 0) {
-              await _updateChunk(dataNum)
-            }
-          }
-        }
-        i++;
-      }
-    }
-  }
+//             if (dataNum % chunkSize === 0) {
+//               await _updateChunk(dataNum)
+//             }
+//           }
+//         }
+//         i++;
+//       }
+//     }
+//   }
 
-  if (DEVELOPMENT) {
-    console.log("Out loop", i, dataNum)
-  }
-  await _updateChunk(dataNum)
+//   if (DEVELOPMENT) {
+//     console.log("Out loop", i, dataNum)
+//   }
+//   await _updateChunk(dataNum)
+// }
+
+let characterDb: any = {};
+let weaponDb: any = {};
+let artifactDb: any = {};
+
+const loadFromJson = () => {
+  // COOKIES = _.shuffle(JSON.parse(fs.readFileSync(cookiesPath, 'utf-8')));
+  // PROXIES = _.shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
+  characterDb = JSON.parse(fs.readFileSync(charactersPath, 'utf-8'));
+  weaponDb = JSON.parse(fs.readFileSync(weaponsPath, 'utf-8'));
+  artifactDb = JSON.parse(fs.readFileSync(artifactsPath, 'utf-8'));
+  validUids = JSON.parse(fs.readFileSync(uidsPath, 'utf-8'));
 }
 
 connectDb();
 
 mongoose.connection.once('open', () => {
-  const count = 200; // Limit to 200 colors
-  const colors = [];
+  loadFromJson()
 
-  for (let i = 0; i < count; i++) {
-    colors.push({
-      hex: ntc.names[i][0],
-      hue: getHueForShade(ntc.names[i][2])
-    });
-  }
+  let characters: ICharacter[] = _.map(characterDb.values(), character => {
+    const constellations = _.map(character.constellations, constellation => ({
+      id: constellation.id,
+      effect: constellation.effect,
+      name: constellation.name,
+      pos: constellation.pos,
+      icon: constellation.icon
+    }))
+  
+    return {
+      id: character.id,
+      element: character.element,
+      icon: character.icon,
+      name: character.name,
+      rarity: character.rarity,
+      constellations
+    }
+  })
 
-  Color.insertMany(colors).then(() => mongoose.disconnect());
+  let weapons: IWeapon[] = _.map(weaponDb.values(), weapon => ({
+    id: weapon.id,
+    desc: weapon.element,
+    name: weapon.name,
+    icon: weapon.icon,
+    type: weapon.type,
+    type_name: weapon.type_name,
+    rarity: weapon.rarity
+  }))
+
+  let artifactSets: IArtifactSet[] = _.map(artifactDb.values(), artifact => ({
+    id: artifact.id,
+    name: artifact.name,
+    icon: artifact.icon,
+    pos: artifact.pos,
+    pos_name: artifact.pos_name,
+    affixes: artifact.set.affixes
+  }))
+
+  Character.insertMany(characters);
+  Weapon.insertMany(weapons);
+  Artifact.insertMany(artifacts);
 });
 

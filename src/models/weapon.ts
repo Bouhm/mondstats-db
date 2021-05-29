@@ -1,17 +1,18 @@
 import mongoose, { Schema } from 'mongoose';
 
-export interface IWeapon extends Document {
+export interface IWeapon {
   desc: string,
   id: number,
-  level?: number,
   name: string,
   rarity: number,
   type: number,
-  type_name: string
+  type_name: string,
+  icon: string
 }
 
 const weaponSchema = new Schema({
   desc: {
+    required: true,
     type: String
   },
   id: {
@@ -19,19 +20,24 @@ const weaponSchema = new Schema({
     type: Number,
     unique: true
   },
-  level: {
-    type: Number
-  },
   name: {
+    required: true,
     type: String
   },
   rarity: {
+    required: true,
     type: Number
   },
   type: {
+    required: true,
     type: Number
   },
   type_name: {
+    required: true,
+    type: String
+  },
+  icon: {
+    required: true, 
     type: String
   }
 },

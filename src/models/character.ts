@@ -1,49 +1,53 @@
 import mongoose, { Schema } from 'mongoose';
 
-import { IArtifactSet } from './artifactSet';
-import { IConstellation } from './constellation';
-import { IWeapon } from './weapon';
+export interface IConstellation {
+  effect: string,
+  id: number,
+  name: string, 
+  pos: number,
+  icon: string
+}
 
-export interface ICharacter extends Document {
-  artifactSets?: IArtifactSet[],
+export interface ICharacter {
   constellations: IConstellation[],
   element: string,
-  fetter?: number,
   id: number,
-  level?: number,
   name: number,
-  weapon?: IWeapon,
+  rarity: number
 }
 
 const characterSchema = new Schema({
-  artifactSets: [{
-    ref: 'ArtifactSet',
-    type: Schema.Types.ObjectId
-  }],
   constellations: [{
-    ref: 'Constellation',
-    type: Schema.Types.ObjectId
+    effect: String,
+    id: Number,
+    name: String,
+    pos: Number,
+    icon: String
   }],
   element: {
+    required: true,
     type: String
-  },
-  fetter: {
-    type: Number
   },
   id: {
     required: true,
     type: Number,
     unique: true
   },
-  level: {
-    type: Number
-  },
   name: {
+    required: true,
     type: String
   },
-  weapon: {
-    ref: 'Weapon',
-    type: Schema.Types.ObjectId
+  rarity: {
+    required: true,
+    type: Number
+  },
+  icon: {
+    required: true, 
+    type: String
+  },
+  image: {
+    required: true, 
+    type: String
   }
 },
 {timestamps: true});

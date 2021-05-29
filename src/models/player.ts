@@ -3,7 +3,7 @@ import mongoose, { Schema } from 'mongoose';
 import { IAbyssBattle } from './abyssBattle';
 import { ICharacter } from './character';
 
-export interface IPlayer extends Document {
+export interface IPlayer {
   abyss: IAbyssBattle[],
   characters: ICharacter[],
   max_floor: string,
@@ -17,15 +17,17 @@ const playerSchema = new Schema({
     required: true,
     type: Schema.Types.ObjectId
   }],
-  characters: [{
-    ref: 'Character',
+  playerCharacters: [{
+    ref: 'PlayerCharacter',
     required: true,
     type: Schema.Types.ObjectId
   }],
   max_floor: {
+    required: true,
     type: String
   },
   total_star: {
+    required: true,
     type: Number
   },
   uid: {
