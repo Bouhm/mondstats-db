@@ -2,7 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 
 import { IArtifactSet } from './interfaces';
 
-interface IArtifactModel extends Document {
+export interface IArtifactModel extends Document {
   id: number,
   name: string,
   rarity: number,
@@ -36,7 +36,7 @@ const artifactSchema = new Schema({
   },
   pos_name: {
     required: true,
-    type: Number
+    type: String
   },
   set: {
     required: true,

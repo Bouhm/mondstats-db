@@ -14,7 +14,7 @@ import {
     IPlayer, IPlayerCharacter, IWeapon
 } from '../models/interfaces';
 import Player, { IPlayerModel } from '../models/player';
-import PlayerCharacter from '../models/playerCharacter';
+import PlayerCharacter, { IPlayerCharacterModel } from '../models/playerCharacter';
 import Weapon from '../models/weapon';
 import connectDb from '../util/connection';
 
@@ -27,7 +27,6 @@ const testCharId = 10000003
 const spiralAbyssApiUrl = 'https://api-os-takumi.mihoyo.com/game_record/genshin/api/spiralAbyss';
 const userApiUrl = 'https://api-os-takumi.mihoyo.com/game_record/genshin/api/index'
 const charApiUrl = 'https://bbs-api-os.hoyolab.com/game_record/genshin/api/character';
-// const proxiesUrl = "https://raw.githubusercontent.com/scidam/proxy-list/master/proxy.json";
 
 const axios = Axios.create({
   httpsAgent: new https.Agent({
@@ -35,7 +34,10 @@ const axios = Axios.create({
   })
 });
 
-const PROXIES: Array<{ ip: string, port: string }> = [];
+const tokensPath = './src/keys/tokens.json'
+const proxiesPath = './src/keys/proxies.json'
+
+let PROXIES: Array<{ ip: string, port: string }> = [];
 let TOKENS: string[] = [];
 let timeoutBox: string[] = [];
 let proxyIdx = 0;
@@ -45,8 +47,9 @@ const maxRest = (60 * 10 * 1000) / 30;
 const maxLevel = 90;
 
 let playerRef: IPlayerModel & Document;
+let playerCharacterRefs: (IPlayerCharacterModel & Document)[];
 let playerAbyssData: IAbyssResponse;
-const options = { upsert: true, new: true, runValidators: true }
+const options = { upsert: true, new: true, runValidators: true, useFindAndModify: false }
 
 const _incrementAccIdx = async () => {
   accIdx++
@@ -281,7 +284,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
 
   let weaponRef = await Weapon.findOneAndUpdate({ id: charWeapon.id }, {$setOnInsert: charWeapon}, options)
 
-  let artifactRefs: Schema.Types.ObjectId[] = [];
+  let artifactRefIds: Schema.Types.ObjectId[] = [];
   // Artifacts
   _.forEach(char.reliquaries, async (artifact) => {
     let charArtifact: IArtifact = _.pick(artifact, [
@@ -289,24 +292,30 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
     ])
 
     let artifactSetRef = await ArtifactSet.findOneAndUpdate(
-      { id: artifact.set.id },
+      {id: artifact.set.id},
       {$setOnInsert: artifact.set},
       options
     );
     charArtifact.set = artifactSetRef._id;
 
     let artifactRef = await Artifact.findOneAndUpdate(
-      { id: charArtifact.id }, 
+      {id: charArtifact.id}, 
       {$setOnInsert: charArtifact}, 
       options
     );
-    artifactRefs.push(artifactRef._id)
+    artifactRefIds.push(artifactRef._id)
   })
+
+  console.log("ARTIFACT REFS", artifactRefIds)
 
   // Characters
   let character: ICharacter = _.pick(char, [
     'constellations','element','id','name','rarity'
   ])
+
+  // _.forEach(character.constellations, constellation => {
+  //   delete constellation.is_actived
+  // })
 
   let characterRef = await Character.findOneAndUpdate({ id: character.id }, {$setOnInsert: character}, options)
 
@@ -319,8 +328,9 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   }
 
   let playerCharacter: IPlayerCharacter = {
+    id: character.id,
     character: characterRef._id,
-    artifacts: artifactRefs,
+    artifacts: artifactRefIds,
     constellation: cNum,
     fetter: char.fetter,
     level: char.level,
@@ -328,41 +338,46 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
     player: playerRef._id
   }
 
-  await PlayerCharacter.findOneAndUpdate(
-    {character: playerCharacter, player: playerRef._id}, 
+  let playerCharacterRef = await PlayerCharacter.findOneAndUpdate(
+    {character: characterRef._id , player: playerRef._id}, 
     {$setOnInsert: playerCharacter},
     options
   )
+  playerCharacterRefs.push(playerCharacterRef);
 }
 
 const aggregateAbyssData = (abyssData: IAbyssResponse) => {
   _.forEach(_.filter(abyssData.floors, floor => floor.index > 8), floor => {
     _.forEach(_.filter(floor.levels, level => level.star > 0), level => {
       _.forEach(level.battles, async (battle) => {
-        try {
-          let party: any[] = []
-          _.forEach(battle.avatars, async (char) => {
-            let member = await PlayerCharacter.findOne({ character: char })
-            party.push(member._id)
-          })
+        let party: any[] = []
+        _.forEach(battle.avatars, async (char) => {
+          try {
+            let member = _.find(playerCharacterRefs, { id: char.id })
+            if (!member) return;
 
-          let abyssBattle = {
-            battle: battle.index,
-            level: level.index,
-            floor: floor.index,
-            star: level.star,
-            player: playerRef._id,
-            party
+            party.push(member._id)
+          } catch(err) {
+            console.log(err)
           }
-  
-          await AbyssBattle.findOneAndUpdate(
-            {battle: abyssBattle.battle, level: level.index, floor: floor.index, player: playerRef._id}, 
-            {$setOnInsert: abyssBattle}, 
-            options
-          )
-        } catch(err) {
-          console.log(err)
+        })
+
+        console.log("PARTY ", party);
+        
+        let abyssBattle = {
+          battle: battle.index,
+          level: level.index,
+          floor: floor.index,
+          star: level.star,
+          player: playerRef._id,
+          party
         }
+
+        await AbyssBattle.findOneAndUpdate(
+          {battle: abyssBattle.battle, level: level.index, floor: floor.index, player: playerRef._id}, 
+          {$setOnInsert: abyssBattle}, 
+          options
+        )
       })
     })
   })
@@ -404,7 +419,6 @@ const aggregateAllCharacterData = async (startIdx = 0) => {
   let firstPass = false;
 
   let total = 99999999;
-  let checkedValidUids = false;
   let i = startIdx
   let uid = _getBaseUid(server); 
   let blockedIdx = 0;
@@ -424,6 +438,7 @@ const aggregateAllCharacterData = async (startIdx = 0) => {
 
     // if (DEVELOPMENT) console.log(uid, i, dataNum);
     // const server = _getServerFromUid(uid);
+    playerCharacterRefs = [];
 
     try {
       let shouldCollectData: boolean | null = firstPass;
@@ -488,14 +503,10 @@ const aggregateAllCharacterData = async (startIdx = 0) => {
   }
 }
 
-// const loadFromJson = () => {
-//   // COOKIES = _.shuffle(JSON.parse(fs.readFileSync(cookiesPath, 'utf-8')));
-//   // PROXIES = _.shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
-//   characterDb = JSON.parse(fs.readFileSync(charactersPath, 'utf-8'));
-//   weaponDb = JSON.parse(fs.readFileSync(weaponsPath, 'utf-8'));
-//   artifactDb = JSON.parse(fs.readFileSync(artifactsPath, 'utf-8'));
-//   validUids = JSON.parse(fs.readFileSync(uidsPath, 'utf-8'));
-// }
+const loadFromJson = () => {
+  TOKENS = _.shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
+  PROXIES = _.shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
+}
 
 // async function _seedFromJson() {
 //   loadFromJson()
@@ -572,5 +583,6 @@ const aggregateAllCharacterData = async (startIdx = 0) => {
 
 connectDb();
 mongoose.connection.once('open', async () => {
-  // aggregateAllCharacterData();
+  loadFromJson();
+  aggregateAllCharacterData();
 });

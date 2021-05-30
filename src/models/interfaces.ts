@@ -2,7 +2,7 @@ import { Schema } from 'mongoose';
 
 export interface IAbyssBattle {
   battle: number,
-  party: Schema.Types.ObjectId[],
+  party?: Schema.Types.ObjectId[],
   floor: number,
   stage: number,
   star: number,
@@ -32,7 +32,8 @@ export interface IConstellation {
   id: number,
   name: string,
   pos: number,
-  icon: string
+  icon: string,
+  is_actived?: boolean
 }
 
 export interface ICharacter {
@@ -44,15 +45,14 @@ export interface ICharacter {
 }
 
 export interface IPlayer {
-  abyss?: Schema.Types.ObjectId[],
-  characters?: Schema.Types.ObjectId[],
   total_star: number,
   uid: number
 }
 
 export interface IPlayerCharacter {
+  id: number,
   character: Schema.Types.ObjectId,
-  artifacts: Schema.Types.ObjectId[],
+  artifacts?: Schema.Types.ObjectId[],
   constellation: number,
   fetter: number,
   level: number,
