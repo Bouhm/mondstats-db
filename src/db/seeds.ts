@@ -47,7 +47,7 @@ const maxRest = (60 * 10 * 1000) / 30;
 const maxLevel = 90;
 
 let playerRef: IPlayerModel & Document;
-let playerCharacterRefs: (IPlayerCharacterModel & Document)[];
+let playerCharacterRefs: (IPlayerCharacterModel & Document)[] = [];
 let playerAbyssData: IAbyssResponse;
 const options = { upsert: true, new: true, runValidators: true, useFindAndModify: false }
 
@@ -113,7 +113,7 @@ const getHeaders = () => {
   }
 }
 
-const server = 'asia';
+const server = 'usa';
 
 function _getBaseUid(server: string, start = 0) {
   let uidBase = 100000000;
@@ -237,7 +237,7 @@ const getSpiralAbyssThreshold = async (server: string, uid: number, threshold = 
     if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
       return null;
     }
-    // if (resp.data && resp.data.message && DEVELOPMENT) console.log("First pass: " + resp.data.message);
+    if (resp.data && resp.data.message && DEVELOPMENT) console.log("First pass: " + resp.data.message);
     if (!resp.data || !resp.data.data) { return false; }
 
     const maxFloor = resp.data.data.max_floor;
@@ -264,7 +264,7 @@ const getPlayerCharacters = async (server: string, uid: number, threshold = 40) 
       if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
         return null
       }
-      // if (resp.data && resp.data.message && DEVELOPMENT) console.log("Second pass: " + resp.data.message);
+      if (resp.data && resp.data.message && DEVELOPMENT) console.log("Second pass: " + resp.data.message);
       if (!resp.data || !resp.data.data) { return []; }
 
       return _.map(_.filter(resp.data.data.avatars, (char) => char.level >= threshold), (char) => char.id)
@@ -342,13 +342,17 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
       {$setOnInsert: playerCharacter},
       options
     )
+    console.log("pushing");
     playerCharacterRefs.push(playerCharacterRef);
   }
 }
 
-const aggregateAbyssData = (abyssData: IAbyssResponse) => {
+const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
+  console.log("abyss time")
   _.map(_.filter(abyssData.floors, floor => floor.index > 8), floor => {
     _.map(_.filter(floor.levels, level => level.star > 0), async (level) => {
+      console.log(playerCharacterRefs)
+
       for (const battle of level.battles) {
         let party: any[] = []
         for (const char of battle.avatars) {
@@ -376,6 +380,7 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
           {$setOnInsert: abyssBattle}, 
           options
         )
+        console.log("abyss battle added")
       }
     })
   })
@@ -389,7 +394,7 @@ const aggregatePlayerData = async (server: string, uid: number, characterIds: nu
   }
 
   return axios.post(charApiUrl, reqBody, { headers: getHeaders(), withCredentials: true })
-    .then((resp) => {
+    .then(async (resp) => {
       // Rate limit reached message
       if (resp.data && resp.data.message && resp.data.message.startsWith("Y")) {
         return null
@@ -397,14 +402,14 @@ const aggregatePlayerData = async (server: string, uid: number, characterIds: nu
       // if (resp.data && resp.data.message && DEVELOPMENT) console.log("Third pass : " + resp.data.message);
       if (!resp.data || !resp.data.data) return false;
 
-      _.map(resp.data.data.avatars, char => {
-        if (char.weapon.rarity >= 3 && !_.find(char.reliquaries, relic => relic.rarity <= 3)) {
-          aggregateCharacterData(char);
+      await Promise.all(_.map(resp.data.data.avatars, async (char) => {
+        if (char.weapon.rarity >= 3 && char.reliquaries.length === 5 && !_.find(char.reliquaries, relic => relic.rarity <= 3)) {
+          return aggregateCharacterData(char);
         }
-      })
+      }))
 
       // Abyss data
-      aggregateAbyssData(playerAbyssData);
+      await aggregateAbyssData(playerAbyssData);
 
       return true
     })
@@ -421,8 +426,8 @@ const aggregateAllCharacterData = async (startIdx = 0) => {
   let uid = _getBaseUid(server); 
   let blockedIdx = 0;
 
-  while (i < total) {
-    uid += i;
+  while (i === 0) {
+    uid = 607942345
     // Convoluted way of going through valid UIDs first, then new ones
     // if (!checkedValidUids && i < startingUids.length - 1) {
     //   uid = startingUids[i]
@@ -501,14 +506,26 @@ const aggregateAllCharacterData = async (startIdx = 0) => {
   }
 }
 
+// let sampleChars: { data: { avatars: ICharacterResponse[] } };
+// let sampleAbyss: { data: IAbyssResponse };
+
 const loadFromJson = () => {
   TOKENS = _.shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
   PROXIES = _.shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
+  // sampleChars = JSON.parse(fs.readFileSync('./src/db/sampleChars.json', 'utf-8'));
+  // sampleAbyss = JSON.parse(fs.readFileSync('./src/db/sampleAbyss.json', 'utf-8'));
 }
 
 // Run functions
 connectDb();
-mongoose.connection.once('open', async () => {
+mongoose.connection.once('open', () => {
   loadFromJson();
-  await aggregateAllCharacterData().then(() => mongoose.connection.close());
+
+  // playerRef = await Player.findOne({ uid: 607942345 });
+  // await Promise.all(_.map(sampleChars.data.avatars, async (char) => {
+  //   return aggregateCharacterData(char);
+  // }))
+  // await aggregateAbyssData(sampleAbyss.data);
+
+  aggregateAllCharacterData().then(() => mongoose.connection.close());
 });
