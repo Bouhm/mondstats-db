@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 
-export interface IWeapon {
+interface IWeaponModel extends Document {
   desc: string,
   id: number,
   name: string,
@@ -37,10 +37,10 @@ const weaponSchema = new Schema({
     type: String
   },
   icon: {
-    required: true, 
+    required: true,
     type: String
   }
 },
 {timestamps: true});
 
-export default mongoose.model('Weapon', weaponSchema);
+export default mongoose.model<IWeaponModel>('Weapon', weaponSchema);

@@ -1,18 +1,12 @@
 import mongoose, { Schema } from 'mongoose';
 
-export interface IConstellation {
-  effect: string,
-  id: number,
-  name: string, 
-  pos: number,
-  icon: string
-}
+import { IConstellation } from './interfaces';
 
-export interface ICharacter {
+interface ICharacterModel extends Document {
   constellations: IConstellation[],
   element: string,
   id: number,
-  name: number,
+  name: string,
   rarity: number
 }
 
@@ -42,14 +36,14 @@ const characterSchema = new Schema({
     type: Number
   },
   icon: {
-    required: true, 
+    required: true,
     type: String
   },
   image: {
-    required: true, 
+    required: true,
     type: String
   }
 },
 {timestamps: true});
 
-export default mongoose.model('Character', characterSchema);
+export default mongoose.model<ICharacterModel>('Character', characterSchema);

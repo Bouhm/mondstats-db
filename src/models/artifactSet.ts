@@ -1,21 +1,11 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IAffix { activation_number: Number, effect: string }
 
-export interface IArtifact {
-  id: number,
-  name: number,
-  pos: number,
-  pos_name: string,
-  set: IArtifactSet,
-  icon: String
-}
-
-export interface IArtifactSet {
+interface IArtifactSet extends Document {
   affixes: IAffix[],
   id: number,
-  name: string,
-  rarity?: number
+  name: string
 }
 
 const artifactSetSchema = new Schema({
@@ -31,18 +21,8 @@ const artifactSetSchema = new Schema({
   name: {
     required: true,
     type: String
-  },
-  rarity: {
-    type: Number
-  },
-  artifact: [{
-    id: Number,
-    name: Number,
-    pos: Number,
-    pos_name: String,
-    icon: String
-  }]
+  }
 },
 {timestamps: true});
 
-export default mongoose.model('ArtifactSet', artifactSetSchema);
+export default mongoose.model<IArtifactSet>('ArtifactSet', artifactSetSchema);

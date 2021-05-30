@@ -1,9 +1,8 @@
 import mongoose, { Schema } from 'mongoose';
 
-import { IAbyssBattle } from './abyssBattle';
-import { ICharacter } from './character';
+import { IAbyssBattle, ICharacter } from './interfaces';
 
-export interface IPlayer {
+interface IPlayerModel extends Document {
   abyss: IAbyssBattle[],
   characters: ICharacter[],
   max_floor: string,
@@ -38,4 +37,4 @@ const playerSchema = new Schema({
 },
 {timestamps: true});
 
-export default mongoose.model('Player', playerSchema);
+export default mongoose.model<IPlayerModel>('Player', playerSchema);

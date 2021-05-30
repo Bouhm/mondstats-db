@@ -1,9 +1,8 @@
 import mongoose, { Schema } from 'mongoose';
 
-import { IArtifactSet } from './artifactSet';
-import { IWeapon } from './weapon';
+import { IArtifactSet, IWeapon } from './interfaces';
 
-export interface IPlayerCharacter {
+interface IPlayerCharacterModel extends Document {
   artifactSets: IArtifactSet[],
   constellation: number,
   element: string,
@@ -18,9 +17,9 @@ const playerCharacterSchema = new Schema({
     required: true,
     type: Schema.Types.ObjectId,
   },
-  artifactSets: [{
+  artifacts: [{
     required: true,
-    ref: 'ArtifactSet',
+    ref: 'Artifact',
     type: Schema.Types.ObjectId
   }],
   constellation: {
@@ -43,4 +42,4 @@ const playerCharacterSchema = new Schema({
 },
 {timestamps: true});
 
-export default mongoose.model('PlayerCharacter', playerCharacterSchema);
+export default mongoose.model<IPlayerCharacterModel>('PlayerCharacter', playerCharacterSchema);
