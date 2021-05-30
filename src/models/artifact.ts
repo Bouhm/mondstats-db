@@ -9,7 +9,7 @@ interface IArtifactModel extends Document {
   icon: string,
   pos: number,
   pos_name: string,
-  set: IArtifactSet
+  set: Schema.Types.ObjectId
 }
 
 const artifactSchema = new Schema({

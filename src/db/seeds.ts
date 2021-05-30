@@ -3,15 +3,17 @@ import Axios from 'axios';
 import fs from 'fs';
 import https from 'https';
 import _ from 'lodash';
-import mongoose from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
+import AbyssBattle from '../models/abyssBattle';
 import Artifact from '../models/artifact';
+import ArtifactSet from '../models/artifactSet';
 import Character from '../models/character';
 import {
-    IAbyssBattle, IAffix, IArtifact, IArtifactSet, ICharacter, ICharacterResponse, IPlayer,
-    IPlayerCharacter, IWeapon
+    IAbyssBattle, IAbyssResponse, IAffix, IArtifact, IArtifactSet, ICharacter, ICharacterResponse,
+    IPlayer, IPlayerCharacter, IWeapon
 } from '../models/interfaces';
-import Player from '../models/player';
+import Player, { IPlayerModel } from '../models/player';
 import PlayerCharacter from '../models/playerCharacter';
 import Weapon from '../models/weapon';
 import connectDb from '../util/connection';
@@ -42,10 +44,9 @@ let iterationStart = Date.now();
 const maxRest = (60 * 10 * 1000) / 30;
 const maxLevel = 90;
 
-let characterDb: ICharacter[] = [];
-let weaponDb: IWeapon[] = [];
-let artifactDb: IArtifact[] = [];
-let playerDb: IPlayer[] = [];
+let playerRef: IPlayerModel & Document;
+let playerAbyssData: IAbyssResponse;
+const options = { upsert: true, new: true, runValidators: true }
 
 const _incrementAccIdx = async () => {
   accIdx++
@@ -109,25 +110,7 @@ const getHeaders = () => {
   }
 }
 
-let validUids: number[] = [];
-let playerAbyssData: IAbyssBattle[] = [];
-const playerCharacters: ICharacter[] = [];
-let playerTraveler = {
-  id: 100,
-  element: 'Anemo'
-}
-
-const chunkSize = 2000;
 const server = 'asia';
-
-const charactersPath = './src/db/characters.json'
-const weaponsPath = './src/db/weapons.json'
-const artifactsPath = './src/db/artifacts.json'
-const uidsPath = `./src/db/${server}/uids.json`
-const tokensPath = './src/keys/tokens.json'
-const proxiesPath = './src/keys/proxies.json'
-const getDataPath = (group: string) => `./${server}/${group}.json`
-const getChunkPath = (chunkNum: number, server: string) => `./${server}/chunks/${chunkNum}.json`
 
 function _getBaseUid(server: string, start = 0) {
   let uidBase = 100000000;
@@ -226,32 +209,6 @@ const handleBlock = async (tokenIdx: number) => {
   }
 }
 
-const assignTraveler = (charData: ICharacter) => {
-  let id = 100;
-  let element = 'Anemo'
-
-  switch (charData.constellations[0].id) {
-    // Anemo
-    case 71:
-      element = 'Anemo';
-      id = 100;
-      break;
-    // Geo
-    case 91:
-      element = 'Geo';
-      id =  101;
-      break;
-    default:
-      break;
-  }
-
-  charData.id = id;
-  charData.element = element;
-  playerTraveler = {
-    id, element
-  }
-}
-
 function _areEqualShallow(a: any, b: any) {
   for(var key in a) {
       if(!(key in b) || a[key] !== b[key]) {
@@ -282,7 +239,12 @@ const getSpiralAbyssThreshold = async (server: string, uid: number, threshold = 
 
     const maxFloor = resp.data.data.max_floor;
 
-    return (maxFloor.split('-')[0] >= threshold);
+    if (maxFloor.split("-")[0] >= threshold) {
+      playerAbyssData = resp.data.data;
+      return true
+    } else {
+      return false
+    }
   } catch (error) {
     console.log(error);
     return false;
@@ -312,8 +274,6 @@ const getPlayerCharacters = async (server: string, uid: number, threshold = 40) 
 
 const aggregateCharacterData = async (char: ICharacterResponse) => {
   // Update database
-  const options = { upsert: true, new: true, runValidators: true }
-
   // Weapons
   let charWeapon: IWeapon = _.pick(char.weapon, [
     'id','desc','name','rarity','type','type_name','icon'
@@ -321,15 +281,26 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
 
   let weaponRef = await Weapon.findOneAndUpdate({ id: charWeapon.id }, {$setOnInsert: charWeapon}, options)
 
-  let artifactRefs: IArtifact[] = [];
+  let artifactRefs: Schema.Types.ObjectId[] = [];
   // Artifacts
   _.forEach(char.reliquaries, async (artifact) => {
     let charArtifact: IArtifact = _.pick(artifact, [
-      'id','name','rarity','icon','pos','pos_name','set'
+      'id','name','rarity','icon','pos','pos_name'
     ])
 
-    let artifactRef = await Artifact.findOneAndUpdate({ id: charArtifact.id }, {$setOnInsert: charArtifact}, options)
-    artifactRefs.push(artifactRef)
+    let artifactSetRef = await ArtifactSet.findOneAndUpdate(
+      { id: artifact.set.id },
+      {$setOnInsert: artifact.set},
+      options
+    );
+    charArtifact.set = artifactSetRef._id;
+
+    let artifactRef = await Artifact.findOneAndUpdate(
+      { id: charArtifact.id }, 
+      {$setOnInsert: charArtifact}, 
+      options
+    );
+    artifactRefs.push(artifactRef._id)
   })
 
   // Characters
@@ -348,66 +319,51 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   }
 
   let playerCharacter: IPlayerCharacter = {
-    character: characterRef,
+    character: characterRef._id,
     artifacts: artifactRefs,
     constellation: cNum,
     fetter: char.fetter,
     level: char.level,
-    weapon: weaponRef
+    weapon: weaponRef._id,
+    player: playerRef._id
   }
 
   await PlayerCharacter.findOneAndUpdate(
-    {character: playerCharacter}, 
+    {character: playerCharacter, player: playerRef._id}, 
     {$setOnInsert: playerCharacter},
     options
   )
 }
 
-const aggregateAbyssData = (abyssData: IAbyss) => {
+const aggregateAbyssData = (abyssData: IAbyssResponse) => {
   _.forEach(_.filter(abyssData.floors, floor => floor.index > 8), floor => {
     _.forEach(_.filter(floor.levels, level => level.star > 0), level => {
-      _.forEach(level.battles, battle => {
-        const partyIds: number[] = _.map(battle.avatars, char => {
-          let charId = char.id;
-          if (char.id === 10000005 || char.id === 10000007) {
-            charId = playerTraveler.id
+      _.forEach(level.battles, async (battle) => {
+        try {
+          let party: any[] = []
+          _.forEach(battle.avatars, async (char) => {
+            let member = await PlayerCharacter.findOne({ character: char })
+            party.push(member._id)
+          })
+
+          let abyssBattle = {
+            battle: battle.index,
+            level: level.index,
+            floor: floor.index,
+            star: level.star,
+            player: playerRef._id,
+            party
           }
-
-          return charId
-        }).sort()
-
-        if (TEST && !partyIds.includes(testCharId)) return;
-
-        let floorKey = (floor.index + '') as keyof IAbyssData;
-        let levelKey = (level.index + '') as keyof IAbyssLevels;
-
-        let data = chunkData[key as keyof IChunkData];
-
-        if (!_.isEmpty(data.abyss)) {
-          if (!data.abyss[floorKey][levelKey][battle.index-1].teams) {
-            data.abyss[floorKey][levelKey][battle.index-1] =
-              { teams: [{ party: partyIds, count: 1 }], total: 1 }
-          } else {
-            let levelData = data.abyss[floorKey][levelKey][battle.index-1];
-            let partyIdx = _.findIndex(levelData.teams, { party: partyIds })
-
-            if (partyIdx > -1) {
-              levelData.teams[partyIdx].count++
-            } else {
-              levelData.teams.push({
-                party: partyIds,
-                count: 1
-              })
-            }
-            levelData.total++;
-          }
-        } else {
-          data.abyss = newAbyss;
-          data.abyss[floorKey][levelKey][battle.index-1] =
-            { teams: [{ party: partyIds, count: 1 }], total: 1 }
+  
+          await AbyssBattle.findOneAndUpdate(
+            {battle: abyssBattle.battle, level: level.index, floor: floor.index, player: playerRef._id}, 
+            {$setOnInsert: abyssBattle}, 
+            options
+          )
+        } catch(err) {
+          console.log(err)
         }
       })
-    
     })
   })
 }
@@ -420,7 +376,7 @@ const aggregatePlayerData = async (server: string, uid: number, characterIds: nu
   }
 
   return axios.post(charApiUrl, reqBody, { headers: getHeaders(), withCredentials: true })
-    .then(resp => {
+    .then((resp) => {
       // Rate limit reached message
       if (resp.data && resp.data.message && resp.data.message.startsWith("Y")) {
         return null
@@ -469,53 +425,65 @@ const aggregateAllCharacterData = async (startIdx = 0) => {
     // if (DEVELOPMENT) console.log(uid, i, dataNum);
     // const server = _getServerFromUid(uid);
 
-    let shouldCollectData: boolean | null = firstPass;
-    if (!firstPass) {
-      shouldCollectData = await getSpiralAbyssThreshold(server, uid)
-      blockedIdx = accIdx;
-      await _incrementAccIdx();
-    }
-
-    // Blocked
-    if (shouldCollectData === null) {
-      await handleBlock(blockedIdx)
-      if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + i);
-
-      continue;
-    }
-    if (!shouldCollectData) {
-      i++;
-      continue;
-    }
-
-    if (shouldCollectData) {
-      if (!validUids.includes(uid)) validUids.push(uid);
-      firstPass = true;
-
-      const characterIds = await getPlayerCharacters(server, uid)
-      blockedIdx = accIdx;
-      await _incrementAccIdx();
-
-      if (characterIds === null) {
+    try {
+      let shouldCollectData: boolean | null = firstPass;
+      if (!firstPass) {
+        shouldCollectData = await getSpiralAbyssThreshold(server, uid)
+        blockedIdx = accIdx;
+        await _incrementAccIdx();
+      }
+  
+      // Blocked
+      if (shouldCollectData === null) {
         await handleBlock(blockedIdx)
         if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + i);
+  
         continue;
-      } else {
-        if (characterIds.length > 0) {
-          const result = await aggregatePlayerData(server, uid, characterIds)
+      }
+      if (!shouldCollectData) {
+        i++;
+        continue;
+      }
+  
+      if (shouldCollectData) {
+        try {
+          firstPass = true;
+          playerRef  = await Player.findOneAndUpdate(
+            { uid }, 
+            { uid, total_star: playerAbyssData.total_star }, 
+            options
+          )
+    
+          const characterIds = await getPlayerCharacters(server, uid)
           blockedIdx = accIdx;
           await _incrementAccIdx();
-
-          if (result === null) {
+    
+          if (characterIds === null) {
             await handleBlock(blockedIdx)
             if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + i);
             continue;
           } else {
-            firstPass = false;
+            if (characterIds.length > 0) {
+              const result = await aggregatePlayerData(server, uid, characterIds)
+              blockedIdx = accIdx;
+              await _incrementAccIdx();
+    
+              if (result === null) {
+                await handleBlock(blockedIdx)
+                if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + i);
+                continue;
+              } else {
+                firstPass = false;
+              }
+            }
+            i++;
           }
+        } catch(err) {
+          console.log(err)
         }
-        i++;
       }
+    } catch(err) {
+      console.log(err)
     }
   }
 }

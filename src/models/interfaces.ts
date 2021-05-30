@@ -1,9 +1,12 @@
+import { Schema } from 'mongoose';
+
 export interface IAbyssBattle {
   battle: number,
-  characters: ICharacter[],
+  party: Schema.Types.ObjectId[],
   floor: number,
   stage: number,
-  star: number
+  star: number,
+  player: Schema.Types.ObjectId
 }
 
 export interface IAffix { activation_number: Number, effect: string }
@@ -13,7 +16,7 @@ export interface IArtifact {
   name: string,
   pos: number,
   pos_name: string,
-  set: IArtifactSet,
+  set?: Schema.Types.ObjectId,
   icon: string,
   rarity: number
 }
@@ -41,20 +44,20 @@ export interface ICharacter {
 }
 
 export interface IPlayer {
-  abyss: IAbyssBattle[],
-  characters: ICharacter[],
-  max_floor: string,
+  abyss?: Schema.Types.ObjectId[],
+  characters?: Schema.Types.ObjectId[],
   total_star: number,
   uid: number
 }
 
 export interface IPlayerCharacter {
-  character: ICharacter,
-  artifacts: IArtifact[],
+  character: Schema.Types.ObjectId,
+  artifacts: Schema.Types.ObjectId[],
   constellation: number,
   fetter: number,
   level: number,
-  weapon: IWeapon,
+  weapon: Schema.Types.ObjectId,
+  player: Schema.Types.ObjectId
 }
 
 export interface IWeapon {
@@ -68,6 +71,20 @@ export interface IWeapon {
 }
 
 export interface IAbyssResponse {
+  schedule_id: number,
+  start_time: string,
+  end_time: string,
+  total_battle_times: number,
+  total_win_times: number,
+  max_floor: string,
+  reveal_rank: any,
+  defeat_rank: any,
+  damage_rank: any,
+  take_damage_rank: any,
+  normal_skill_rank: any,
+  energy_skill_rank: any,
+  total_star: number,
+  is_unlock: boolean,
   floors: {
     index: number,
     icon: string,
@@ -89,8 +106,8 @@ export interface IAbyssResponse {
           rarity: number
         }[]
       }[]
-    }
-  }
+    }[]
+  }[]
 }
 
 export interface ICharacterResponse {

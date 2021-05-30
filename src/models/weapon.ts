@@ -18,7 +18,7 @@ const weaponSchema = new Schema({
   id: {
     required: true,
     type: Number,
-    unique: true
+  unique: true
   },
   name: {
     required: true,

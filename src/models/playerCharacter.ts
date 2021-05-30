@@ -1,14 +1,15 @@
 import mongoose, { Schema } from 'mongoose';
 
-import { IArtifactSet, IWeapon } from './interfaces';
+import { IArtifactSet, IPlayer, IWeapon } from './interfaces';
 
 interface IPlayerCharacterModel extends Document {
-  artifactSets: IArtifactSet[],
+  artifactSets: Schema.Types.ObjectId[],
   constellation: number,
   element: string,
   fetter: number,
   level: number,
-  weapon: IWeapon,
+  weapon: Schema.Types.ObjectId,
+  player: Schema.Types.ObjectId
 }
 
 const playerCharacterSchema = new Schema({
@@ -37,6 +38,11 @@ const playerCharacterSchema = new Schema({
   weapon: {
     required: true,
     ref: 'Weapon',
+    type: Schema.Types.ObjectId
+  },
+  player: {
+    ref: 'Player',
+    required: true,
     type: Schema.Types.ObjectId
   }
 },

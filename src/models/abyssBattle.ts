@@ -1,13 +1,14 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-import { ICharacter } from './interfaces';
+import { IPlayer, IPlayerCharacter } from './interfaces';
 
 interface IAbyssBattleModel extends Document {
   battle: number,
-  characters: ICharacter[],
+  party: Schema.Types.ObjectId[],
   floor: number,
-  stage: number,
-  star: number
+  level: number,
+  star: number,
+  player: Schema.Types.ObjectId
 }
 
 const abyssBattleSchema = new Schema({
@@ -15,7 +16,7 @@ const abyssBattleSchema = new Schema({
     required: true,
     type: Number
   },
-  characters: [{
+  party: [{
     ref: 'PlayerCharacter',
     required: true,
     type: Schema.Types.ObjectId
@@ -24,13 +25,18 @@ const abyssBattleSchema = new Schema({
     required: true,
     type: Number
   },
-  stage: {
+  level: {
     required: true,
     type: Number
   },
   star: {
     required: true,
     type: Number
+  },
+  player: {
+    ref: 'Player',
+    required: true,
+    type: Schema.Types.ObjectId
   }
 },
 {timestamps: true});
