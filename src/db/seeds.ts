@@ -184,7 +184,7 @@ function _getActivationNumber(count: number, affixes: IAffix[]) {
   const activations = _.map(affixes, (effect) => effect.activation_number);
 
   let activation = 0;
-  _.forEach(activations, (activation_num) => {
+  _.map(activations, (activation_num) => {
     if (count >= activation_num) {
       activation = activation_num as number;
     }
@@ -286,7 +286,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
 
   let artifactRefIds: Schema.Types.ObjectId[] = [];
   // Artifacts
-  _.forEach(char.reliquaries, async (artifact) => {
+  for (const artifact of char.reliquaries) {
     let charArtifact: IArtifact = _.pick(artifact, [
       'id','name','rarity','icon','pos','pos_name'
     ])
@@ -304,54 +304,54 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
       options
     );
     artifactRefIds.push(artifactRef._id)
-  })
-
-  console.log("ARTIFACT REFS", artifactRefIds)
+  }
 
   // Characters
   let character: ICharacter = _.pick(char, [
     'constellations','element','id','name','rarity'
   ])
 
-  // _.forEach(character.constellations, constellation => {
+  // _.map(character.constellations, constellation => {
   //   delete constellation.is_actived
   // })
 
   let characterRef = await Character.findOneAndUpdate({ id: character.id }, {$setOnInsert: character}, options)
 
-  // PlayerCharacters
-  let cNum = 0;
-  for (let i = 0; i < 6; i++) {
-    if (char.constellations[i].is_actived) {
-      cNum++;
+  if (artifactRefIds.length === 5) {
+    // PlayerCharacters
+    let cNum = 0;
+    for (let i = 0; i < 6; i++) {
+      if (char.constellations[i].is_actived) {
+        cNum++;
+      }
     }
-  }
 
-  let playerCharacter: IPlayerCharacter = {
-    id: character.id,
-    character: characterRef._id,
-    artifacts: artifactRefIds,
-    constellation: cNum,
-    fetter: char.fetter,
-    level: char.level,
-    weapon: weaponRef._id,
-    player: playerRef._id
-  }
+    let playerCharacter: IPlayerCharacter = {
+      id: character.id,
+      character: characterRef._id,
+      artifacts: artifactRefIds,
+      constellation: cNum,
+      fetter: char.fetter,
+      level: char.level,
+      weapon: weaponRef._id,
+      player: playerRef._id
+    }
 
-  let playerCharacterRef = await PlayerCharacter.findOneAndUpdate(
-    {character: characterRef._id , player: playerRef._id}, 
-    {$setOnInsert: playerCharacter},
-    options
-  )
-  playerCharacterRefs.push(playerCharacterRef);
+    let playerCharacterRef = await PlayerCharacter.findOneAndUpdate(
+      {character: characterRef._id , player: playerRef._id}, 
+      {$setOnInsert: playerCharacter},
+      options
+    )
+    playerCharacterRefs.push(playerCharacterRef);
+  }
 }
 
 const aggregateAbyssData = (abyssData: IAbyssResponse) => {
-  _.forEach(_.filter(abyssData.floors, floor => floor.index > 8), floor => {
-    _.forEach(_.filter(floor.levels, level => level.star > 0), level => {
-      _.forEach(level.battles, async (battle) => {
+  _.map(_.filter(abyssData.floors, floor => floor.index > 8), floor => {
+    _.map(_.filter(floor.levels, level => level.star > 0), async (level) => {
+      for (const battle of level.battles) {
         let party: any[] = []
-        _.forEach(battle.avatars, async (char) => {
+        for (const char of battle.avatars) {
           try {
             let member = _.find(playerCharacterRefs, { id: char.id })
             if (!member) return;
@@ -360,9 +360,7 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
           } catch(err) {
             console.log(err)
           }
-        })
-
-        console.log("PARTY ", party);
+        }
         
         let abyssBattle = {
           battle: battle.index,
@@ -378,7 +376,7 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
           {$setOnInsert: abyssBattle}, 
           options
         )
-      })
+      }
     })
   })
 }
@@ -399,7 +397,7 @@ const aggregatePlayerData = async (server: string, uid: number, characterIds: nu
       // if (resp.data && resp.data.message && DEVELOPMENT) console.log("Third pass : " + resp.data.message);
       if (!resp.data || !resp.data.data) return false;
 
-      _.forEach(resp.data.data.avatars, char => {
+      _.map(resp.data.data.avatars, char => {
         if (char.weapon.rarity >= 3 && !_.find(char.reliquaries, relic => relic.rarity <= 3)) {
           aggregateCharacterData(char);
         }
@@ -508,81 +506,9 @@ const loadFromJson = () => {
   PROXIES = _.shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
 }
 
-// async function _seedFromJson() {
-//   loadFromJson()
-
-//   const characters: ICharacter[] = _.map(_.values(characterDb), (character) => {
-//     const constellations = _.map(character.constellations, (constellation) => ({
-//       id: constellation.id,
-//       effect: constellation.effect,
-//       name: constellation.name,
-//       pos: constellation.pos,
-//       icon: constellation.icon
-//     }))
-
-//     return {
-//       id: character.id,
-//       element: character.element,
-//       icon: character.icon,
-//       image: character.image,
-//       name: character.name,
-//       rarity: character.rarity,
-//       constellations
-//     }
-//   })
-
-//   const weapons: IWeapon[] = _.map(_.values(weaponDb), (weapon) => ({
-//     id: weapon.id,
-//     desc: weapon.desc,
-//     name: weapon.name,
-//     icon: weapon.icon,
-//     type: weapon.type,
-//     type_name: weapon.type_name,
-//     rarity: weapon.rarity
-//   }))
-
-//   const artifactSets: IArtifactSet[] = []
-//   _.forEach(_.values(artifactDb), (artifact) => {
-//     const setIdx = _.findIndex(artifactSets, { id: artifact.set.id })
-
-//     if (setIdx > -1) {
-//       const set = artifactSets[setIdx];
-
-//       if (artifact.rarity < set.rarity) return;
-
-//       if (artifact.rarity > set.rarity) {
-//         set.rarity = artifact.rarity;
-//       }
-    
-//       if (!_.find(set.artifacts, { name: artifact.name })) {
-//         set.artifacts.push(artifact);
-//       }
-
-//       set.artifacts = _.filter(set.artifacts, artifact => artifact.rarity === set.rarity)
-//     } else {
-//       artifactSets.push({
-//         id: artifact.set.id,
-//         rarity: artifact.rarity,
-//         affixes: artifact.set.affixes,
-//         name: artifact.set.name,
-//         artifacts: [artifact]
-//       })
-//     }
-//   })
-
-//   await Promise.all([
-//     Character.insertMany(characters),
-//     Weapon.insertMany(weapons),
-//     ArtifactSet.insertMany(artifactSets)
-//   ]);
-    
-//   mongoose.connection.close();
-// }
-
 // Run functions
-
 connectDb();
 mongoose.connection.once('open', async () => {
   loadFromJson();
-  aggregateAllCharacterData();
+  await aggregateAllCharacterData().then(() => mongoose.connection.close());
 });
