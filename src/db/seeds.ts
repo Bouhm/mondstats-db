@@ -509,7 +509,7 @@ const aggregateAllCharacterData = async (startIdx = 0) => {
 const loadFromJson = () => {
   TOKENS = _.shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
   PROXIES = _.shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
-  DS = _.shuffle(JSON.parse(fs.readFileSync(dsPath), 'utf-8')));
+  DS = _.shuffle(JSON.parse(fs.readFileSync(dsPath, 'utf-8')));
   // sampleChars = JSON.parse(fs.readFileSync('./src/db/sampleChars.json', 'utf-8'));
   // sampleAbyss = JSON.parse(fs.readFileSync('./src/db/sampleAbyss.json', 'utf-8'));
 }
