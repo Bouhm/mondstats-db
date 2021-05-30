@@ -113,7 +113,7 @@ const getHeaders = () => {
   }
 }
 
-const server = 'usa';
+const server = 'asia';
 
 function _getBaseUid(server: string, start = 0) {
   let uidBase = 100000000;
@@ -237,7 +237,7 @@ const getSpiralAbyssThreshold = async (server: string, uid: number, threshold = 
     if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
       return null;
     }
-    if (resp.data && resp.data.message && DEVELOPMENT) console.log("First pass: " + resp.data.message);
+    // if (resp.data && resp.data.message && DEVELOPMENT) console.log("First pass: " + resp.data.message);
     if (!resp.data || !resp.data.data) { return false; }
 
     const maxFloor = resp.data.data.max_floor;
@@ -264,7 +264,7 @@ const getPlayerCharacters = async (server: string, uid: number, threshold = 40) 
       if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
         return null
       }
-      if (resp.data && resp.data.message && DEVELOPMENT) console.log("Second pass: " + resp.data.message);
+      // if (resp.data && resp.data.message && DEVELOPMENT) console.log("Second pass: " + resp.data.message);
       if (!resp.data || !resp.data.data) { return []; }
 
       return _.map(_.filter(resp.data.data.avatars, (char) => char.level >= threshold), (char) => char.id)
@@ -342,17 +342,13 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
       {$setOnInsert: playerCharacter},
       options
     )
-    console.log("pushing");
     playerCharacterRefs.push(playerCharacterRef);
   }
 }
 
 const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
-  console.log("abyss time")
   _.map(_.filter(abyssData.floors, floor => floor.index > 8), floor => {
     _.map(_.filter(floor.levels, level => level.star > 0), async (level) => {
-      console.log(playerCharacterRefs)
-
       for (const battle of level.battles) {
         let party: any[] = []
         for (const char of battle.avatars) {
@@ -380,7 +376,6 @@ const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
           {$setOnInsert: abyssBattle}, 
           options
         )
-        console.log("abyss battle added")
       }
     })
   })
@@ -426,8 +421,8 @@ const aggregateAllCharacterData = async (startIdx = 0) => {
   let uid = _getBaseUid(server); 
   let blockedIdx = 0;
 
-  while (i === 0) {
-    uid = 607942345
+  while (i < total) {
+    uid += i;
     // Convoluted way of going through valid UIDs first, then new ones
     // if (!checkedValidUids && i < startingUids.length - 1) {
     //   uid = startingUids[i]
@@ -527,5 +522,5 @@ mongoose.connection.once('open', () => {
   // }))
   // await aggregateAbyssData(sampleAbyss.data);
 
-  aggregateAllCharacterData().then(() => mongoose.connection.close());
+  aggregateAllCharacterData();
 });
