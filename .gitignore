@@ -1,6 +1,5 @@
 .idea/
 .vscode/
-.env
 node_modules/
 build
 .DS_Store
@@ -14,4 +13,3 @@ yarn-error.log*
 .npm/
 yarn.lock
 dist
-keys
