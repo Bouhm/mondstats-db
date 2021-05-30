@@ -420,11 +420,12 @@ const aggregateAllCharacterData = async (startIdx = 0) => {
 
   let total = 99999999;
   let i = startIdx
-  let uid = _getBaseUid(server); 
+  let startingUid = _getBaseUid(server); 
+  let uid = startingUid;
   let blockedIdx = 0;
 
   while (i < total) {
-    uid += i;
+    uid = startingUid + i;
     // Convoluted way of going through valid UIDs first, then new ones
     // if (!checkedValidUids && i < startingUids.length - 1) {
     //   uid = startingUids[i]
@@ -501,9 +502,10 @@ const aggregateAllCharacterData = async (startIdx = 0) => {
       console.log(err)
     }
   }
+  console.log("Exit loop")
 }
 
-// let sampleChars: { data: { avatars: ICharacterResponse[] } };
+// let sampleChars: { data: { avatarss: ICharacterResponse[] } };
 // let sampleAbyss: { data: IAbyssResponse };
 
 const loadFromJson = () => {
