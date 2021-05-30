@@ -36,9 +36,11 @@ const axios = Axios.create({
 
 const tokensPath = './src/keys/tokens.json'
 const proxiesPath = './src/keys/proxies.json'
+const dsPath = './src/keys/DS.json'
 
 let PROXIES: Array<{ ip: string, port: string }> = [];
 let TOKENS: string[] = [];
+let DS: string[] = [];
 let timeoutBox: string[] = [];
 let proxyIdx = 0;
 let accIdx = 0;
@@ -105,7 +107,7 @@ const getHeaders = () => {
     'X-Forwarded-Port': PROXIES[proxyIdx].port,
     'Origin': 'https://webstatic-sea.hoyolab.com',
     'DNT': '1',
-    'DS': '1621631797,ckwx6Z,004f2c9a96e69364019a3bbaeac30905',
+    'DS': DS[0],
     'Connection': 'keep-alive',
     'Referer': 'https://webstatic-sea.hoyolab.com/',
     'Cookie': TOKENS[accIdx],
@@ -507,6 +509,7 @@ const aggregateAllCharacterData = async (startIdx = 0) => {
 const loadFromJson = () => {
   TOKENS = _.shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
   PROXIES = _.shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
+  DS = _.shuffle(JSON.parse(fs.readFileSync(dsPath), 'utf-8')));
   // sampleChars = JSON.parse(fs.readFileSync('./src/db/sampleChars.json', 'utf-8'));
   // sampleAbyss = JSON.parse(fs.readFileSync('./src/db/sampleAbyss.json', 'utf-8'));
 }
