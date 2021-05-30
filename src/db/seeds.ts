@@ -230,7 +230,7 @@ function _areEqualShallow(a: any, b: any) {
 
 // Aggregate spiral abyss data
 const getSpiralAbyssThreshold = async (server: string, uid: number, threshold = 8) => {
-  const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${uid}&schedule_type=1`;
+  const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${uid}&schedule_type=2`;
 
   try {
     const resp = await axios.get(apiUrl, { headers: getHeaders(), withCredentials: true });
