@@ -2,7 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import graphqlHTTP from 'express-graphql';
 
-import resolver from './graphql/resolvers';
+import resolvers from './graphql/resolvers';
 import schema from './graphql/schema';
 import playerCharacterRoutes from './routes';
 import connectDb from './util/connection';
@@ -13,7 +13,7 @@ app.use(
   '/graphql',
   graphqlHTTP({
     graphiql: true,
-    rootValue: resolver,
+    rootValue: resolvers,
     schema
   })
 );
