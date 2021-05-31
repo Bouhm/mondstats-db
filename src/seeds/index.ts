@@ -45,6 +45,9 @@ let timeoutBox: string[] = [];
 let proxyIdx = 0;
 let accIdx = 0;
 let iterationStart = Date.now();
+let isAllBlocked = true;
+let blockedLevel = 0;
+const longRests = [60*60*1000, 6*60*60*1000, 12*60*60*1000];
 const maxRest = (60 * 10 * 1000) / 30;
 const maxLevel = 90;
 
@@ -209,8 +212,19 @@ const handleBlock = async (tokenIdx: number) => {
   if (TOKENS.length === 0) {
     TOKENS = timeoutBox;
     timeoutBox = [];
-    console.log(new Date(), '12 hour wait...')
-    await _sleep(43200 * 1000);
+
+    if (isAllBlocked) {
+      blockedLevel++;
+
+      if (blockedLevel > longRests.length - 1) {
+        blockedLevel = longRests.length - 1;
+      }
+    } else {
+      blockedLevel = 0;
+    }
+
+    console.log(new Date(), `Long wait...`)
+    await _sleep(longRests[blockedLevel]);
   }
 }
 
@@ -454,6 +468,8 @@ const aggregateAllCharacterData = async (startUid = 0) => {
   
         continue;
       }
+      isAllBlocked = false;
+
       if (!shouldCollectData) {
         uid++;
         continue;
@@ -477,6 +493,7 @@ const aggregateAllCharacterData = async (startUid = 0) => {
             if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + uid);
             continue;
           } else {
+            isAllBlocked = false;
             if (characterIds.length > 0) {
               const result = await aggregatePlayerData(server, uid, characterIds)
               blockedIdx = accIdx;
@@ -487,6 +504,7 @@ const aggregateAllCharacterData = async (startUid = 0) => {
                 if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + uid);
                 continue;
               } else {
+                isAllBlocked = false;
                 firstPass = false;
               }
             }
