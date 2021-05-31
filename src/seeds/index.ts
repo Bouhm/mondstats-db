@@ -209,7 +209,7 @@ const handleBlock = async (tokenIdx: number) => {
   if (TOKENS.length === 0) {
     TOKENS = timeoutBox;
     timeoutBox = [];
-    console.log('12 hour wait...')
+    console.log(new Date(), '12 hour wait...')
     await _sleep(43200 * 1000);
   }
 }
@@ -415,17 +415,15 @@ const aggregatePlayerData = async (server: string, uid: number, characterIds: nu
     });
 }
 
-const aggregateAllCharacterData = async (startIdx = 0) => {
+const aggregateAllCharacterData = async (startUid = 0) => {
   let firstPass = false;
 
-  let total = 99999999;
-  let i = startIdx
-  let startingUid = _getBaseUid(server); 
-  let uid = startingUid;
+  let baseUid = _getBaseUid(server);
+  let end = baseUid + 99999999;
   let blockedIdx = 0;
+  let uid = !!startUid ? startUid : baseUid;
 
-  while (i < total) {
-    uid = startingUid + i;
+  while (uid < end) {
     // Convoluted way of going through valid UIDs first, then new ones
     // if (!checkedValidUids && i < startingUids.length - 1) {
     //   uid = startingUids[i]
@@ -452,12 +450,12 @@ const aggregateAllCharacterData = async (startIdx = 0) => {
       // Blocked
       if (shouldCollectData === null) {
         await handleBlock(blockedIdx)
-        if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + i);
+        if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + uid);
   
         continue;
       }
       if (!shouldCollectData) {
-        i++;
+        uid++;
         continue;
       }
   
@@ -476,7 +474,7 @@ const aggregateAllCharacterData = async (startIdx = 0) => {
     
           if (characterIds === null) {
             await handleBlock(blockedIdx)
-            if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + i);
+            if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + uid);
             continue;
           } else {
             if (characterIds.length > 0) {
@@ -486,13 +484,13 @@ const aggregateAllCharacterData = async (startIdx = 0) => {
     
               if (result === null) {
                 await handleBlock(blockedIdx)
-                if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + i);
+                if (DEVELOPMENT) console.log(timeoutBox.length + " blocked at " + uid);
                 continue;
               } else {
                 firstPass = false;
               }
             }
-            i++;
+            uid++;
           }
         } catch(err) {
           console.log(err)
@@ -518,7 +516,7 @@ const loadFromJson = () => {
 
 // Run functions
 connectDb();
-mongoose.connection.once('open', () => {
+mongoose.connection.once('open', async () => {
   loadFromJson();
 
   // playerRef = await Player.findOne({ uid: 607942345 });
@@ -527,5 +525,8 @@ mongoose.connection.once('open', () => {
   // }))
   // await aggregateAbyssData(sampleAbyss.data);
 
-  aggregateAllCharacterData();
+  // await Player.find({}, {}, { sort: { 'uid': -1 }, limit: 1 }, function(err, post) {
+  //   console.log( post );
+  // });
+  aggregateAllCharacterData(817467005);
 });

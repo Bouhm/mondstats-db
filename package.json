@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "node .",
     "dev": "nodemon .",
-    "seed": "ts-node ./src/db/seeds.ts"
+    "seed": "ts-node ./src/seeds/index.ts"
   },
   "keywords": [],
   "author": "",

@@ -5,7 +5,7 @@ import AbyssBattle from '../models/abyssBattle';
 import Character from '../models/character';
 import playerCharacter from '../models/playerCharacter';
 
-const resolvers = {
+export const resolvers = {
     Query: {
       async getPlayerCharacter(id: number) {
         return await playerCharacter.findOne({ id })
@@ -24,5 +24,3 @@ const resolvers = {
       }
     }
 };
-
-export default resolvers;
