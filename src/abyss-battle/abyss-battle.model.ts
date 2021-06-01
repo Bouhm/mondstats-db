@@ -18,7 +18,7 @@ export class AbyssBattle {
 
   @Field(() => String)
   @Prop({ required: true })
-  floorLevel: string;
+  floor_level: string;
 
   @Field(() => String)
   @Prop({

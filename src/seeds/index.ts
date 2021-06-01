@@ -385,7 +385,7 @@ const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
 
             const abyssBattle = {
               battle: battle.index,
-              floorLevel: `${floor.index}-${level.index}`,
+              floor_level: `${floor.index}-${level.index}`,
               star: level.star,
               player: playerRef._id,
               party,
@@ -394,7 +394,7 @@ const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
             await AbyssBattleModel.findOneAndUpdate(
               {
                 battle: abyssBattle.battle,
-                floorLevel: `${floor.index}-${level.index}`,
+                floor_level: `${floor.index}-${level.index}`,
                 player: playerRef._id,
               },
               { $setOnInsert: abyssBattle },
