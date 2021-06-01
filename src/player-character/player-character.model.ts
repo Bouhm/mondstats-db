@@ -34,7 +34,7 @@ export class PlayerCharacter {
   })
   player: MongooseSchema.Types.ObjectId;
 
-  @Field(() => String)
+  @Field(() => [String])
   @Prop({
     type: [MongooseSchema.Types.ObjectId],
     ref: Artifact.name,

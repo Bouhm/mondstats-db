@@ -1,4 +1,4 @@
-import { Model } from 'mongoose';
+import { FilterQuery, Model, QueryOptions, UpdateQuery } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -11,4 +11,12 @@ export class ArtifactSetService {
     @InjectModel(ArtifactSet.name)
     private ArtifactSetModel: Model<ArtifactSetDocument>,
   ) {}
+
+  findOneAndUpdate(
+    filter: FilterQuery<ArtifactSetDocument>,
+    update: UpdateQuery<ArtifactSetDocument>,
+    options: QueryOptions,
+  ) {
+    return this.ArtifactSetModel.findOneAndUpdate(filter, update, options);
+  }
 }
