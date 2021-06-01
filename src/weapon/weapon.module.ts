@@ -5,9 +5,7 @@ import { Weapon, WeaponSchema } from './weapon.model';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: Weapon.name, schema: WeaponSchema },
-    ]),
+    MongooseModule.forFeature([{ name: Weapon.name, schema: WeaponSchema }]),
   ],
 })
 export class WeaponModule {}

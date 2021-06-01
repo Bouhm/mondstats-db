@@ -1,11 +1,10 @@
 import { Document, Schema as MongooseSchema } from 'mongoose';
+import { Artifact } from 'src/artifact/artifact.model';
+import { Character } from 'src/character/character.model';
 import { Player } from 'src/player/player.model';
+import { Weapon } from 'src/weapon/weapon.model';
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-
-import { Artifact } from '../artifact/artifact.model';
-import { Character } from '../character/character.model';
-import { Weapon } from '../weapon/weapon.model';
 
 @Schema()
 export class PlayerCharacter {
@@ -14,16 +13,16 @@ export class PlayerCharacter {
   @Prop()
   id: number;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Character' })
-  character: Character;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: Character.name })
+  character: MongooseSchema.Types.ObjectId;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Player' })
-  player: Player;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: Player.name })
+  player: MongooseSchema.Types.ObjectId;
 
   @Prop({
-    type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Artifact' }],
+    type: [{ type: MongooseSchema.Types.ObjectId, ref: Artifact.name }],
   })
-  artifacts: Artifact[];
+  artifacts: MongooseSchema.Types.ObjectId[];
 
   @Prop()
   constellation: number;
@@ -37,8 +36,8 @@ export class PlayerCharacter {
   @Prop()
   level: number;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Weapon' })
-  weapon: Weapon;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: Weapon.name })
+  weapon: MongooseSchema.Types.ObjectId;
 }
 
 export type PlayerCharacterDocument = PlayerCharacter & Document;

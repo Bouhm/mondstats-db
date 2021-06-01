@@ -4,17 +4,22 @@ import fs from 'fs';
 import https from 'https';
 import _ from 'lodash';
 import mongoose, { Schema } from 'mongoose';
+import { AbyssBattleService } from 'src/abyss-battle/abyss-battle.service';
+import { ArtifactSetService } from 'src/artifact-set/artifact-set.service';
+import { ArtifactService } from 'src/artifact/artifact.service';
+import { CharacterService } from 'src/character/character.service';
+import { PlayerCharacterService } from 'src/player-character/player-character.service';
+import { PlayerService } from 'src/player/player.service';
 import connectDb from 'src/util/connection';
+import { WeaponService } from 'src/weapon/weapon.service';
 
-import { AbyssBattle } from '../abyss-battle/abyss-battle.model';
-import { ArtifactSet, IAffix } from '../artifact-set/artifact-set.model';
 import { Artifact } from '../artifact/artifact.model';
 import { Character } from '../character/character.model';
 import {
   PlayerCharacter,
   PlayerCharacterDocument,
 } from '../player-character/player-character.model';
-import { Player, PlayerDocument } from '../player/player.model';
+import { PlayerDocument } from '../player/player.model';
 import { Weapon } from '../weapon/weapon.model';
 import { IAbyssResponse, ICharacterResponse } from './interfaces';
 
@@ -49,7 +54,6 @@ let isAllBlocked = true;
 let blockedLevel = 0;
 const longRests = [60 * 60 * 1000, 6 * 60 * 60 * 1000, 12 * 60 * 60 * 1000];
 const maxRest = (60 * 10 * 1000) / 30;
-const maxLevel = 90;
 
 let playerRef: PlayerDocument;
 let playerCharacterRefs: PlayerCharacterDocument[] = [];
@@ -150,65 +154,6 @@ function _getBaseUid(server: string, start = 0) {
   return uidBase + start;
 }
 
-function _generateUids(start: number, count: number, servers: string[]) {
-  return _.flatten(
-    _.map(servers, (server) => {
-      let uidBase = 100000000;
-
-      switch (server) {
-        case 'cn':
-          uidBase *= 1;
-          break;
-        case 'asia':
-          uidBase *= 8;
-          break;
-        case 'euro':
-          uidBase *= 7;
-          break;
-        case 'usa':
-          uidBase *= 6;
-          break;
-        default:
-          uidBase *= 8;
-          break;
-      }
-
-      return _.map(
-        Array.from(Array(count).keys()),
-        (num) => uidBase + start + num,
-      );
-    }),
-  );
-}
-
-function _getServerFromUid(uid: number) {
-  switch (('' + uid)[0]) {
-    case '1':
-      return 'cn';
-    case '6':
-      return 'usa';
-    case '7':
-      return 'euro';
-    case '8':
-      return 'asia';
-    default:
-      return 'usa';
-  }
-}
-
-function _getActivationNumber(count: number, affixes: IAffix[]) {
-  const activations = _.map(affixes, (effect) => effect.activation_number);
-
-  let activation = 0;
-  _.map(activations, (activation_num) => {
-    if (count >= activation_num) {
-      activation = activation_num as number;
-    }
-  });
-
-  return activation;
-}
-
 const handleBlock = async (tokenIdx: number) => {
   if (tokenIdx > TOKENS.length - 1) {
     tokenIdx = 0;
@@ -238,20 +183,6 @@ const handleBlock = async (tokenIdx: number) => {
     await _sleep(longRests[blockedLevel]);
   }
 };
-
-function _areEqualShallow(a: any, b: any) {
-  for (const key in a) {
-    if (!(key in b) || a[key] !== b[key]) {
-      return false;
-    }
-  }
-  for (const key in b) {
-    if (!(key in a) || a[key] !== b[key]) {
-      return false;
-    }
-  }
-  return true;
-}
 
 // Aggregate spiral abyss data
 const getSpiralAbyssThreshold = async (
@@ -294,7 +225,7 @@ const getSpiralAbyssThreshold = async (
 const getPlayerCharacters = async (
   server: string,
   uid: number,
-  threshold = 50,
+  threshold = 40,
 ) => {
   const apiUrl = `${userApiUrl}?server=os_${server}&role_id=${uid}`;
 
@@ -334,7 +265,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
     'icon',
   ]);
 
-  const weaponRef = await Weapon.findOneAndUpdate(
+  const weaponRef = await WeaponService.findOneAndUpdate(
     { id: charWeapon.id },
     { $setOnInsert: charWeapon },
     options,
@@ -352,14 +283,14 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
       'pos_name',
     ]);
 
-    const artifactSetRef = await ArtifactSet.findOneAndUpdate(
+    const artifactSetRef = await ArtifactSetService.findOneAndUpdate(
       { id: artifact.set.id },
       { $setOnInsert: artifact.set },
       options,
     );
     charArtifact.set = artifactSetRef._id;
 
-    const artifactRef = await Artifact.findOneAndUpdate(
+    const artifactRef = await ArtifactService.findOneAndUpdate(
       { id: charArtifact.id },
       { $setOnInsert: charArtifact },
       options,
@@ -380,7 +311,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   //   delete constellation.is_actived
   // })
 
-  const characterRef = await Character.findOneAndUpdate(
+  const characterRef = await CharacterService.findOneAndUpdate(
     { id: character.id },
     { $setOnInsert: character },
     options,
@@ -407,7 +338,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
       player: playerRef._id,
     };
 
-    const playerCharacterRef = await PlayerCharacter.findOneAndUpdate(
+    const playerCharacterRef = await PlayerCharacterService.findOneAndUpdate(
       { character: characterRef._id, player: playerRef._id },
       { $setOnInsert: playerCharacter },
       options,
@@ -445,7 +376,7 @@ const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
               party,
             };
 
-            await AbyssBattle.findOneAndUpdate(
+            await AbyssBattleService.findOneAndUpdate(
               {
                 battle: abyssBattle.battle,
                 level: level.index,
@@ -555,7 +486,7 @@ const aggregateAllCharacterData = async (startUid = 0) => {
       if (shouldCollectData) {
         try {
           firstPass = true;
-          playerRef = await Player.findOneAndUpdate(
+          playerRef = await PlayerService.findOneAndUpdate(
             { uid },
             { uid, total_star: playerAbyssData.total_star },
             options,
@@ -620,7 +551,7 @@ connectDb();
 mongoose.connection.once('open', async () => {
   loadFromJson();
 
-  // playerRef = await Player.findOne({ uid: 607942345 });
+  // playerRef = await PlayerService.findOne({ uid: 607942345 });
   // await Promise.all(_.map(sampleChars.data.avatars, async (char) => {
   //   return aggregateCharacterData(char);
   // }))
