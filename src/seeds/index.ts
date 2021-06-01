@@ -9,9 +9,7 @@ import AbyssBattleModel from '../abyss-battle/abyss-battle.model';
 import ArtifactSetModel from '../artifact-set/artifact-set.model';
 import ArtifactModel from '../artifact/artifact.model';
 import CharacterModel from '../character/character.model';
-import PlayerCharacterModel, {
-  PlayerCharacterDocument,
-} from '../player-character/player-character.model';
+import PlayerCharacterModel, { PlayerCharacterDocument } from '../player-character/player-character.model';
 import PlayerModel, { PlayerDocument } from '../player/player.model';
 import connectDb from '../util/connection';
 import WeaponModel from '../weapon/weapon.model';
@@ -387,8 +385,7 @@ const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
 
             const abyssBattle = {
               battle: battle.index,
-              level: level.index,
-              floor: floor.index,
+              floorLevel: `${floor.index}-${level.index}`,
               star: level.star,
               player: playerRef._id,
               party,
@@ -397,8 +394,7 @@ const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
             await AbyssBattleModel.findOneAndUpdate(
               {
                 battle: abyssBattle.battle,
-                level: level.index,
-                floor: floor.index,
+                floorLevel: `${floor.index}-${level.index}`,
                 player: playerRef._id,
               },
               { $setOnInsert: abyssBattle },

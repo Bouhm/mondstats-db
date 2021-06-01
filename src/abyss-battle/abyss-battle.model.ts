@@ -16,13 +16,9 @@ export class AbyssBattle {
   @Prop({ required: true })
   battle: number;
 
-  @Field(() => Number)
+  @Field(() => String)
   @Prop({ required: true })
-  floor: number;
-
-  @Field(() => Number)
-  @Prop({ required: true })
-  level: number;
+  floorLevel: string;
 
   @Field(() => String)
   @Prop({
