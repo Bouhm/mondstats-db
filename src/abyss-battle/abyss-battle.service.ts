@@ -1,4 +1,4 @@
-import { FilterQuery, Model, QueryOptions, UpdateQuery } from 'mongoose';
+import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -9,14 +9,10 @@ import { AbyssBattle, AbyssBattleDocument } from './abyss-battle.model';
 export class AbyssBattleService {
   constructor(
     @InjectModel(AbyssBattle.name)
-    private AbyssBattleModel: Model<AbyssBattleDocument>,
+    private abyssBattleModel: Model<AbyssBattleDocument>,
   ) {}
 
-  findOneAndUpdate(
-    filter: FilterQuery<AbyssBattleDocument>,
-    update: UpdateQuery<AbyssBattleDocument>,
-    options: QueryOptions,
-  ) {
-    return this.AbyssBattleModel.findOneAndUpdate(filter, update, options);
+  getByFloorLevels(floorLevels: string[]) {
+    return this.abyssBattleModel.find({ floor_level: { $in: floorLevels } });
   }
 }

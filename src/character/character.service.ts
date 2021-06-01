@@ -1,4 +1,4 @@
-import { FilterQuery, Model, QueryOptions, UpdateQuery } from 'mongoose';
+import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -9,14 +9,10 @@ import { Character, CharacterDocument } from './character.model';
 export class CharacterService {
   constructor(
     @InjectModel(Character.name)
-    private CharacterModel: Model<CharacterDocument>,
+    private characterModel: Model<CharacterDocument>,
   ) {}
 
-  findOneAndUpdate(
-    filter: FilterQuery<CharacterDocument>,
-    update: UpdateQuery<CharacterDocument>,
-    options: QueryOptions,
-  ) {
-    return this.CharacterModel.findOneAndUpdate(filter, update, options);
+  getByIds(ids: number[]) {
+    return this.characterModel.find({ id: { $in: ids } });
   }
 }

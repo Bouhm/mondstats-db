@@ -22,7 +22,15 @@ export class Character {
   @Prop({ required: true, unique: true })
   id: number;
 
-  @Field()
+  @Field(() => [
+    {
+      effect: { type: String },
+      id: { type: Number },
+      name: { type: String },
+      pos: { type: Number },
+      icon: { type: String },
+    },
+  ])
   @Prop(
     raw([
       {

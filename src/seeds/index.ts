@@ -18,8 +18,7 @@ import { IAbyssResponse, ICharacterResponse } from './interfaces';
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const DEVELOPMENT = true;
 
-const spiralAbyssApiUrl =
-  'https://api-os-takumi.mihoyo.com/game_record/genshin/api/spiralAbyss';
+const spiralAbyssApiUrl = 'https://api-os-takumi.mihoyo.com/game_record/genshin/api/spiralAbyss';
 const userApiUrl = 'https://api-os-takumi.mihoyo.com/game_record/genshin/api/index';
 const charApiUrl = 'https://bbs-api-os.hoyolab.com/game_record/genshin/api/character';
 
@@ -124,8 +123,7 @@ const getHeaders = () => {
   accIdx = _clamp(0, TOKENS.length - 1, accIdx);
 
   return {
-    'User-Agent':
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:86.0) Gecko/20100101 Firefox/86.0',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:86.0) Gecko/20100101 Firefox/86.0',
     Accept: 'application/json, text/plain, */*',
     'Accept-Language': 'en-US,en;q=0.5',
     'Accept-Encoding': 'gzip, deflate, br',
@@ -263,15 +261,7 @@ const getPlayerCharacters = async (server: string, uid: number, threshold = 40) 
 const aggregateCharacterData = async (char: ICharacterResponse) => {
   // Update database
   // Weapons
-  const charWeapon = _.pick(char.weapon, [
-    'id',
-    'desc',
-    'name',
-    'rarity',
-    'type',
-    'type_name',
-    'icon',
-  ]);
+  const charWeapon = _.pick(char.weapon, ['id', 'desc', 'name', 'rarity', 'type', 'type_name', 'icon']);
 
   const weaponRef = await WeaponModel.findOneAndUpdate(
     { id: charWeapon.id },
@@ -282,15 +272,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   const artifactRefIds: Schema.Types.ObjectId[] = [];
   // Artifacts
   for (const artifact of char.reliquaries) {
-    const charArtifact = _.pick(artifact, [
-      'id',
-      'name',
-      'rarity',
-      'icon',
-      'pos',
-      'pos_name',
-      'set',
-    ]);
+    const charArtifact = _.pick(artifact, ['id', 'name', 'rarity', 'icon', 'pos', 'pos_name', 'set']);
 
     const artifactSetRef = await ArtifactSetModel.findOneAndUpdate(
       { id: artifact.set.id },
@@ -308,15 +290,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   }
 
   // Characters
-  const character = _.pick(char, [
-    'constellations',
-    'element',
-    'id',
-    'name',
-    'rarity',
-    'icon',
-    'image',
-  ]);
+  const character = _.pick(char, ['constellations', 'element', 'id', 'name', 'rarity', 'icon', 'image']);
 
   if (character.name === 'Traveler') {
     const { id, element } = assignTraveler(char);
@@ -409,11 +383,7 @@ const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
   );
 };
 
-const aggregatePlayerData = async (
-  server: string,
-  uid: number,
-  characterIds: number[],
-) => {
+const aggregatePlayerData = async (server: string, uid: number, characterIds: number[]) => {
   const reqBody = {
     character_ids: characterIds,
     server: `os_${server}`,

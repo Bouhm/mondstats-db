@@ -1,5 +1,3 @@
-import { IAffix } from 'src/artifact-set/artifact-set.model';
-
 export interface IAbyssResponse {
   schedule_id: number;
   start_time: string;
@@ -65,6 +63,11 @@ export interface IWeaponResponse {
   type_name: string;
   desc: string;
   affix_level: number;
+}
+
+export interface IAffix {
+  activation_number: number;
+  effect: string;
 }
 
 export interface IArtifactResponse {
