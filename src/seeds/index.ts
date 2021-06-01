@@ -370,6 +370,8 @@ const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
       _.map(
         _.filter(floor.levels, (level) => level.star > 0),
         async (level) => {
+          const parties = new Array(level.battles.length);
+
           for (const battle of level.battles) {
             const party: any[] = [];
             for (const char of battle.avatars) {
@@ -383,24 +385,24 @@ const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
               }
             }
 
-            const abyssBattle = {
-              battle: battle.index,
-              floor_level: `${floor.index}-${level.index}`,
-              star: level.star,
-              player: playerRef._id,
-              party,
-            };
-
-            await AbyssBattleModel.findOneAndUpdate(
-              {
-                battle: abyssBattle.battle,
-                floor_level: `${floor.index}-${level.index}`,
-                player: playerRef._id,
-              },
-              { $setOnInsert: abyssBattle },
-              options,
-            );
+            parties[battle.index - 1] = party;
           }
+
+          const abyssBattle = {
+            floor_level: `${floor.index}-${level.index}`,
+            star: level.star,
+            player: playerRef._id,
+            parties,
+          };
+
+          await AbyssBattleModel.findOneAndUpdate(
+            {
+              floor_level: `${floor.index}-${level.index}`,
+              player: playerRef._id,
+            },
+            { $setOnInsert: abyssBattle },
+            options,
+          );
         },
       );
     },

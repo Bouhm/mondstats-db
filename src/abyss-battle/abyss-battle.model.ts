@@ -12,10 +12,6 @@ export class AbyssBattle {
   @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;
 
-  @Field(() => Number)
-  @Prop({ required: true })
-  battle: number;
-
   @Field(() => String)
   @Prop({ required: true })
   floor_level: string;
@@ -28,13 +24,13 @@ export class AbyssBattle {
   })
   player: MongooseSchema.Types.ObjectId;
 
-  @Field(() => [String])
+  @Field(() => [[String]])
   @Prop({
-    type: [MongooseSchema.Types.ObjectId],
+    type: [[MongooseSchema.Types.ObjectId]],
     ref: PlayerCharacter.name,
     required: true,
   })
-  party: MongooseSchema.Types.ObjectId[];
+  parties: MongooseSchema.Types.ObjectId[][];
 
   @Field(() => Number)
   @Prop({ required: true })
