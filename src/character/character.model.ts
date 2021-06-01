@@ -15,20 +15,26 @@ export interface IConstellation {
 export class Character {
   _id: MongooseSchema.Types.ObjectId;
 
-  @Prop()
+  @Prop({ required: true })
   id: number;
 
-  @Prop()
+  @Prop({ required: true })
   constellations: IConstellation[];
 
-  @Prop()
+  @Prop({ required: true })
   element: string;
 
-  @Prop()
+  @Prop({ required: true })
   name: string;
 
-  @Prop()
+  @Prop({ required: true })
   rarity: number;
+
+  @Prop({ required: true })
+  icon: string;
+
+  @Prop({ required: true })
+  image: string;
 }
 
 export type CharacterDocument = Character & Document;

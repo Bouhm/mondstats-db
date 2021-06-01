@@ -1,4 +1,4 @@
-import { FilterQuery, Model, QueryOptions, UpdateQuery } from 'mongoose';
+import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -11,12 +11,4 @@ export class WeaponService {
     @InjectModel(Weapon.name)
     private WeaponModel: Model<WeaponDocument>,
   ) {}
-
-  findOneAndUpdate(
-    filter: FilterQuery<WeaponDocument>,
-    update: UpdateQuery<WeaponDocument>,
-    options: QueryOptions,
-  ) {
-    return this.WeaponModel.findOneAndUpdate(filter, update, options);
-  }
 }

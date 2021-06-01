@@ -11,13 +11,13 @@ export interface IAffix {
 export class ArtifactSet {
   _id: MongooseSchema.Types.ObjectId;
 
-  @Prop()
+  @Prop({ required: true })
   id: number;
 
-  @Prop()
+  @Prop({ required: true })
   affixes: IAffix[];
 
-  @Prop()
+  @Prop({ required: true })
   name: string;
 }
 

@@ -7,25 +7,29 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 export class Artifact {
   _id: MongooseSchema.Types.ObjectId;
 
-  @Prop()
+  @Prop({ required: true })
   id: number;
 
-  @Prop()
+  @Prop({ required: true })
   icon: string;
 
-  @Prop()
+  @Prop({ required: true })
   name: string;
 
-  @Prop()
+  @Prop({ required: true })
   pos: number;
 
-  @Prop()
+  @Prop({ required: true })
   pos_name: string;
 
-  @Prop()
+  @Prop({ required: true })
   rarity: number;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: ArtifactSet.name })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: ArtifactSet.name,
+    required: true,
+  })
   set: MongooseSchema.Types.ObjectId;
 }
 

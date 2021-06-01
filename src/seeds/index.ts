@@ -3,24 +3,19 @@ import Axios from 'axios';
 import fs from 'fs';
 import https from 'https';
 import _ from 'lodash';
-import mongoose, { Schema } from 'mongoose';
-import { AbyssBattleService } from 'src/abyss-battle/abyss-battle.service';
-import { ArtifactSetService } from 'src/artifact-set/artifact-set.service';
-import { ArtifactService } from 'src/artifact/artifact.service';
-import { CharacterService } from 'src/character/character.service';
-import { PlayerCharacterService } from 'src/player-character/player-character.service';
-import { PlayerService } from 'src/player/player.service';
+import mongoose, { Model, Schema } from 'mongoose';
+import { AbyssBattle, AbyssBattleDocument } from 'src/abyss-battle/abyss-battle.model';
+import { ArtifactSet, ArtifactSetDocument } from 'src/artifact-set/artifact-set.model';
 import connectDb from 'src/util/connection';
-import { WeaponService } from 'src/weapon/weapon.service';
 
-import { Artifact } from '../artifact/artifact.model';
-import { Character } from '../character/character.model';
+import { Artifact, ArtifactDocument } from '../artifact/artifact.model';
+import { Character, CharacterDocument } from '../character/character.model';
 import {
   PlayerCharacter,
   PlayerCharacterDocument,
 } from '../player-character/player-character.model';
-import { PlayerDocument } from '../player/player.model';
-import { Weapon } from '../weapon/weapon.model';
+import { Player, PlayerDocument } from '../player/player.model';
+import { Weapon, WeaponDocument } from '../weapon/weapon.model';
 import { IAbyssResponse, ICharacterResponse } from './interfaces';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -58,6 +53,15 @@ const maxRest = (60 * 10 * 1000) / 30;
 let playerRef: PlayerDocument;
 let playerCharacterRefs: PlayerCharacterDocument[] = [];
 let playerAbyssData: IAbyssResponse;
+
+const AbyssBattleModel = AbyssBattle as Model<AbyssBattleDocument>;
+const ArtifactModel = Artifact as Model<ArtifactDocument>;
+const ArtifactSetModel = ArtifactSet as Model<ArtifactSetDocument>;
+const WeaponModel = Weapon as Model<WeaponDocument>;
+const PlayerCharacterModel = PlayerCharacter as Model<PlayerCharacterDocument>;
+const PlayerModel = Player as Model<PlayerDocument>;
+const CharacterModel = Character as Model<CharacterDocument>;
+
 const options = {
   upsert: true,
   new: true,
@@ -265,7 +269,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
     'icon',
   ]);
 
-  const weaponRef = await WeaponService.findOneAndUpdate(
+  const weaponRef = await WeaponModel.findOneAndUpdate(
     { id: charWeapon.id },
     { $setOnInsert: charWeapon },
     options,
@@ -283,14 +287,14 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
       'pos_name',
     ]);
 
-    const artifactSetRef = await ArtifactSetService.findOneAndUpdate(
+    const artifactSetRef = await ArtifactSetModel.findOneAndUpdate(
       { id: artifact.set.id },
       { $setOnInsert: artifact.set },
       options,
     );
     charArtifact.set = artifactSetRef._id;
 
-    const artifactRef = await ArtifactService.findOneAndUpdate(
+    const artifactRef = await ArtifactModel.findOneAndUpdate(
       { id: charArtifact.id },
       { $setOnInsert: charArtifact },
       options,
@@ -311,7 +315,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   //   delete constellation.is_actived
   // })
 
-  const characterRef = await CharacterService.findOneAndUpdate(
+  const characterRef = await CharacterModel.findOneAndUpdate(
     { id: character.id },
     { $setOnInsert: character },
     options,
@@ -326,7 +330,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
       }
     }
 
-    const playerCharacter: PlayerCharacter = {
+    const playerCharacter = {
       id: character.id,
       character: characterRef._id,
       artifacts: artifactRefIds,
@@ -338,7 +342,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
       player: playerRef._id,
     };
 
-    const playerCharacterRef = await PlayerCharacterService.findOneAndUpdate(
+    const playerCharacterRef = await PlayerCharacterModel.findOneAndUpdate(
       { character: characterRef._id, player: playerRef._id },
       { $setOnInsert: playerCharacter },
       options,
@@ -376,7 +380,7 @@ const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
               party,
             };
 
-            await AbyssBattleService.findOneAndUpdate(
+            await AbyssBattleModel.findOneAndUpdate(
               {
                 battle: abyssBattle.battle,
                 level: level.index,
@@ -486,7 +490,7 @@ const aggregateAllCharacterData = async (startUid = 0) => {
       if (shouldCollectData) {
         try {
           firstPass = true;
-          playerRef = await PlayerService.findOneAndUpdate(
+          playerRef = await PlayerModel.findOneAndUpdate(
             { uid },
             { uid, total_star: playerAbyssData.total_star },
             options,

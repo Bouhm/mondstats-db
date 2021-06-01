@@ -15,10 +15,10 @@ export interface IConstellation {
 export class Player {
   _id: MongooseSchema.Types.ObjectId;
 
-  @Prop()
+  @Prop({ required: true })
   uid: number;
 
-  @Prop()
+  @Prop({ required: true })
   total_star: number;
 }
 

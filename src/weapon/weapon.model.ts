@@ -6,25 +6,25 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 export class Weapon {
   _id: MongooseSchema.Types.ObjectId;
 
-  @Prop()
+  @Prop({ required: true })
   id: number;
 
-  @Prop()
+  @Prop({ required: true })
   desc: string;
 
-  @Prop()
+  @Prop({ required: true })
   icon: string;
 
-  @Prop()
+  @Prop({ required: true })
   name: string;
 
-  @Prop()
+  @Prop({ required: true })
   rarity: number;
 
-  @Prop()
+  @Prop({ required: true })
   type: number;
 
-  @Prop()
+  @Prop({ required: true })
   type_name: string;
 }
 

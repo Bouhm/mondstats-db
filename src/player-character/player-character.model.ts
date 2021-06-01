@@ -13,30 +13,48 @@ export class PlayerCharacter {
   @Prop()
   id: number;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: Character.name })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: Character.name,
+    required: true,
+  })
   character: MongooseSchema.Types.ObjectId;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: Player.name })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: Player.name,
+    required: true,
+  })
   player: MongooseSchema.Types.ObjectId;
 
   @Prop({
-    type: [{ type: MongooseSchema.Types.ObjectId, ref: Artifact.name }],
+    type: [
+      {
+        type: MongooseSchema.Types.ObjectId,
+        ref: Artifact.name,
+        required: true,
+      },
+    ],
   })
   artifacts: MongooseSchema.Types.ObjectId[];
 
-  @Prop()
+  @Prop({ required: true })
   constellation: number;
 
-  @Prop()
+  @Prop({ required: true })
   element: string;
 
-  @Prop()
+  @Prop({ required: true })
   fetter: number;
 
-  @Prop()
+  @Prop({ required: true })
   level: number;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: Weapon.name })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: Weapon.name,
+    required: true,
+  })
   weapon: MongooseSchema.Types.ObjectId;
 }
 

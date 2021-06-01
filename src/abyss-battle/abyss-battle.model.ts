@@ -8,24 +8,29 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 export class AbyssBattle {
   _id: MongooseSchema.Types.ObjectId;
 
-  @Prop()
+  @Prop({ required: true })
   battle: number;
 
-  @Prop()
+  @Prop({ required: true })
   floor: number;
 
-  @Prop()
+  @Prop({ required: true })
   level: number;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: Player.name })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: Player.name,
+    required: true,
+  })
   player: MongooseSchema.Types.ObjectId;
 
   @Prop({
     type: [{ type: MongooseSchema.Types.ObjectId, ref: PlayerCharacter.name }],
+    required: true,
   })
   party: MongooseSchema.Types.ObjectId[];
 
-  @Prop()
+  @Prop({ required: true })
   star: number;
 }
 
