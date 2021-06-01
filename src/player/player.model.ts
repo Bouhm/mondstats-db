@@ -15,7 +15,7 @@ export interface IConstellation {
 export class Player {
   _id: MongooseSchema.Types.ObjectId;
 
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   uid: number;
 
   @Prop({ required: true })

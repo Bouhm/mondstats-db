@@ -7,7 +7,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 export class Artifact {
   _id: MongooseSchema.Types.ObjectId;
 
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   id: number;
 
   @Prop({ required: true })

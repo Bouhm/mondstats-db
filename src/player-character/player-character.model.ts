@@ -10,7 +10,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 export class PlayerCharacter {
   _id: MongooseSchema.Types.ObjectId;
 
-  @Prop()
+  @Prop({ required: true, unique: true })
   id: number;
 
   @Prop({
@@ -60,5 +60,4 @@ export class PlayerCharacter {
 
 export type PlayerCharacterDocument = PlayerCharacter & Document;
 
-export const PlayerCharacterSchema =
-  SchemaFactory.createForClass(PlayerCharacter);
+export const PlayerCharacterSchema = SchemaFactory.createForClass(PlayerCharacter);

@@ -23,10 +23,8 @@ const DEVELOPMENT = true;
 
 const spiralAbyssApiUrl =
   'https://api-os-takumi.mihoyo.com/game_record/genshin/api/spiralAbyss';
-const userApiUrl =
-  'https://api-os-takumi.mihoyo.com/game_record/genshin/api/index';
-const charApiUrl =
-  'https://bbs-api-os.hoyolab.com/game_record/genshin/api/character';
+const userApiUrl = 'https://api-os-takumi.mihoyo.com/game_record/genshin/api/index';
+const charApiUrl = 'https://bbs-api-os.hoyolab.com/game_record/genshin/api/character';
 
 const axios = Axios.create({
   httpsAgent: new https.Agent({
@@ -189,11 +187,7 @@ const handleBlock = async (tokenIdx: number) => {
 };
 
 // Aggregate spiral abyss data
-const getSpiralAbyssThreshold = async (
-  server: string,
-  uid: number,
-  threshold = 8,
-) => {
+const getSpiralAbyssThreshold = async (server: string, uid: number, threshold = 8) => {
   const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${uid}&schedule_type=2`;
 
   try {
@@ -226,11 +220,7 @@ const getSpiralAbyssThreshold = async (
 };
 
 // Get player's owned character ids
-const getPlayerCharacters = async (
-  server: string,
-  uid: number,
-  threshold = 40,
-) => {
+const getPlayerCharacters = async (server: string, uid: number, threshold = 40) => {
   const apiUrl = `${userApiUrl}?server=os_${server}&role_id=${uid}`;
 
   return axios
@@ -502,24 +492,18 @@ const aggregateAllCharacterData = async (startUid = 0) => {
 
           if (characterIds === null) {
             await handleBlock(blockedIdx);
-            if (DEVELOPMENT)
-              console.log(timeoutBox.length + ' blocked at ' + uid);
+            if (DEVELOPMENT) console.log(timeoutBox.length + ' blocked at ' + uid);
             continue;
           } else {
             isAllBlocked = false;
             if (characterIds.length > 0) {
-              const result = await aggregatePlayerData(
-                server,
-                uid,
-                characterIds,
-              );
+              const result = await aggregatePlayerData(server, uid, characterIds);
               blockedIdx = accIdx;
               await _incrementAccIdx();
 
               if (result === null) {
                 await handleBlock(blockedIdx);
-                if (DEVELOPMENT)
-                  console.log(timeoutBox.length + ' blocked at ' + uid);
+                if (DEVELOPMENT) console.log(timeoutBox.length + ' blocked at ' + uid);
                 continue;
               } else {
                 isAllBlocked = false;

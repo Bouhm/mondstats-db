@@ -11,7 +11,7 @@ export interface IAffix {
 export class ArtifactSet {
   _id: MongooseSchema.Types.ObjectId;
 
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   id: number;
 
   @Prop({ required: true })

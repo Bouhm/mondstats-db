@@ -15,7 +15,7 @@ export interface IConstellation {
 export class Character {
   _id: MongooseSchema.Types.ObjectId;
 
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   id: number;
 
   @Prop({ required: true })
