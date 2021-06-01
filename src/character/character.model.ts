@@ -16,13 +16,13 @@ export class Character {
   _id: MongooseSchema.Types.ObjectId;
 
   @Prop()
+  id: number;
+
+  @Prop()
   constellations: IConstellation[];
 
   @Prop()
   element: string;
-
-  @Prop()
-  id: number;
 
   @Prop()
   name: string;

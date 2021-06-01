@@ -7,10 +7,13 @@ export class Weapon {
   _id: MongooseSchema.Types.ObjectId;
 
   @Prop()
+  id: number;
+
+  @Prop()
   desc: string;
 
   @Prop()
-  id: number;
+  icon: string;
 
   @Prop()
   name: string;
@@ -23,9 +26,6 @@ export class Weapon {
 
   @Prop()
   type_name: string;
-
-  @Prop()
-  icon: string;
 }
 
 export type WeaponDocument = Weapon & Document;

@@ -12,19 +12,19 @@ export class Artifact {
   id: number;
 
   @Prop()
-  name: string;
-
-  @Prop()
-  rarity: number;
-
-  @Prop()
   icon: string;
+
+  @Prop()
+  name: string;
 
   @Prop()
   pos: number;
 
   @Prop()
   pos_name: string;
+
+  @Prop()
+  rarity: number;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'ArtifactSet' })
   set: ArtifactSet;

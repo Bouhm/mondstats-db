@@ -15,10 +15,10 @@ export class ArtifactSet {
   id: number;
 
   @Prop()
-  name: string;
+  affixes: IAffix[];
 
   @Prop()
-  affixes: IAffix[];
+  name: string;
 }
 
 export type ArtifactSetDocument = ArtifactSet & Document;
