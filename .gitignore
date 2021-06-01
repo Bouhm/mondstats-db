@@ -1,15 +1,34 @@
-.idea/
-.vscode/
-node_modules/
-build
-.DS_Store
-*.tgz
-template/src/__tests__/__snapshots__/
-lerna-debug.log
+# compiled output
+/dist
+/node_modules
+
+# Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-/.changelog
-.npm/
-yarn.lock
-dist
+lerna-debug.log*
+
+# OS
+.DS_Store
+
+# Tests
+/coverage
+/.nyc_output
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
