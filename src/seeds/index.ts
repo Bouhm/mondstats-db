@@ -4,10 +4,9 @@ import fs from 'fs';
 import https from 'https';
 import _ from 'lodash';
 import mongoose, { Model, Schema } from 'mongoose';
-import { AbyssBattle, AbyssBattleDocument } from 'src/abyss-battle/abyss-battle.model';
-import { ArtifactSet, ArtifactSetDocument } from 'src/artifact-set/artifact-set.model';
-import connectDb from 'src/util/connection';
 
+import { AbyssBattle, AbyssBattleDocument } from '../abyss-battle/abyss-battle.model';
+import { ArtifactSet, ArtifactSetDocument } from '../artifact-set/artifact-set.model';
 import { Artifact, ArtifactDocument } from '../artifact/artifact.model';
 import { Character, CharacterDocument } from '../character/character.model';
 import {
@@ -15,6 +14,7 @@ import {
   PlayerCharacterDocument,
 } from '../player-character/player-character.model';
 import { Player, PlayerDocument } from '../player/player.model';
+import connectDb from '../util/connection';
 import { Weapon, WeaponDocument } from '../weapon/weapon.model';
 import { IAbyssResponse, ICharacterResponse } from './interfaces';
 
@@ -249,7 +249,7 @@ const getPlayerCharacters = async (server: string, uid: number, threshold = 40) 
 const aggregateCharacterData = async (char: ICharacterResponse) => {
   // Update database
   // Weapons
-  const charWeapon: Weapon = _.pick(char.weapon, [
+  const charWeapon = _.pick(char.weapon, [
     'id',
     'desc',
     'name',
@@ -268,13 +268,14 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   const artifactRefIds: Schema.Types.ObjectId[] = [];
   // Artifacts
   for (const artifact of char.reliquaries) {
-    const charArtifact: Artifact = _.pick(artifact, [
+    const charArtifact = _.pick(artifact, [
       'id',
       'name',
       'rarity',
       'icon',
       'pos',
       'pos_name',
+      'set',
     ]);
 
     const artifactSetRef = await ArtifactSetModel.findOneAndUpdate(
@@ -293,12 +294,14 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   }
 
   // Characters
-  const character: Character = _.pick(char, [
+  const character = _.pick(char, [
     'constellations',
     'element',
     'id',
     'name',
     'rarity',
+    'icon',
+    'image',
   ]);
 
   // _.map(character.constellations, constellation => {

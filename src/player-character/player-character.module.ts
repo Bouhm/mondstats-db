@@ -1,10 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
-import {
-  PlayerCharacter,
-  PlayerCharacterSchema,
-} from './player-character.model';
+import { PlayerCharacter, PlayerCharacterSchema } from './player-character.model';
 
 @Module({
   imports: [

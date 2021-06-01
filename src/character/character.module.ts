@@ -5,9 +5,7 @@ import { Character, CharacterSchema } from './character.model';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: Character.name, schema: CharacterSchema },
-    ]),
+    MongooseModule.forFeature([{ name: Character.name, schema: CharacterSchema }]),
   ],
 })
 export class CharacterModule {}

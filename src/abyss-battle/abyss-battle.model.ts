@@ -1,8 +1,9 @@
 import { Document, Schema as MongooseSchema } from 'mongoose';
-import { PlayerCharacter } from 'src/player-character/player-character.model';
-import { Player } from 'src/player/player.model';
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+
+import { PlayerCharacter } from '../player-character/player-character.model';
+import { Player } from '../player/player.model';
 
 @Schema()
 export class AbyssBattle {

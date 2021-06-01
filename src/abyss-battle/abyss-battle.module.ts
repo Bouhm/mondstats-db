@@ -5,9 +5,7 @@ import { AbyssBattle, AbyssBattleSchema } from './abyss-battle.model';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: AbyssBattle.name, schema: AbyssBattleSchema },
-    ]),
+    MongooseModule.forFeature([{ name: AbyssBattle.name, schema: AbyssBattleSchema }]),
   ],
 })
 export class AbyssBattleModule {}

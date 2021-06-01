@@ -1,7 +1,8 @@
 import { Document, Schema as MongooseSchema } from 'mongoose';
-import { ArtifactSet } from 'src/artifact-set/artifact-set.model';
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+
+import { ArtifactSet } from '../artifact-set/artifact-set.model';
 
 @Schema()
 export class Artifact {

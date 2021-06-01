@@ -1,10 +1,11 @@
 import { Document, Schema as MongooseSchema } from 'mongoose';
-import { Artifact } from 'src/artifact/artifact.model';
-import { Character } from 'src/character/character.model';
-import { Player } from 'src/player/player.model';
-import { Weapon } from 'src/weapon/weapon.model';
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+
+import { Artifact } from '../artifact/artifact.model';
+import { Character } from '../character/character.model';
+import { Player } from '../player/player.model';
+import { Weapon } from '../weapon/weapon.model';
 
 @Schema()
 export class PlayerCharacter {

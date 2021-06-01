@@ -1,3 +1,6 @@
+import { ObjectId } from 'mongoose';
+import { IAffix } from 'src/artifact-set/artifact-set.model';
+
 export interface IAbyssResponse {
   schedule_id: number;
   start_time: string;
@@ -39,6 +42,7 @@ export interface IAbyssResponse {
 }
 
 export interface ICharacterResponse {
+  _id: ObjectId;
   id: number;
   image: string;
   icon: string;
@@ -53,6 +57,7 @@ export interface ICharacterResponse {
 }
 
 export interface IWeaponResponse {
+  _id: ObjectId;
   id: number;
   name: string;
   icon: string;
@@ -66,6 +71,7 @@ export interface IWeaponResponse {
 }
 
 export interface IArtifactResponse {
+  _id: ObjectId;
   id: number;
   name: string;
   icon: string;

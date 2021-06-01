@@ -1,4 +1,6 @@
-import { IAffix } from 'src/artifact-set/artifact-set.model';
+import _ from 'lodash';
+
+import { IAffix } from '../artifact-set/artifact-set.model';
 
 export function getServerFromUid(uid: number) {
   switch (('' + uid)[0]) {

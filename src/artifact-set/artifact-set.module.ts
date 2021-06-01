@@ -5,9 +5,7 @@ import { ArtifactSet, ArtifactSetSchema } from './artifact-set.model';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: ArtifactSet.name, schema: ArtifactSetSchema },
-    ]),
+    MongooseModule.forFeature([{ name: ArtifactSet.name, schema: ArtifactSetSchema }]),
   ],
 })
 export class ArtifactSetModule {}
