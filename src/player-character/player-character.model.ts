@@ -25,13 +25,15 @@ export class PlayerCharacter {
   @Prop()
   constellation: number;
 
-  @Prop()
+  @Prop({
+    type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Artifact' }],
+  })
   artifacts: Artifact[];
 
-  @Prop()
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Weapon' })
   weapon: Weapon;
 
-  @Prop()
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Player' })
   player: Player;
 }
 

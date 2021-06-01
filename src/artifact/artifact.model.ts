@@ -26,7 +26,7 @@ export class Artifact {
   @Prop()
   pos_name: string;
 
-  @Prop()
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'ArtifactSet' })
   set: ArtifactSet;
 }
 

@@ -1,6 +1,6 @@
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, SchemaFactory } from '@nestjs/mongoose';
 
 import { PlayerCharacter } from '../player-character/player-character.model';
 import { Player } from '../player/player.model';
@@ -21,10 +21,12 @@ export class AbyssBattle {
   @Prop()
   star: number;
 
-  @Prop()
+  @Prop({
+    type: [{ type: MongooseSchema.Types.ObjectId, ref: 'PlayerCharacter' }],
+  })
   party: PlayerCharacter[];
 
-  @Prop()
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Player' })
   player: Player;
 }
 
