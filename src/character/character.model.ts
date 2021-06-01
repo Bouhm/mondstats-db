@@ -1,6 +1,7 @@
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Field, ObjectType } from '@nestjs/graphql';
+import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 export interface IConstellation {
   effect: string;
@@ -11,28 +12,48 @@ export interface IConstellation {
   is_actived?: boolean;
 }
 
+@ObjectType()
 @Schema()
 export class Character {
+  @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;
 
+  @Field(() => Number)
   @Prop({ required: true, unique: true })
   id: number;
 
-  @Prop({ required: true })
-  constellations: IConstellation[];
+  @Field()
+  @Prop(
+    raw([
+      {
+        effect: { type: String },
+        id: { type: Number },
+        name: { type: String },
+        pos: { type: Number },
+        icon: { type: String },
+        is_actived: { type: Boolean },
+      },
+    ]),
+  )
+  constellations: Record<string, any>[];
 
+  @Field(() => String)
   @Prop({ required: true })
   element: string;
 
+  @Field(() => String)
   @Prop({ required: true })
   name: string;
 
+  @Field(() => Number)
   @Prop({ required: true })
   rarity: number;
 
+  @Field(() => String)
   @Prop({ required: true })
   icon: string;
 
+  @Field(() => String)
   @Prop({ required: true })
   image: string;
 }

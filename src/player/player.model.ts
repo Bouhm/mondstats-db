@@ -1,5 +1,6 @@
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
+import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 export interface IConstellation {
@@ -11,13 +12,17 @@ export interface IConstellation {
   is_actived?: boolean;
 }
 
+@ObjectType()
 @Schema()
 export class Player {
+  @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;
 
+  @Field(() => Number)
   @Prop({ required: true, unique: true })
   uid: number;
 
+  @Field(() => Number)
   @Prop({ required: true })
   total_star: number;
 }

@@ -1,5 +1,6 @@
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
+import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 import { Artifact } from '../artifact/artifact.model';
@@ -7,13 +8,17 @@ import { Character } from '../character/character.model';
 import { Player } from '../player/player.model';
 import { Weapon } from '../weapon/weapon.model';
 
+@ObjectType()
 @Schema()
 export class PlayerCharacter {
+  @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;
 
+  @Field(() => Number)
   @Prop({ required: true, unique: true })
   id: number;
 
+  @Field(() => String)
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     ref: Character.name,
@@ -21,6 +26,7 @@ export class PlayerCharacter {
   })
   character: MongooseSchema.Types.ObjectId;
 
+  @Field(() => String)
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     ref: Player.name,
@@ -28,29 +34,27 @@ export class PlayerCharacter {
   })
   player: MongooseSchema.Types.ObjectId;
 
+  @Field(() => String)
   @Prop({
-    type: [
-      {
-        type: MongooseSchema.Types.ObjectId,
-        ref: Artifact.name,
-        required: true,
-      },
-    ],
+    type: [MongooseSchema.Types.ObjectId],
+    ref: Artifact.name,
+    required: true,
   })
   artifacts: MongooseSchema.Types.ObjectId[];
 
+  @Field(() => Number)
   @Prop({ required: true })
   constellation: number;
 
-  @Prop({ required: true })
-  element: string;
-
+  @Field(() => Number)
   @Prop({ required: true })
   fetter: number;
 
+  @Field(() => Number)
   @Prop({ required: true })
   level: number;
 
+  @Field(() => String)
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     ref: Weapon.name,

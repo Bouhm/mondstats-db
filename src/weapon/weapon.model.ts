@@ -1,29 +1,39 @@
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
+import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
+@ObjectType()
 @Schema()
 export class Weapon {
+  @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;
 
+  @Field(() => Number)
   @Prop({ required: true, unique: true })
   id: number;
 
+  @Field(() => String)
   @Prop({ required: true })
   desc: string;
 
+  @Field(() => String)
   @Prop({ required: true })
   icon: string;
 
+  @Field(() => String)
   @Prop({ required: true })
   name: string;
 
+  @Field(() => Number)
   @Prop({ required: true })
   rarity: number;
 
+  @Field(() => Number)
   @Prop({ required: true })
   type: number;
 
+  @Field(() => String)
   @Prop({ required: true })
   type_name: string;
 }

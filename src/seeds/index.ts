@@ -3,19 +3,19 @@ import Axios from 'axios';
 import fs from 'fs';
 import https from 'https';
 import _ from 'lodash';
-import mongoose, { Model, Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
-import { AbyssBattle, AbyssBattleDocument } from '../abyss-battle/abyss-battle.model';
-import { ArtifactSet, ArtifactSetDocument } from '../artifact-set/artifact-set.model';
-import { Artifact, ArtifactDocument } from '../artifact/artifact.model';
-import { Character, CharacterDocument } from '../character/character.model';
+import { AbyssBattleModel } from '../abyss-battle/abyss-battle.model';
+import { ArtifactSetModel } from '../artifact-set/artifact-set.model';
+import { ArtifactModel } from '../artifact/artifact.model';
+import { CharacterModel } from '../character/character.model';
 import {
-  PlayerCharacter,
   PlayerCharacterDocument,
+  PlayerCharacterModel,
 } from '../player-character/player-character.model';
-import { Player, PlayerDocument } from '../player/player.model';
+import { PlayerDocument, PlayerModel } from '../player/player.model';
 import connectDb from '../util/connection';
-import { Weapon, WeaponDocument } from '../weapon/weapon.model';
+import { WeaponModel } from '../weapon/weapon.model';
 import { IAbyssResponse, ICharacterResponse } from './interfaces';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -52,19 +52,36 @@ let playerRef: PlayerDocument;
 let playerCharacterRefs: PlayerCharacterDocument[] = [];
 let playerAbyssData: IAbyssResponse;
 
-const AbyssBattleModel = AbyssBattle as Model<AbyssBattleDocument>;
-const ArtifactModel = Artifact as Model<ArtifactDocument>;
-const ArtifactSetModel = ArtifactSet as Model<ArtifactSetDocument>;
-const WeaponModel = Weapon as Model<WeaponDocument>;
-const PlayerCharacterModel = PlayerCharacter as Model<PlayerCharacterDocument>;
-const PlayerModel = Player as Model<PlayerDocument>;
-const CharacterModel = Character as Model<CharacterDocument>;
-
 const options = {
   upsert: true,
   new: true,
   runValidators: true,
   useFindAndModify: false,
+};
+
+const assignTraveler = (charData: ICharacterResponse) => {
+  let id = 100;
+  let element = 'Anemo';
+
+  switch (charData.constellations[0].id) {
+    // Anemo
+    case 71:
+      element = 'Anemo';
+      id = 100;
+      break;
+    // Geo
+    case 91:
+      element = 'Geo';
+      id = 101;
+      break;
+    default:
+      break;
+  }
+
+  return {
+    id,
+    element,
+  };
 };
 
 const _incrementAccIdx = async () => {
@@ -304,6 +321,12 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
     'image',
   ]);
 
+  if (character.name === 'Traveler') {
+    const { id, element } = assignTraveler(char);
+    character.id = id;
+    character.element = element;
+  }
+
   // _.map(character.constellations, constellation => {
   //   delete constellation.is_actived
   // })
@@ -328,7 +351,6 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
       character: characterRef._id,
       artifacts: artifactRefIds,
       constellation: cNum,
-      element: character.element,
       fetter: char.fetter,
       level: char.level,
       weapon: weaponRef._id,
@@ -438,7 +460,7 @@ const aggregateAllCharacterData = async (startUid = 0) => {
 
   const baseUid = _getBaseUid(server);
   const end = baseUid + 99999999;
-  let blockedIdx = 0;
+  let currIdx = 0;
   let uid = !!startUid ? startUid : baseUid;
 
   while (uid < end) {
@@ -462,13 +484,13 @@ const aggregateAllCharacterData = async (startUid = 0) => {
       let shouldCollectData: boolean | null = firstPass;
       if (!firstPass) {
         shouldCollectData = await getSpiralAbyssThreshold(server, uid);
-        blockedIdx = accIdx;
+        currIdx = accIdx;
         await _incrementAccIdx();
       }
 
       // Blocked
       if (shouldCollectData === null) {
-        await handleBlock(blockedIdx);
+        await handleBlock(currIdx);
         if (DEVELOPMENT) console.log(timeoutBox.length + ' blocked at ' + uid);
 
         continue;
@@ -490,22 +512,22 @@ const aggregateAllCharacterData = async (startUid = 0) => {
           );
 
           const characterIds = await getPlayerCharacters(server, uid);
-          blockedIdx = accIdx;
+          currIdx = accIdx;
           await _incrementAccIdx();
 
           if (characterIds === null) {
-            await handleBlock(blockedIdx);
+            await handleBlock(currIdx);
             if (DEVELOPMENT) console.log(timeoutBox.length + ' blocked at ' + uid);
             continue;
           } else {
             isAllBlocked = false;
             if (characterIds.length > 0) {
               const result = await aggregatePlayerData(server, uid, characterIds);
-              blockedIdx = accIdx;
+              currIdx = accIdx;
               await _incrementAccIdx();
 
               if (result === null) {
-                await handleBlock(blockedIdx);
+                await handleBlock(currIdx);
                 if (DEVELOPMENT) console.log(timeoutBox.length + ' blocked at ' + uid);
                 continue;
               } else {
@@ -542,14 +564,14 @@ connectDb();
 mongoose.connection.once('open', async () => {
   loadFromJson();
 
-  // playerRef = await PlayerService.findOne({ uid: 607942345 });
+  // playerRef = await PlayerModel.findOne({ uid: 607942345 });
   // await Promise.all(_.map(sampleChars.data.avatars, async (char) => {
   //   return aggregateCharacterData(char);
   // }))
   // await aggregateAbyssData(sampleAbyss.data);
 
-  // await Player.find({}, {}, { sort: { 'uid': -1 }, limit: 1 }, function(err, post) {
-  //   console.log( post );
+  // await PlayerModel.find({}, {}, { sort: { uid: -1 }, limit: 1 }, function (err, player) {
+  //   console.log(player);
   // });
-  aggregateAllCharacterData(817467005);
+  aggregateAllCharacterData();
 });
