@@ -1,4 +1,4 @@
-import { Document, Schema as MongooseSchema } from 'mongoose';
+import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -47,3 +47,5 @@ export class Artifact {
 export type ArtifactDocument = Artifact & Document;
 
 export const ArtifactSchema = SchemaFactory.createForClass(Artifact);
+
+export default mongoose.model<ArtifactDocument>(Artifact.name, ArtifactSchema);

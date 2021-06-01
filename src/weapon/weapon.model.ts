@@ -1,4 +1,4 @@
-import { Document, Schema as MongooseSchema } from 'mongoose';
+import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -41,3 +41,5 @@ export class Weapon {
 export type WeaponDocument = Weapon & Document;
 
 export const WeaponSchema = SchemaFactory.createForClass(Weapon);
+
+export default mongoose.model<WeaponDocument>(Weapon.name, WeaponSchema);

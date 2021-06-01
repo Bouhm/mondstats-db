@@ -5,17 +5,16 @@ import https from 'https';
 import _ from 'lodash';
 import mongoose, { Schema } from 'mongoose';
 
-import { AbyssBattleModel } from '../abyss-battle/abyss-battle.model';
-import { ArtifactSetModel } from '../artifact-set/artifact-set.model';
-import { ArtifactModel } from '../artifact/artifact.model';
-import { CharacterModel } from '../character/character.model';
-import {
+import AbyssBattleModel from '../abyss-battle/abyss-battle.model';
+import ArtifactSetModel from '../artifact-set/artifact-set.model';
+import ArtifactModel from '../artifact/artifact.model';
+import CharacterModel from '../character/character.model';
+import PlayerCharacterModel, {
   PlayerCharacterDocument,
-  PlayerCharacterModel,
 } from '../player-character/player-character.model';
-import { PlayerDocument, PlayerModel } from '../player/player.model';
+import PlayerModel, { PlayerDocument } from '../player/player.model';
 import connectDb from '../util/connection';
-import { WeaponModel } from '../weapon/weapon.model';
+import WeaponModel from '../weapon/weapon.model';
 import { IAbyssResponse, ICharacterResponse } from './interfaces';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
