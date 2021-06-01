@@ -31,7 +31,6 @@ export class Character {
         name: { type: String },
         pos: { type: Number },
         icon: { type: String },
-        is_actived: { type: Boolean },
       },
     ]),
   )
