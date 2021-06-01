@@ -27,7 +27,7 @@ export class Character {
     raw([
       {
         effect: { type: String },
-        id: { type: Number },
+        id: { type: Number, unique: true },
         name: { type: String },
         pos: { type: Number },
         icon: { type: String },
