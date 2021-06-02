@@ -9,7 +9,7 @@ export class PlayerResolver {
   constructor(private playerService: PlayerService) {}
 
   @Query(() => [Player])
-  async players(@Args('filters', { nullable: true }) filters?: ListPlayerInput) {
-    return this.playerService.list(filters);
+  async players(@Args('filter', { nullable: true }) filter?: ListPlayerInput) {
+    return this.playerService.list(filter);
   }
 }

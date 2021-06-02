@@ -9,7 +9,7 @@ export class ArtifactSetResolver {
   constructor(private artifactSetService: ArtifactSetService) {}
 
   @Query(() => [ArtifactSet])
-  async artifactsSets(@Args('filters', { nullable: true }) filters?: ListArtifactSetInput) {
-    return this.artifactSetService.list(filters);
+  async artifactsSets(@Args('filter', { nullable: true }) filter?: ListArtifactSetInput) {
+    return this.artifactSetService.list(filter);
   }
 }

@@ -13,7 +13,8 @@ export class AbyssBattleService {
     private abyssBattleModel: Model<AbyssBattleDocument>,
   ) {}
 
-  list(filters: ListAbyssBattleInput) {
-    return this.abyssBattleModel.find({ ...filters }).exec();
+  list(filter: ListAbyssBattleInput) {
+    const { floorLevels } = filter;
+    return this.abyssBattleModel.find({ floor_level: { $in: floorLevels } }).exec();
   }
 }

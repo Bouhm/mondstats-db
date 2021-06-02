@@ -13,7 +13,7 @@ export class PlayerCharacterService {
     private playerCharacterModel: Model<PlayerCharacterDocument>,
   ) {}
 
-  list(filters: ListPlayerCharacterInput) {
-    return this.playerCharacterModel.find({ ...filters }).exec();
+  list(filter: ListPlayerCharacterInput) {
+    return this.playerCharacterModel.find({ ...filter }).exec();
   }
 }

@@ -13,7 +13,7 @@ export class ArtifactSetService {
     private artifactSetModel: Model<ArtifactSetDocument>,
   ) {}
 
-  list(filters: ListArtifactSetInput) {
-    return this.artifactSetModel.find({ ...filters }).exec();
+  list(filter: ListArtifactSetInput) {
+    return this.artifactSetModel.find({ ...filter }).exec();
   }
 }

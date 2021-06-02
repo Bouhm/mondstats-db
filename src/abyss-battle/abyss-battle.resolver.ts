@@ -11,15 +11,16 @@ export class AbyssBattleResolver {
   constructor(private abyssBattleService: AbyssBattleService) {}
 
   @Query(() => [AbyssBattle])
-  async abyssBattles(@Args('filters', { nullable: true }) filters?: ListAbyssBattleInput) {
-    return this.abyssBattleService.list(filters);
+  async abyssBattles(@Args('filter', { nullable: true }) filter?: ListAbyssBattleInput) {
+    return this.abyssBattleService.list(filter);
   }
 
-  @ResolveField(() => [AbyssBattle])
-  async parties(@Parent() abyssBattle: AbyssBattleDocument, @Args('populate') populate: boolean) {
-    if (populate)
-      await abyssBattle.populate({ path: 'parties', model: PlayerCharacter.name }).execPopulate();
+  @ResolveField()
+  async parties(@Parent() abyssBattle: AbyssBattleDocument) {
+    const battle = await abyssBattle
+      .populate({ path: 'parties', model: PlayerCharacter.name })
+      .execPopulate();
 
-    return abyssBattle.parties;
+    return battle.parties;
   }
 }

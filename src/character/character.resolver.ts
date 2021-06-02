@@ -9,7 +9,7 @@ export class CharacterResolver {
   constructor(private characterService: CharacterService) {}
 
   @Query(() => [Character])
-  async characters(@Args('filters', { nullable: true }) filters?:  ListCharacterInput) {
-    return this.characterService.list(filters);
+  async characters(@Args('filter', { nullable: true }) filter?: ListCharacterInput) {
+    return this.characterService.list(filter);
   }
 }

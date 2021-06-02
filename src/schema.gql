@@ -5,7 +5,7 @@
 type AbyssBattle {
   _id: String!
   floor_level: String!
-  parties(populate: Boolean!): [[String!]!]!
+  parties: [[String!]!]!
   player: String!
   star: Float!
 }
@@ -100,13 +100,13 @@ type PlayerCharacter {
 }
 
 type Query {
-  abyssBattles(filters: ListAbyssBattleInput): [AbyssBattle!]!
-  artifacts(filters: ListArtifactInput): [Artifact!]!
-  artifactsSets(filters: ListArtifactSetInput): [ArtifactSet!]!
-  characters(filters: ListCharacterInput): [Character!]!
-  playerCharacters(filters: ListPlayerCharacterInput): [PlayerCharacter!]!
-  players(filters: ListPlayerInput): [Player!]!
-  weapons(filters: ListWeaponInput): [Weapon!]!
+  abyssBattles(filter: ListAbyssBattleInput): [AbyssBattle!]!
+  artifacts(filter: ListArtifactInput): [Artifact!]!
+  artifactsSets(filter: ListArtifactSetInput): [ArtifactSet!]!
+  characters(filter: ListCharacterInput): [Character!]!
+  playerCharacters(filter: ListPlayerCharacterInput): [PlayerCharacter!]!
+  players(filter: ListPlayerInput): [Player!]!
+  weapons(filter: ListWeaponInput): [Weapon!]!
 }
 
 type Weapon {

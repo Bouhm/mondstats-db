@@ -13,7 +13,7 @@ export class CharacterService {
     private characterModel: Model<CharacterDocument>,
   ) {}
 
-  list(filters: ListCharacterInput) {
-    return this.characterModel.find({ ...filters }).exec();
+  list(filter: ListCharacterInput) {
+    return this.characterModel.find({ ...filter }).exec();
   }
 }

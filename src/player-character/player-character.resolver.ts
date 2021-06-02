@@ -9,7 +9,7 @@ export class PlayerCharacterResolver {
   constructor(private playerCharacterService: PlayerCharacterService) {}
 
   @Query(() => [PlayerCharacter])
-  async playerCharacters(@Args('filters', { nullable: true }) filters?: ListPlayerCharacterInput) {
-    return this.playerCharacterService.list(filters);
+  async playerCharacters(@Args('filter', { nullable: true }) filter?: ListPlayerCharacterInput) {
+    return this.playerCharacterService.list(filter);
   }
 }

@@ -13,7 +13,7 @@ export class WeaponService {
     private weaponModel: Model<WeaponDocument>,
   ) {}
 
-  list(filters: ListWeaponInput) {
-    return this.weaponModel.find({ ...filters }).exec();
+  list(filter: ListWeaponInput) {
+    return this.weaponModel.find({ ...filter }).exec();
   }
 }
