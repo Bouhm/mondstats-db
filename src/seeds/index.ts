@@ -261,10 +261,13 @@ const getPlayerCharacters = async (server: string, uid: number, threshold = 40) 
 const aggregateCharacterData = async (char: ICharacterResponse) => {
   // Update database
   // Weapons
-  const charWeapon = _.pick(char.weapon, ['id', 'desc', 'name', 'rarity', 'type', 'type_name', 'icon']);
+  const charWeapon = {
+    oid: char.weapon.id,
+    ..._.pick(char.weapon, ['desc', 'name', 'rarity', 'type', 'type_name', 'icon']),
+  };
 
   const weaponRef = await WeaponModel.findOneAndUpdate(
-    { id: charWeapon.id },
+    { oid: charWeapon.oid },
     { $setOnInsert: charWeapon },
     options,
   );
@@ -272,17 +275,25 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   const artifactRefIds: Schema.Types.ObjectId[] = [];
   // Artifacts
   for (const artifact of char.reliquaries) {
-    const charArtifact = _.pick(artifact, ['id', 'name', 'rarity', 'icon', 'pos', 'pos_name', 'set']);
+    const charArtifact = {
+      oid: artifact.id,
+      ..._.pick(artifact, ['id', 'name', 'rarity', 'icon', 'pos', 'pos_name']),
+      set: {
+        oid: artifact.set.id,
+        affixes: artifact.set.affixes,
+        name: artifact.set.name,
+      },
+    };
 
     const artifactSetRef = await ArtifactSetModel.findOneAndUpdate(
-      { id: artifact.set.id },
+      { oid: artifact.set.id },
       { $setOnInsert: artifact.set },
       options,
     );
     charArtifact.set = artifactSetRef._id;
 
     const artifactRef = await ArtifactModel.findOneAndUpdate(
-      { id: charArtifact.id },
+      { oid: charArtifact.oid },
       { $setOnInsert: charArtifact },
       options,
     );
@@ -290,11 +301,14 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   }
 
   // Characters
-  const character = _.pick(char, ['constellations', 'element', 'id', 'name', 'rarity', 'icon', 'image']);
+  const character = {
+    oid: char.id,
+    ..._.pick(char, ['constellations', 'element', 'id', 'name', 'rarity', 'icon', 'image']),
+  };
 
   if (character.name === 'Traveler') {
     const { id, element } = assignTraveler(char);
-    character.id = id;
+    character.oid = id;
     character.element = element;
   }
 
@@ -303,7 +317,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   // })
 
   const characterRef = await CharacterModel.findOneAndUpdate(
-    { id: character.id },
+    { oid: character.oid },
     { $setOnInsert: character },
     options,
   );
@@ -318,7 +332,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
     }
 
     const playerCharacter = {
-      id: character.id,
+      oid: character.oid,
       character: characterRef._id,
       artifacts: artifactRefIds,
       constellation: cNum,
@@ -350,7 +364,7 @@ const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
             const party: any[] = [];
             for (const char of battle.avatars) {
               try {
-                const member = _.find(playerCharacterRefs, { id: char.id });
+                const member = _.find(playerCharacterRefs, { oid: char.id });
                 if (!member) return;
 
                 party.push(member._id);
@@ -537,8 +551,5 @@ mongoose.connection.once('open', async () => {
   // }))
   // await aggregateAbyssData(sampleAbyss.data);
 
-  // await PlayerModel.find({}, {}, { sort: { uid: -1 }, limit: 1 }, function (err, player) {
-  //   console.log(player);
-  // });
   aggregateAllCharacterData();
 });

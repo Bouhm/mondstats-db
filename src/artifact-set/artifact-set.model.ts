@@ -4,14 +4,14 @@ import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @ObjectType()
-@Schema({ id: false })
+@Schema({ timestamps: true })
 export class ArtifactSet {
   @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;
 
   @Field(() => Number)
   @Prop({ required: true, unique: true })
-  id: number;
+  oid: number;
 
   @Field(() => [
     {

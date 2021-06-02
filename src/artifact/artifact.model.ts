@@ -6,14 +6,14 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ArtifactSet } from '../artifact-set/artifact-set.model';
 
 @ObjectType()
-@Schema({ id: false })
+@Schema({ timestamps: true })
 export class Artifact {
   @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;
 
   @Field(() => Number)
   @Prop({ required: true, unique: true })
-  id: number;
+  oid: number;
 
   @Field(() => String)
   @Prop({ required: true })

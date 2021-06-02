@@ -9,14 +9,14 @@ import { Player } from '../player/player.model';
 import { Weapon } from '../weapon/weapon.model';
 
 @ObjectType()
-@Schema({ id: false })
+@Schema({ timestamps: true })
 export class PlayerCharacter {
   @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;
 
   @Field(() => Number)
   @Prop({ required: true })
-  id: number;
+  oid: number;
 
   @Field(() => String)
   @Prop({
@@ -67,7 +67,4 @@ export type PlayerCharacterDocument = PlayerCharacter & Document;
 
 export const PlayerCharacterSchema = SchemaFactory.createForClass(PlayerCharacter);
 
-export default mongoose.model<PlayerCharacterDocument>(
-  PlayerCharacter.name,
-  PlayerCharacterSchema,
-);
+export default mongoose.model<PlayerCharacterDocument>(PlayerCharacter.name, PlayerCharacterSchema);

@@ -3,29 +3,20 @@ import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-export interface IConstellation {
-  effect: string;
-  id: number;
-  name: string;
-  pos: number;
-  icon: string;
-  is_actived?: boolean;
-}
-
 @ObjectType()
-@Schema({ id: false })
+@Schema({ timestamps: true })
 export class Character {
   @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;
 
   @Field(() => Number)
   @Prop({ required: true, unique: true })
-  id: number;
+  oid: number;
 
   @Field(() => [
     {
       effect: { type: String },
-      id: { type: Number },
+      oid: { type: Number },
       name: { type: String },
       pos: { type: Number },
       icon: { type: String },
@@ -35,7 +26,7 @@ export class Character {
     raw([
       {
         effect: { type: String },
-        id: { type: Number, unique: true },
+        oid: { type: Number, unique: true },
         name: { type: String },
         pos: { type: Number },
         icon: { type: String },

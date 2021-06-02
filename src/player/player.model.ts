@@ -3,17 +3,8 @@ import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-export interface IConstellation {
-  effect: string;
-  id: number;
-  name: string;
-  pos: number;
-  icon: string;
-  is_actived?: boolean;
-}
-
 @ObjectType()
-@Schema({ id: false })
+@Schema({ timestamps: true })
 export class Player {
   @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;
