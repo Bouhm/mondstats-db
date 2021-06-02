@@ -63,19 +63,19 @@ const assignTraveler = (charData: ICharacterResponse) => {
     // Anemo
     case 71:
       element = 'Anemo';
-      id = 100;
+      oid = 100;
       break;
     // Geo
     case 91:
       element = 'Geo';
-      id = 101;
+      oid = 101;
       break;
     default:
       break;
   }
 
   return {
-    id,
+    oid,
     element,
   };
 };
