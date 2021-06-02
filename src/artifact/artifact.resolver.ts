@@ -1,5 +1,6 @@
 import { Args, Query, Resolver } from '@nestjs/graphql';
 
+import { ListArtifactInput } from './artifact.inputs';
 import { Artifact } from './artifact.model';
 import { ArtifactService } from './artifact.service';
 
@@ -8,7 +9,7 @@ export class ArtifactResolver {
   constructor(private artifactService: ArtifactService) {}
 
   @Query(() => [Artifact])
-  async artifacts(@Args('oids') oids: number[]) {
-    return this.artifactService.getByIds(oids);
+  async artifacts(@Args('filter') filter: ListArtifactInput) {
+    return this.artifactService.list(filter);
   }
 }

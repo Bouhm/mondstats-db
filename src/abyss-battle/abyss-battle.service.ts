@@ -3,6 +3,7 @@ import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
+import { ListAbyssBattleInput } from './abyss-battle.inputs';
 import { AbyssBattle, AbyssBattleDocument } from './abyss-battle.model';
 
 @Injectable()
@@ -12,7 +13,7 @@ export class AbyssBattleService {
     private abyssBattleModel: Model<AbyssBattleDocument>,
   ) {}
 
-  getByFloorLevels(floorLevels: string[]) {
-    return this.abyssBattleModel.find({ floor_level: { $in: floorLevels } }).exec();
+  list(filters: ListAbyssBattleInput) {
+    return this.abyssBattleModel.find({ ...filters }).exec();
   }
 }

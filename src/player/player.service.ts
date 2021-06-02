@@ -3,6 +3,7 @@ import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
+import { ListPlayerInput } from './player.inputs';
 import { Player, PlayerDocument } from './player.model';
 
 @Injectable()
@@ -12,7 +13,7 @@ export class PlayerService {
     private playerModel: Model<PlayerDocument>,
   ) {}
 
-  getByIds(ids: number[]) {
-    return this.playerModel.find({ id: { $in: ids } }).exec();
+  list(filters: ListPlayerInput) {
+    return this.playerModel.find({ ...filters }).exec();
   }
 }

@@ -3,6 +3,7 @@ import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
+import { ListArtifactInput } from './artifact.inputs';
 import { Artifact, ArtifactDocument } from './artifact.model';
 
 @Injectable()
@@ -12,7 +13,7 @@ export class ArtifactService {
     private artifactModel: Model<ArtifactDocument>,
   ) {}
 
-  getByIds(oids: number[]) {
-    return this.artifactModel.find({ oid: { $in: oids } }).exec();
+  list(filters: ListArtifactInput) {
+    return this.artifactModel.find({ ...filters }).exec();
   }
 }

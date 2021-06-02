@@ -1,7 +1,16 @@
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 
 import { Field, ObjectType } from '@nestjs/graphql';
-import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+
+@ObjectType()
+export class Affix {
+  @Field(() => Number)
+  activation_number: number;
+
+  @Field(() => String)
+  effect: string;
+}
 
 @ObjectType()
 @Schema({ timestamps: true })
@@ -13,21 +22,9 @@ export class ArtifactSet {
   @Prop({ required: true, unique: true })
   oid: number;
 
-  @Field(() => [
-    {
-      activation_number: { type: Number },
-      effect: { type: String },
-    },
-  ])
-  @Prop(
-    raw([
-      {
-        activation_number: { type: Number },
-        effect: { type: String },
-      },
-    ]),
-  )
-  affixes: Record<string, any>[];
+  @Field(() => [Affix])
+  @Prop({ required: true })
+  affixes: Affix[];
 
   @Field(() => String)
   @Prop({ required: true })

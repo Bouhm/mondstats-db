@@ -1,5 +1,6 @@
 import { Args, Query, Resolver } from '@nestjs/graphql';
 
+import { ListWeaponInput } from './weapon.inputs';
 import { Weapon } from './weapon.model';
 import { WeaponService } from './weapon.service';
 
@@ -8,7 +9,7 @@ export class WeaponResolver {
   constructor(private weaponService: WeaponService) {}
 
   @Query(() => [Weapon])
-  async Weapons(@Args('ids') ids: number[]) {
-    return this.weaponService.getByIds(ids);
+  async list(@Args('filter') filter: ListWeaponInput) {
+    return this.weaponService.list(filter);
   }
 }

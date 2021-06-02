@@ -1,0 +1,75 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Affix {
+  activation_number: Float!
+  effect: String!
+}
+
+type Artifact {
+  _id: String!
+  icon: String!
+  name: String!
+  oid: Float!
+  pos: Float!
+  pos_name: String!
+  rarity: Float!
+  set: String!
+}
+
+type ArtifactSet {
+  _id: String!
+  affixes: [Affix!]!
+  name: String!
+  oid: Float!
+}
+
+type Character {
+  _id: String!
+  constellations: [Constellation!]!
+  element: String!
+  icon: String!
+  image: String!
+  name: String!
+  oid: Float!
+  rarity: Float!
+}
+
+type Constellation {
+  effect: String!
+  icon: String!
+  name: String!
+  oid: Float!
+  pos: Float!
+}
+
+input ListPlayerInput {
+  uids: [Float!]
+}
+
+input ListWeaponInput {
+  oids: [Float!]
+}
+
+type Player {
+  _id: String!
+  total_star: Float!
+  uid: Float!
+}
+
+type Query {
+  artifacts(filter: ListPlayerInput!): [Player!]!
+  list(filter: ListWeaponInput!): [Weapon!]!
+}
+
+type Weapon {
+  _id: String!
+  desc: String!
+  icon: String!
+  name: String!
+  oid: Float!
+  rarity: Float!
+  type: Float!
+  type_name: String!
+}

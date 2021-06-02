@@ -3,6 +3,7 @@ import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
+import { ListWeaponInput } from './weapon.inputs';
 import { Weapon, WeaponDocument } from './weapon.model';
 
 @Injectable()
@@ -12,7 +13,7 @@ export class WeaponService {
     private weaponModel: Model<WeaponDocument>,
   ) {}
 
-  getByIds(oids: number[]) {
-    return this.weaponModel.find({ oid: { $in: oids } }).exec();
+  list(filters: ListWeaponInput) {
+    return this.weaponModel.find({ ...filters }).exec();
   }
 }
