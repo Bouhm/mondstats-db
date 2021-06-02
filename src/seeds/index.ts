@@ -56,7 +56,7 @@ const options = {
 };
 
 const assignTraveler = (charData: ICharacterResponse) => {
-  let id = 100;
+  let oid = 100;
   let element = 'Anemo';
 
   switch (charData.constellations[0].id) {
@@ -316,8 +316,8 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   };
 
   if (character.name === 'Traveler') {
-    const { id, element } = assignTraveler(char);
-    character.oid = id;
+    const { oid, element } = assignTraveler(char);
+    character.oid = oid;
     character.element = element;
   }
 
