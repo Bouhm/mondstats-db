@@ -2,6 +2,14 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AbyssBattle {
+  _id: String!
+  floor_level: String!
+  parties(populate: Boolean!): [[String!]!]!
+  player: String!
+  star: Float!
+}
+
 type Affix {
   activation_number: Float!
   effect: String!
@@ -44,6 +52,27 @@ type Constellation {
   pos: Float!
 }
 
+input ListAbyssBattleInput {
+  floorLevels: [String!]
+}
+
+input ListArtifactInput {
+  oids: [Float!]
+}
+
+input ListArtifactSetInput {
+  oids: [Float!]
+}
+
+input ListCharacterInput {
+  oids: [Float!]
+}
+
+input ListPlayerCharacterInput {
+  oids: [Float!]
+  uids: [Float!]
+}
+
 input ListPlayerInput {
   uids: [Float!]
 }
@@ -58,9 +87,26 @@ type Player {
   uid: Float!
 }
 
+type PlayerCharacter {
+  _id: String!
+  artifacts: [String!]!
+  character: String!
+  constellation: Float!
+  fetter: Float!
+  level: Float!
+  oid: Float!
+  player: String!
+  weapon: String!
+}
+
 type Query {
-  artifacts(filter: ListPlayerInput!): [Player!]!
-  list(filter: ListWeaponInput!): [Weapon!]!
+  abyssBattles(filters: ListAbyssBattleInput): [AbyssBattle!]!
+  artifacts(filters: ListArtifactInput): [Artifact!]!
+  artifactsSets(filters: ListArtifactSetInput): [ArtifactSet!]!
+  characters(filters: ListCharacterInput): [Character!]!
+  playerCharacters(filters: ListPlayerCharacterInput): [PlayerCharacter!]!
+  players(filters: ListPlayerInput): [Player!]!
+  weapons(filters: ListWeaponInput): [Weapon!]!
 }
 
 type Weapon {

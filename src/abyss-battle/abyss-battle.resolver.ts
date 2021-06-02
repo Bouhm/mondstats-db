@@ -15,7 +15,7 @@ export class AbyssBattleResolver {
     return this.abyssBattleService.list(filters);
   }
 
-  @ResolveField(() => [PlayerCharacter])
+  @ResolveField(() => [AbyssBattle])
   async parties(@Parent() abyssBattle: AbyssBattleDocument, @Args('populate') populate: boolean) {
     if (populate)
       await abyssBattle.populate({ path: 'parties', model: PlayerCharacter.name }).execPopulate();

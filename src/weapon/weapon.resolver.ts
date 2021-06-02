@@ -9,7 +9,7 @@ export class WeaponResolver {
   constructor(private weaponService: WeaponService) {}
 
   @Query(() => [Weapon])
-  async list(@Args('filter') filter: ListWeaponInput) {
-    return this.weaponService.list(filter);
+  async weapons(@Args('filters', { nullable: true }) filters?: ListWeaponInput) {
+    return this.weaponService.list(filters);
   }
 }
