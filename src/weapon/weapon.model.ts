@@ -4,7 +4,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @ObjectType()
-@Schema()
+@Schema({ id: false })
 export class Weapon {
   @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;

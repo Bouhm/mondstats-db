@@ -13,7 +13,7 @@ export interface IConstellation {
 }
 
 @ObjectType()
-@Schema()
+@Schema({ id: false })
 export class Character {
   @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;

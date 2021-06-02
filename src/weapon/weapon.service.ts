@@ -13,6 +13,6 @@ export class WeaponService {
   ) {}
 
   getByIds(ids: number[]) {
-    return this.weaponModel.find({ id: { $in: ids } });
+    return this.weaponModel.find({ id: { $in: ids } }).exec();
   }
 }

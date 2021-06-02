@@ -13,6 +13,6 @@ export class AbyssBattleService {
   ) {}
 
   getByFloorLevels(floorLevels: string[]) {
-    return this.abyssBattleModel.find({ floor_level: { $in: floorLevels } });
+    return this.abyssBattleModel.find({ floor_level: { $in: floorLevels } }).exec();
   }
 }

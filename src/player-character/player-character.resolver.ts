@@ -9,6 +9,6 @@ export class PlayerCharacterResolver {
 
   @Query(() => [PlayerCharacter])
   async PlayerCharacters(@Args('ids') ids: number[]) {
-    this.playerCharacterService.getByIds(ids);
+    return this.playerCharacterService.getByIds(ids);
   }
 }

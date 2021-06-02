@@ -9,7 +9,7 @@ import { Player } from '../player/player.model';
 import { Weapon } from '../weapon/weapon.model';
 
 @ObjectType()
-@Schema()
+@Schema({ id: false })
 export class PlayerCharacter {
   @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;

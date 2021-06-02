@@ -11,10 +11,10 @@ export class AbyssBattleResolver {
 
   @Query(() => [AbyssBattle])
   async abyssBattles(@Args('floorLevels') floorLevels: string[]) {
-    this.abyssBattleService.getByFloorLevels(floorLevels);
+    return this.abyssBattleService.getByFloorLevels(floorLevels);
   }
 
-  @ResolveField()
+  @ResolveField(() => [PlayerCharacter])
   async parties(@Parent() abyssBattle: AbyssBattleDocument, @Args('populate') populate: boolean) {
     if (populate)
       await abyssBattle.populate({ path: 'parties', model: PlayerCharacter.name }).execPopulate();

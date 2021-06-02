@@ -4,7 +4,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @ObjectType()
-@Schema()
+@Schema({ id: false })
 export class ArtifactSet {
   @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;

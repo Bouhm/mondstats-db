@@ -13,6 +13,6 @@ export class ArtifactService {
   ) {}
 
   getByIds(ids: number[]) {
-    return this.artifactModel.find({ id: { $in: ids } });
+    return this.artifactModel.find({ id: { $in: ids } }).exec();
   }
 }

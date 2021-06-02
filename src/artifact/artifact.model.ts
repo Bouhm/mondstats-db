@@ -6,7 +6,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ArtifactSet } from '../artifact-set/artifact-set.model';
 
 @ObjectType()
-@Schema()
+@Schema({ id: false })
 export class Artifact {
   @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;

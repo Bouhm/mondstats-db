@@ -7,7 +7,7 @@ import { PlayerCharacter } from '../player-character/player-character.model';
 import { Player } from '../player/player.model';
 
 @ObjectType()
-@Schema()
+@Schema({ id: false })
 export class AbyssBattle {
   @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;

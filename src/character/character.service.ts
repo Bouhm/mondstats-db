@@ -13,6 +13,6 @@ export class CharacterService {
   ) {}
 
   getByIds(ids: number[]) {
-    return this.characterModel.find({ id: { $in: ids } });
+    return this.characterModel.find({ id: { $in: ids } }).exec();
   }
 }

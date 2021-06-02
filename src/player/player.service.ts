@@ -13,6 +13,6 @@ export class PlayerService {
   ) {}
 
   getByIds(ids: number[]) {
-    return this.playerModel.find({ id: { $in: ids } });
+    return this.playerModel.find({ id: { $in: ids } }).exec();
   }
 }

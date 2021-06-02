@@ -9,6 +9,6 @@ export class WeaponResolver {
 
   @Query(() => [Weapon])
   async Weapons(@Args('ids') ids: number[]) {
-    this.weaponService.getByIds(ids);
+    return this.weaponService.getByIds(ids);
   }
 }

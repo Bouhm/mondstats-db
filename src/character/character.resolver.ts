@@ -9,6 +9,6 @@ export class CharacterResolver {
 
   @Query(() => [Character])
   async Characters(@Args('ids') ids: number[]) {
-    this.characterService.getByIds(ids);
+    return this.characterService.getByIds(ids);
   }
 }

@@ -9,6 +9,6 @@ export class PlayerResolver {
 
   @Query(() => [Player])
   async Players(@Args('ids') ids: number[]) {
-    this.playerService.getByIds(ids);
+    return this.playerService.getByIds(ids);
   }
 }

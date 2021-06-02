@@ -1,17 +1,17 @@
 import dotenv from 'dotenv';
 import { join } from 'path';
-import { AbyssBattleModule } from 'src/abyss-battle/abyss-battle.module';
-import { ArtifactSetModule } from 'src/artifact-set/artifact-set.module';
-import { ArtifactModule } from 'src/artifact/artifact.module';
-import { CharacterModule } from 'src/character/character.module';
-import { PlayerCharacterModule } from 'src/player-character/player-character.module';
-import { PlayerModule } from 'src/player/player.module';
-import { WeaponModule } from 'src/weapon/weapon.module';
 
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { MongooseModule } from '@nestjs/mongoose';
 
+import { AbyssBattleModule } from '../abyss-battle/abyss-battle.module';
+import { ArtifactSetModule } from '../artifact-set/artifact-set.module';
+import { ArtifactModule } from '../artifact/artifact.module';
+import { CharacterModule } from '../character/character.module';
+import { PlayerCharacterModule } from '../player-character/player-character.module';
+import { PlayerModule } from '../player/player.module';
+import { WeaponModule } from '../weapon/weapon.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
