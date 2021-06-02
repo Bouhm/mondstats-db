@@ -8,7 +8,7 @@ export class ArtifactResolver {
   constructor(private artifactService: ArtifactService) {}
 
   @Query(() => [Artifact])
-  async artifacts(@Args('ids') ids: number[]) {
-    return this.artifactService.getByIds(ids);
+  async artifacts(@Args('oids') oids: number[]) {
+    return this.artifactService.getByIds(oids);
   }
 }

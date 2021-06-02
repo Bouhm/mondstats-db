@@ -277,7 +277,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   for (const artifact of char.reliquaries) {
     const charArtifact = {
       oid: artifact.id,
-      ..._.pick(artifact, ['id', 'name', 'rarity', 'icon', 'pos', 'pos_name']),
+      ..._.pick(artifact, ['name', 'rarity', 'icon', 'pos', 'pos_name']),
       set: {
         oid: artifact.set.id,
         affixes: artifact.set.affixes,
@@ -303,7 +303,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   // Characters
   const character = {
     oid: char.id,
-    ..._.pick(char, ['constellations', 'element', 'id', 'name', 'rarity', 'icon', 'image']),
+    ..._.pick(char, ['constellations', 'element', 'name', 'rarity', 'icon', 'image']),
   };
 
   if (character.name === 'Traveler') {

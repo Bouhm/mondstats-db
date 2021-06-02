@@ -12,7 +12,7 @@ export class ArtifactService {
     private artifactModel: Model<ArtifactDocument>,
   ) {}
 
-  getByIds(ids: number[]) {
-    return this.artifactModel.find({ id: { $in: ids } }).exec();
+  getByIds(oids: number[]) {
+    return this.artifactModel.find({ oid: { $in: oids } }).exec();
   }
 }
