@@ -11,8 +11,4 @@ export class PlayerCharacterService {
     @InjectModel(PlayerCharacter.name)
     private playerCharacterModel: Model<PlayerCharacterDocument>,
   ) {}
-
-  getByIds(ids: number[]) {
-    return this.playerCharacterModel.find({ id: { $in: ids } }).exec();
-  }
 }

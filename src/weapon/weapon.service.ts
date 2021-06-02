@@ -12,7 +12,7 @@ export class WeaponService {
     private weaponModel: Model<WeaponDocument>,
   ) {}
 
-  getByIds(ids: number[]) {
-    return this.weaponModel.find({ id: { $in: ids } }).exec();
+  getByIds(oids: number[]) {
+    return this.weaponModel.find({ oid: { $in: oids } }).exec();
   }
 }

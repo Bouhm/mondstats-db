@@ -303,7 +303,16 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   // Characters
   const character = {
     oid: char.id,
-    ..._.pick(char, ['constellations', 'element', 'name', 'rarity', 'icon', 'image']),
+    ..._.pick(char, ['element', 'name', 'rarity', 'icon', 'image']),
+    constellations: _.map(char.constellations, (constellation) => {
+      return {
+        oid: constellation.id,
+        icon: constellation.icon,
+        name: constellation.name,
+        effect: constellation.effect,
+        pos: constellation.pos,
+      };
+    }),
   };
 
   if (character.name === 'Traveler') {

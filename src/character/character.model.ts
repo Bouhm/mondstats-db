@@ -16,7 +16,7 @@ export class Character {
   @Field(() => [
     {
       effect: { type: String },
-      oid: { type: Number },
+      oid: { type: Number, unique: true },
       name: { type: String },
       pos: { type: Number },
       icon: { type: String },
