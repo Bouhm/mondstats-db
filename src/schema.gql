@@ -4,6 +4,7 @@
 
 type AbyssBattle {
   _id: String!
+  characters: [[PlayerCharacter!]!]!
   floor_level: String!
   parties: [[String!]!]!
   player: String!
