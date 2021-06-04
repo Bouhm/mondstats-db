@@ -35,7 +35,7 @@ const dsPath = './src/keys/DS.json';
 let PROXIES: Array<{ ip: string; port: string }> = [];
 let TOKENS: string[] = [];
 let DS: string[] = [];
-let blockedIndices: { [index: string]: boolean } = {};
+let blockedIndices: boolean[] = [];
 let proxyIdx = 0;
 let accIdx = 0;
 let iterationStart = Date.now();
@@ -169,9 +169,9 @@ function _getBaseUid(server: string, start = 0) {
 }
 
 const handleBlock = async (tokenIdx: number) => {
-  blockedIndices[tokenIdx + ''] = true;
+  blockedIndices[tokenIdx] = true;
 
-  if (_.every(_.values(blockedIndices), true)) {
+  if (_.every(blockedIndices, true)) {
     if (areAllStillBlocked) {
       blockedLevel++;
 
@@ -184,7 +184,7 @@ const handleBlock = async (tokenIdx: number) => {
 
     console.log(new Date(), `Long wait... (${blockedLevel})`);
     await _sleep(longRests[blockedLevel]);
-    blockedIndices = {};
+    blockedIndices = new Array(TOKENS.length).fill(false);
   }
 };
 
@@ -539,6 +539,7 @@ const loadFromJson = () => {
 connectDb();
 mongoose.connection.once('open', async () => {
   loadFromJson();
+  blockedIndices = new Array(TOKENS.length).fill(false);
 
   const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
   aggregateAllCharacterData(lastPlayer.uid);
