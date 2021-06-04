@@ -471,8 +471,6 @@ const aggregateAllCharacterData = async (startUid = 0) => {
       // Blocked
       if (shouldCollectData === null) {
         await handleBlock(currIdx);
-        if (DEVELOPMENT) console.log('blocked at ' + uid);
-
         continue;
       }
       areAllStillBlocked = false;
@@ -497,7 +495,6 @@ const aggregateAllCharacterData = async (startUid = 0) => {
 
           if (characterIds === null) {
             await handleBlock(currIdx);
-            if (DEVELOPMENT) console.log('blocked at ' + uid);
             continue;
           } else {
             areAllStillBlocked = false;
@@ -508,7 +505,6 @@ const aggregateAllCharacterData = async (startUid = 0) => {
 
               if (result === null) {
                 await handleBlock(currIdx);
-                if (DEVELOPMENT) console.log('blocked at ' + uid);
                 continue;
               } else {
                 areAllStillBlocked = false;
