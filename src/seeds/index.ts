@@ -355,10 +355,8 @@ const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
     _.filter(abyssData.floors, (floor) => floor.index > 8),
     (floor) => {
       _.map(
-        _.filter(floor.levels, (level) => level.star > 0),
+        _.filter(floor.levels, (level) => level.star > 2),
         async (level) => {
-          const parties = new Array(level.battles.length);
-
           for (const battle of level.battles) {
             const party: any[] = [];
             for (const char of battle.avatars) {
@@ -372,24 +370,23 @@ const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
               }
             }
 
-            parties[battle.index - 1] = party;
-          }
-
-          const abyssBattle = {
-            floor_level: `${floor.index}-${level.index}`,
-            star: level.star,
-            player: playerRef._id,
-            parties,
-          };
-
-          await AbyssBattleModel.findOneAndUpdate(
-            {
+            const abyssBattle = {
               floor_level: `${floor.index}-${level.index}`,
+              battle_index: battle.index,
               player: playerRef._id,
-            },
-            { $setOnInsert: abyssBattle },
-            options,
-          );
+              party: party.sort(),
+            };
+
+            await AbyssBattleModel.findOneAndUpdate(
+              {
+                floor_level: `${floor.index}-${level.index}`,
+                battle_index: battle.index,
+                player: playerRef._id,
+              },
+              { $setOnInsert: abyssBattle },
+              options,
+            );
+          }
         },
       );
     },
@@ -542,5 +539,5 @@ mongoose.connection.once('open', async () => {
   blockedIndices = new Array(TOKENS.length).fill(false);
 
   const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
-  aggregateAllCharacterData(lastPlayer.uid);
+  aggregateAllCharacterData();
 });
