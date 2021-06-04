@@ -35,11 +35,11 @@ const dsPath = './src/keys/DS.json';
 let PROXIES: Array<{ ip: string; port: string }> = [];
 let TOKENS: string[] = [];
 let DS: string[] = [];
-let timeoutBox: string[] = [];
+let blockedIndices: { [index: string]: boolean } = {};
 let proxyIdx = 0;
 let accIdx = 0;
 let iterationStart = Date.now();
-let isAllBlocked = true;
+let areAllStillBlocked = true;
 let blockedLevel = 0;
 const longRests = [60 * 60 * 1000, 6 * 60 * 60 * 1000, 12 * 60 * 60 * 1000];
 const maxRest = (60 * 10 * 1000) / 30;
@@ -169,21 +169,10 @@ function _getBaseUid(server: string, start = 0) {
 }
 
 const handleBlock = async (tokenIdx: number) => {
-  if (tokenIdx > TOKENS.length - 1) {
-    tokenIdx = 0;
-    accIdx = 0;
-  }
+  blockedIndices[tokenIdx + ''] = true;
 
-  if (TOKENS.length > 0) {
-    timeoutBox.push(TOKENS.splice(tokenIdx, 1)[0]);
-    accIdx--;
-  }
-
-  if (TOKENS.length === 0) {
-    TOKENS = timeoutBox;
-    timeoutBox = [];
-
-    if (isAllBlocked) {
+  if (_.every(_.values(blockedIndices), true)) {
+    if (areAllStillBlocked) {
       blockedLevel++;
 
       if (blockedLevel > longRests.length - 1) {
@@ -193,8 +182,9 @@ const handleBlock = async (tokenIdx: number) => {
       blockedLevel = 0;
     }
 
-    console.log(new Date(), `Long wait...`);
+    console.log(new Date(), `Long wait... (${blockedLevel})`);
     await _sleep(longRests[blockedLevel]);
+    blockedIndices = {};
   }
 };
 
@@ -468,7 +458,7 @@ const aggregateAllCharacterData = async (startUid = 0) => {
     // if (DEVELOPMENT) console.log(uid, i, dataNum);
     // const server = _getServerFromUid(uid);
     playerCharacterRefs = [];
-    isAllBlocked = true;
+    areAllStillBlocked = true;
 
     try {
       let shouldCollectData: boolean | null = firstPass;
@@ -481,11 +471,11 @@ const aggregateAllCharacterData = async (startUid = 0) => {
       // Blocked
       if (shouldCollectData === null) {
         await handleBlock(currIdx);
-        if (DEVELOPMENT) console.log(timeoutBox.length + ' blocked at ' + uid);
+        if (DEVELOPMENT) console.log('blocked at ' + uid);
 
         continue;
       }
-      isAllBlocked = false;
+      areAllStillBlocked = false;
 
       if (!shouldCollectData) {
         uid++;
@@ -507,10 +497,10 @@ const aggregateAllCharacterData = async (startUid = 0) => {
 
           if (characterIds === null) {
             await handleBlock(currIdx);
-            if (DEVELOPMENT) console.log(timeoutBox.length + ' blocked at ' + uid);
+            if (DEVELOPMENT) console.log('blocked at ' + uid);
             continue;
           } else {
-            isAllBlocked = false;
+            areAllStillBlocked = false;
             if (characterIds.length > 0) {
               const result = await aggregatePlayerData(server, uid, characterIds);
               currIdx = accIdx;
@@ -518,10 +508,10 @@ const aggregateAllCharacterData = async (startUid = 0) => {
 
               if (result === null) {
                 await handleBlock(currIdx);
-                if (DEVELOPMENT) console.log(timeoutBox.length + ' blocked at ' + uid);
+                if (DEVELOPMENT) console.log('blocked at ' + uid);
                 continue;
               } else {
-                isAllBlocked = false;
+                areAllStillBlocked = false;
                 firstPass = false;
               }
             }
@@ -554,11 +544,6 @@ connectDb();
 mongoose.connection.once('open', async () => {
   loadFromJson();
 
-  // playerRef = await PlayerModel.findOne({ uid: 607942345 });
-  // await Promise.all(_.map(sampleChars.data.avatars, async (char) => {
-  //   return aggregateCharacterData(char);
-  // }))
-  // await aggregateAbyssData(sampleAbyss.data);
-
-  aggregateAllCharacterData();
+  const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
+  aggregateAllCharacterData(lastPlayer.uid);
 });
