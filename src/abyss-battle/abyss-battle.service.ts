@@ -37,48 +37,48 @@ export class AbyssBattleService {
     return this.abyssBattleModel.find(queryFilter).exec();
   }
 
-  // async aggregate(filter: ListAbyssBattleInput) {
-  //   // const floors = ['9', '10', '11', '12'];
-  //   // const levels = ['1', '2', '3'];
-  //   // const battleNum = 2;
+  async aggregate(filter: ListAbyssBattleInput) {
+    // const floors = ['9', '10', '11', '12'];
+    // const levels = ['1', '2', '3'];
+    // const battleNum = 2;
 
-  //   // const abyssData: IAbyssData = {};
-  //   // _.forEach(floors, (floor) => {
-  //   //   _.forEach(levels, (level) => {
-  //   //     abyssData[`${floor}-${level}`] = new Array(battleNum).fill({ party: [], count: 0 });
-  //   //   });
-  //   // });
+    // const abyssData: IAbyssData = {};
+    // _.forEach(floors, (floor) => {
+    //   _.forEach(levels, (level) => {
+    //     abyssData[`${floor}-${level}`] = new Array(battleNum).fill({ party: [], count: 0 });
+    //   });
+    // });
 
-  //   // const battles = await this.list(filter);
+    // const battles = await this.list(filter);
 
-  //   // _.forEach(battles, ({ floor_level, parties }) => {
-  //   //   _.forEach(parties, (party, i) => {
-  //   //     const partyIdx = _.findIndex(abyssData[floor_level][i], (_battle) => {
-  //   //       return _battle.party.sort() === party.sort();
-  //   //     });
+    // _.forEach(battles, ({ floor_level, parties }) => {
+    //   _.forEach(parties, (party, i) => {
+    //     const partyIdx = _.findIndex(abyssData[floor_level][i], (_battle) => {
+    //       return _battle.party.sort() === party.sort();
+    //     });
 
-  //   //     if (partyIdx > -1) {
-  //   //     } else {
-  //   //     }
-  //   //   });
-  //   // });
+    //     if (partyIdx > -1) {
+    //     } else {
+    //     }
+    //   });
+    // });
 
-  //   const { floorLevels, charIds } = filter;
-  //   const queryFilter = {};
+    const { floorLevels, charIds } = filter;
+    const queryFilter = {};
 
-  //   if (!floorLevels && floorLevels.length > 0) {
-  //     queryFilter['floor_level'] = { $in: floorLevels };
-  //   }
+    if (!floorLevels && floorLevels.length > 0) {
+      queryFilter['floor_level'] = { $in: floorLevels };
+    }
 
-  //   if (!charIds && charIds.length > 0) {
-  //     queryFilter['oid'] = { $in: charIds };
-  //   }
+    if (!charIds && charIds.length > 0) {
+      queryFilter['oid'] = { $in: charIds };
+    }
 
-  //   await this.abyssBattleModel.aggregate([
-  //     { $match: queryFilter },
-  //     {
-  //       $or: [{ members: ['some id 1', 'some id 2'] }, { members: ['some id 2', 'some id 1'] }],
-  //     },
-  //   ]);
-  // }
+    await this.abyssBattleModel.aggregate([
+      { $match: queryFilter },
+      {
+        $or: [{ members: ['some id 1', 'some id 2'] }, { members: ['some id 2', 'some id 1'] }],
+      },
+    ]);
+  }
 }
