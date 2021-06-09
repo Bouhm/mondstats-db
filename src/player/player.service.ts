@@ -14,6 +14,15 @@ export class PlayerService {
   ) {}
 
   list(filter: ListPlayerInput) {
-    return this.playerModel.find({ ...filter }).exec();
+    const queryFilter = {};
+
+    if (queryFilter) {
+      const { uids } = filter;
+      if (uids && uids.length > 0) {
+        queryFilter['oid'] = { $in: uids };
+      }
+    }
+
+    return this.playerModel.find(queryFilter).exec();
   }
 }

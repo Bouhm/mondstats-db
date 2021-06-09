@@ -14,6 +14,15 @@ export class WeaponService {
   ) {}
 
   list(filter: ListWeaponInput) {
-    return this.weaponModel.find({ ...filter }).exec();
+    const queryFilter = {};
+
+    if (queryFilter) {
+      const { oids } = filter;
+      if (oids && oids.length > 0) {
+        queryFilter['oid'] = { $in: oids };
+      }
+    }
+
+    return this.weaponModel.find(queryFilter).exec();
   }
 }

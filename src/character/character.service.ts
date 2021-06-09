@@ -14,6 +14,15 @@ export class CharacterService {
   ) {}
 
   list(filter: ListCharacterInput) {
-    return this.characterModel.find({ ...filter }).exec();
+    const queryFilter = {};
+
+    if (queryFilter) {
+      const { oids } = filter;
+      if (oids && oids.length > 0) {
+        queryFilter['oid'] = { $in: oids };
+      }
+    }
+
+    return this.characterModel.find(queryFilter).exec();
   }
 }

@@ -14,6 +14,19 @@ export class PlayerCharacterService {
   ) {}
 
   list(filter: ListPlayerCharacterInput) {
-    return this.playerCharacterModel.find({ ...filter }).exec();
+    const queryFilter = {};
+
+    if (queryFilter) {
+      const { charIds, uids } = filter;
+      if (charIds && charIds.length > 0) {
+        queryFilter['oid'] = { $in: charIds };
+      }
+
+      if (uids && uids.length > 0) {
+        queryFilter['uid'] = { $in: uids };
+      }
+    }
+
+    return this.playerCharacterModel.find(queryFilter).exec();
   }
 }

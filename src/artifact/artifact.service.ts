@@ -14,6 +14,15 @@ export class ArtifactService {
   ) {}
 
   list(filter: ListArtifactInput) {
-    return this.artifactModel.find({ ...filter }).exec();
+    const queryFilter = {};
+
+    if (queryFilter) {
+      const { oids } = filter;
+      if (oids && oids.length > 0) {
+        queryFilter['oid'] = { $in: oids };
+      }
+    }
+
+    return this.artifactModel.find(queryFilter).exec();
   }
 }
