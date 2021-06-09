@@ -58,7 +58,7 @@ type Constellation {
 }
 
 input ListAbyssBattleInput {
-  charIds: [String!]
+  charIds: [Float!]
   floorLevels: [String!]
 }
 

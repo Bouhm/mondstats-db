@@ -5,6 +5,6 @@ export class ListAbyssBattleInput {
   @Field(() => [String], { nullable: true })
   floorLevels?: string[];
 
-  @Field(() => [String], { nullable: true })
+  @Field(() => [Number], { nullable: true })
   charIds?: number[];
 }

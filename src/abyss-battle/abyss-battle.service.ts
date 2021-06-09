@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { Model } from 'mongoose';
+import { Character, CharacterDocument } from 'src/character/character.model';
 import { PlayerCharacterDocument } from 'src/player-character/player-character.model';
 
 import { Injectable } from '@nestjs/common';
@@ -24,10 +25,14 @@ export class AbyssBattleService {
   constructor(
     @InjectModel(AbyssBattle.name)
     private abyssBattleModel: Model<AbyssBattleDocument>,
+
+    @InjectModel(Character.name)
+    private characterModel: Model<CharacterDocument>,
   ) {}
 
-  list(filter: ListAbyssBattleInput) {
+  async list(filter: ListAbyssBattleInput) {
     const queryFilter = {};
+
     if (filter) {
       const { floorLevels, charIds } = filter;
       if (floorLevels && floorLevels.length > 0) {
@@ -35,17 +40,32 @@ export class AbyssBattleService {
       }
 
       if (charIds && charIds.length > 0) {
-        queryFilter['oid'] = { $in: charIds };
+        const _ids = _.map(await this.characterModel.find({ oid: { $in: charIds } }), (char) => char._id);
+        queryFilter['party'] = {
+          $not: {
+            $elemMatch: {
+              $nin: _ids,
+            },
+          },
+        };
       }
     }
 
-    return this.abyssBattleModel.find(queryFilter).populate('party', 'oid').exec();
+    console.log(queryFilter);
+    return this.abyssBattleModel
+      .find(queryFilter)
+      .populate({
+        path: 'party',
+        select: 'oid -_id',
+      })
+      .exec();
   }
 
   async aggregate(filter: ListAbyssBattleInput) {
     const battleIndices = 2;
     const abyssData: AbyssStats[] = [];
     const battles = await this.list(filter);
+    console.log(battles);
 
     _.forEach(battles, ({ floor_level, battle_index, party }) => {
       const floorIdx = _.findIndex(abyssData, { floor_level });
@@ -59,7 +79,7 @@ export class AbyssBattleService {
 
         const partyIdx = _.findIndex(
           partyData[battle_index - 1],
-          (battle: { party: number[]; count: number }) => battle.party == oids,
+          (battle: { party: number[]; count: number }) => _.isEqual(battle.party, oids),
         );
 
         if (partyIdx > -1) {
