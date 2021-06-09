@@ -4,11 +4,10 @@
 
 type AbyssBattle {
   _id: String!
-  characters: [[PlayerCharacter!]!]!
+  battle_index: Float!
   floor_level: String!
-  parties: [[String!]!]!
+  party: [String!]!
   player: String!
-  star: Float!
 }
 
 type Affix {
@@ -54,6 +53,7 @@ type Constellation {
 }
 
 input ListAbyssBattleInput {
+  charIds: [String!]
   floorLevels: [String!]
 }
 
@@ -101,10 +101,11 @@ type PlayerCharacter {
 }
 
 type Query {
-  abyssBattles(filter: ListAbyssBattleInput): [AbyssBattle!]!
+  abyssBattles(filter: ListAbyssBattleInput!): [AbyssBattle!]!
   artifacts(filter: ListArtifactInput): [Artifact!]!
   artifactsSets(filter: ListArtifactSetInput): [ArtifactSet!]!
   characters(filter: ListCharacterInput): [Character!]!
+  partyStats(filter: ListAbyssBattleInput!): [PlayerCharacter!]!
   playerCharacters(filter: ListPlayerCharacterInput): [PlayerCharacter!]!
   players(filter: ListPlayerInput): [Player!]!
   weapons(filter: ListWeaponInput): [Weapon!]!

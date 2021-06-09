@@ -26,11 +26,11 @@ export class AbyssBattleService {
     const { floorLevels, charIds } = filter;
     const queryFilter = {};
 
-    if (!floorLevels && floorLevels.length > 0) {
+    if (floorLevels && floorLevels.length > 0) {
       queryFilter['floor_level'] = { $in: floorLevels };
     }
 
-    if (!charIds && charIds.length > 0) {
+    if (charIds && charIds.length > 0) {
       queryFilter['oid'] = { $in: charIds };
     }
 
@@ -66,19 +66,39 @@ export class AbyssBattleService {
     const { floorLevels, charIds } = filter;
     const queryFilter = {};
 
-    if (!floorLevels && floorLevels.length > 0) {
+    if (floorLevels && floorLevels.length > 0) {
       queryFilter['floor_level'] = { $in: floorLevels };
     }
 
-    if (!charIds && charIds.length > 0) {
+    if (charIds && charIds.length > 0) {
       queryFilter['oid'] = { $in: charIds };
     }
 
-    await this.abyssBattleModel.aggregate([
-      { $match: queryFilter },
+    const result = await this.abyssBattleModel.aggregate([
+      
+
+      { $sort: { count: -1 } },
+      { $limit: 20 },
       {
-        $or: [{ members: ['some id 1', 'some id 2'] }, { members: ['some id 2', 'some id 1'] }],
+        $lookup: {
+          from: 'abyssBattles',
+          let: {
+            party: '$party',
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$party', '$$party'] }
+              },
+            },
+            { $sort: { count: -1 } },
+            { $limit: 2 },
+          ],
+          as: 'abyssBattles',
+        },
       },
     ]);
+
+    console.log(result);
   }
 }

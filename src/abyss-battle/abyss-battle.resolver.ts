@@ -1,3 +1,5 @@
+import { PlayerCharacter } from 'src/player-character/player-character.model';
+
 import { Args, Query, Resolver } from '@nestjs/graphql';
 
 import { ListAbyssBattleInput } from './abyss-battle.inputs';
@@ -13,7 +15,8 @@ export class AbyssBattleResolver {
     return this.abyssBattleService.list(filter);
   }
 
-  // @Query(() => [PlayerCharacter])
-  // async partyStats(@Args('filter') filter: ListAbyssBattleInput) {
-  // }
+  @Query(() => [PlayerCharacter])
+  async partyStats(@Args('filter') filter: ListAbyssBattleInput) {
+    return this.abyssBattleService.aggregate(filter);
+  }
 }
