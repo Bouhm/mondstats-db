@@ -1,5 +1,3 @@
-
-
 import { Args, Query, Resolver } from '@nestjs/graphql';
 
 import { ListAbyssBattleInput } from './abyss-battle.inputs';
@@ -12,11 +10,13 @@ export class AbyssBattleResolver {
 
   @Query(() => [AbyssBattle])
   async abyssBattles(@Args('filter', { nullable: true }) filter?: ListAbyssBattleInput) {
-    return this.abyssBattleService.list(filter);
+    const all = await this.abyssBattleService.list(filter);
+    return all;
   }
 
   @Query(() => [AbyssStats])
   async abyssStats(@Args('filter', { nullable: true }) filter?: ListAbyssBattleInput) {
-    return this.abyssBattleService.aggregate(filter);
+    const stats = await this.abyssBattleService.aggregate(filter);
+    return stats;
   }
 }

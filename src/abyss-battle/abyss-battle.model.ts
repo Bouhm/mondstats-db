@@ -7,7 +7,7 @@ import { PlayerCharacter } from '../player-character/player-character.model';
 import { Player } from '../player/player.model';
 
 @ObjectType()
-class PartyStats {
+export class PartyStats {
   @Field(() => [Number])
   party: number[];
 
@@ -17,8 +17,8 @@ class PartyStats {
 
 @ObjectType()
 export class AbyssStats {
-  @Field(() => [PartyStats])
-  party_stats: PartyStats[];
+  @Field(() => [[PartyStats]])
+  party_stats: PartyStats[][];
 
   @Field(() => String)
   floor_level: string;
