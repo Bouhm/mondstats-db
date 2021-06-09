@@ -1,19 +1,12 @@
-import { Model, ObjectId } from 'mongoose';
+import _ from 'lodash';
+import { Model } from 'mongoose';
+import { PlayerCharacterDocument } from 'src/player-character/player-character.model';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { ListAbyssBattleInput } from './abyss-battle.inputs';
 import { AbyssBattle, AbyssBattleDocument } from './abyss-battle.model';
-
-interface IPartyData {
-  party: ObjectId[];
-  count: number;
-}
-
-export interface IAbyssData {
-  [floorLevel: string]: IPartyData[][];
-}
 
 @Injectable()
 export class AbyssBattleService {
@@ -23,82 +16,63 @@ export class AbyssBattleService {
   ) {}
 
   list(filter: ListAbyssBattleInput) {
-    const { floorLevels, charIds } = filter;
     const queryFilter = {};
+    if (filter) {
+      const { floorLevels, charIds } = filter;
+      if (floorLevels && floorLevels.length > 0) {
+        queryFilter['floor_level'] = { $in: floorLevels };
+      }
 
-    if (floorLevels && floorLevels.length > 0) {
-      queryFilter['floor_level'] = { $in: floorLevels };
+      if (charIds && charIds.length > 0) {
+        queryFilter['oid'] = { $in: charIds };
+      }
     }
 
-    if (charIds && charIds.length > 0) {
-      queryFilter['oid'] = { $in: charIds };
-    }
-
-    return this.abyssBattleModel.find(queryFilter).exec();
+    return this.abyssBattleModel.find(queryFilter).populate('party', 'oid').exec();
   }
 
   async aggregate(filter: ListAbyssBattleInput) {
-    // const floors = ['9', '10', '11', '12'];
-    // const levels = ['1', '2', '3'];
-    // const battleNum = 2;
+    const battleIndices = 2;
+    const abyssData = [];
+    const battles = await this.list(filter);
 
-    // const abyssData: IAbyssData = {};
-    // _.forEach(floors, (floor) => {
-    //   _.forEach(levels, (level) => {
-    //     abyssData[`${floor}-${level}`] = new Array(battleNum).fill({ party: [], count: 0 });
-    //   });
-    // });
+    _.forEach(battles, ({ floor_level, battle_index, party }) => {
+      const floorIdx = _.findIndex(abyssData, { floor_level });
 
-    // const battles = await this.list(filter);
+      if (floorIdx > -1) {
+        const oids = _.map(
+          party,
+          (char: PlayerCharacterDocument) => char.oid,
+        ).sort() as unknown as number[];
+        const partyIdx = _.findIndex(
+          abyssData[floorIdx]['party_stats'][battle_index - 1],
+          (battle: { party: number[]; count: number }) => battle.party == oids,
+        );
 
-    // _.forEach(battles, ({ floor_level, parties }) => {
-    //   _.forEach(parties, (party, i) => {
-    //     const partyIdx = _.findIndex(abyssData[floor_level][i], (_battle) => {
-    //       return _battle.party.sort() === party.sort();
-    //     });
-
-    //     if (partyIdx > -1) {
-    //     } else {
-    //     }
-    //   });
-    // });
-
-    const { floorLevels, charIds } = filter;
-    const queryFilter = {};
-
-    if (floorLevels && floorLevels.length > 0) {
-      queryFilter['floor_level'] = { $in: floorLevels };
-    }
-
-    if (charIds && charIds.length > 0) {
-      queryFilter['oid'] = { $in: charIds };
-    }
-
-    const result = await this.abyssBattleModel.aggregate([
-      
-
-      { $sort: { count: -1 } },
-      { $limit: 20 },
-      {
-        $lookup: {
-          from: 'abyssBattles',
-          let: {
-            party: '$party',
-          },
-          pipeline: [
+        if (partyIdx > -1) {
+          abyssData[floorIdx]['party_stats'][battle_index - 1][partyIdx].count++;
+        } else {
+          abyssData[floorIdx]['party_stats'][battle_index - 1] = [
             {
-              $match: {
-                $expr: { $eq: ['$party', '$$party'] }
-              },
+              party: oids,
+              count: 1,
             },
-            { $sort: { count: -1 } },
-            { $limit: 2 },
-          ],
-          as: 'abyssBattles',
-        },
-      },
-    ]);
+          ];
+        }
+      } else {
+        abyssData.push({
+          party_stats: new Array(battleIndices),
+          floor_level,
+        });
+      }
+    });
 
-    console.log(result);
+    _.forEach(abyssData, ({ party_stats }) => {
+      _.forEach(party_stats, (battle) => {
+        battle = _.pick(_.sortBy(battle, 'count'), 20);
+      });
+    });
+
+    return abyssData;
   }
 }

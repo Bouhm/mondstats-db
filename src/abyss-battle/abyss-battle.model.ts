@@ -7,6 +7,24 @@ import { PlayerCharacter } from '../player-character/player-character.model';
 import { Player } from '../player/player.model';
 
 @ObjectType()
+class PartyStats {
+  @Field(() => [Number])
+  party: number[];
+
+  @Field(() => Number)
+  count: number;
+}
+
+@ObjectType()
+export class AbyssStats {
+  @Field(() => [PartyStats])
+  party_stats: PartyStats[];
+
+  @Field(() => String)
+  floor_level: string;
+}
+
+@ObjectType()
 @Schema({ timestamps: true })
 export class AbyssBattle {
   @Field(() => String)
