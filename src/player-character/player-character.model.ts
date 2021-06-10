@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
+import { ArtifactSet } from 'src/artifact-set/artifact-set.model';
 
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -7,6 +8,48 @@ import { Artifact } from '../artifact/artifact.model';
 import { Character } from '../character/character.model';
 import { Player } from '../player/player.model';
 import { Weapon } from '../weapon/weapon.model';
+
+@ObjectType()
+export class WeaponBuild {
+  @Field(() => Number)
+  oid: number;
+
+  @Field(() => Number)
+  count: number;
+}
+
+@ObjectType()
+export class BuildStats {
+  @Field(() => [WeaponBuild])
+  weapons: WeaponBuild[];
+
+  @Field(() => [ArtifactSet])
+  artifacts: ArtifactSet[];
+
+  @Field(() => Number)
+  count: number;
+}
+
+@ObjectType()
+export class CharacterStats {
+  @Field(() => String)
+  name: string;
+
+  @Field(() => Number)
+  oid: number;
+
+  @Field(() => Number)
+  avg_level: number;
+
+  @Field(() => [BuildStats])
+  builds: BuildStats[];
+
+  @Field(() => [Number])
+  constellations: number[];
+
+  @Field(() => Number)
+  total: number;
+}
 
 @ObjectType()
 @Schema({ timestamps: true })

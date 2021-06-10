@@ -51,7 +51,6 @@ export class AbyssBattleService {
       }
     }
 
-    console.log(queryFilter);
     return this.abyssBattleModel
       .find(queryFilter)
       .populate({
@@ -65,7 +64,6 @@ export class AbyssBattleService {
     const battleIndices = 2;
     const abyssData: AbyssStats[] = [];
     const battles = await this.list(filter);
-    console.log(battles);
 
     _.forEach(battles, ({ floor_level, battle_index, party }) => {
       const floorIdx = _.findIndex(abyssData, { floor_level });

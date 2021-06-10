@@ -38,6 +38,12 @@ type ArtifactSet {
   oid: Float!
 }
 
+type BuildStats {
+  artifacts: [ArtifactSet!]!
+  count: Float!
+  weapons: [WeaponBuild!]!
+}
+
 type Character {
   _id: String!
   constellations: [Constellation!]!
@@ -75,7 +81,7 @@ input ListCharacterInput {
 }
 
 input ListPlayerCharacterInput {
-  oids: [Float!]
+  charIds: [Float!]
   uids: [Float!]
 }
 
@@ -130,4 +136,9 @@ type Weapon {
   rarity: Float!
   type: Float!
   type_name: String!
+}
+
+type WeaponBuild {
+  count: Float!
+  oid: Float!
 }
