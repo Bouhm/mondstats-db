@@ -222,7 +222,7 @@ const getSpiralAbyssThreshold = async (server: string, uid: number, threshold = 
 };
 
 // Get player's owned character ids
-const getPlayerCharacters = async (server: string, uid: number, threshold = 40) => {
+const getPlayerCharacters = async (server: string, uid: number, threshold = 50) => {
   const apiUrl = `${userApiUrl}?server=os_${server}&role_id=${uid}`;
 
   return axios
