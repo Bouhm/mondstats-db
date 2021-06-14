@@ -83,6 +83,7 @@ type Constellation {
 
 input ListAbyssBattleInput {
   charIds: [Float!]
+  f2p: Boolean
   floorLevels: [String!]
 }
 
@@ -100,6 +101,7 @@ input ListCharacterInput {
 
 input ListPlayerCharacterInput {
   charIds: [Float!]
+  f2p: Boolean
   uids: [Float!]
 }
 

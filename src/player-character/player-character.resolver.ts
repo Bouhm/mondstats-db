@@ -1,5 +1,3 @@
-
-
 import { Args, Query, Resolver } from '@nestjs/graphql';
 
 import { ListPlayerCharacterInput } from './player-character.inputs';

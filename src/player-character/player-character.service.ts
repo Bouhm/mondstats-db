@@ -31,9 +31,10 @@ export class PlayerCharacterService {
 
   list(filter: ListPlayerCharacterInput) {
     const queryFilter = {};
+    const queryMatch = {};
 
     if (filter) {
-      const { charIds, uids } = filter;
+      const { charIds, uids, f2p } = filter;
       if (charIds && charIds.length > 0) {
         queryFilter['charIds'] = { $in: charIds };
       }
@@ -41,17 +42,25 @@ export class PlayerCharacterService {
       if (uids && uids.length > 0) {
         queryFilter['uid'] = { $in: uids };
       }
+
+      if (f2p) {
+        queryMatch['rarity'] = { $lt: 5 };
+      }
     }
 
     return this.playerCharacterModel
       .find(queryFilter)
-      .populate('weapon', 'oid')
+      .populate({
+        path: 'weapon',
+        select: 'oid rarity -_id',
+        match: queryMatch,
+      })
       .populate({
         path: 'artifacts',
         populate: {
           path: 'set',
           model: ArtifactSet.name,
-          select: 'oid affixes',
+          select: 'oid affixes -_id',
         },
       })
       .exec();

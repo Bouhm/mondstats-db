@@ -32,30 +32,35 @@ export class AbyssBattleService {
 
   async list(filter: ListAbyssBattleInput) {
     const queryFilter = {};
+    const queryMatch = {};
 
     if (filter) {
-      const { floorLevels, charIds } = filter;
+      const { floorLevels, charIds, f2p } = filter;
       if (floorLevels && floorLevels.length > 0) {
         queryFilter['floor_level'] = { $in: floorLevels };
       }
 
-      if (charIds && charIds.length > 0) {
-        const _ids = _.map(await this.characterModel.find({ oid: { $in: charIds } }), (char) => char._id);
-        queryFilter['party'] = {
-          $not: {
-            $elemMatch: {
-              $nin: _ids,
-            },
-          },
-        };
-      }
+      // if (charIds && charIds.length > 0) {
+      //   const _ids = _.map(await this.characterModel.find({ oid: { $in: charIds } }), (char) => char._id);
+      //   queryFilter['party'] = {
+      //     $not: {
+      //       $elemMatch: {
+      //         $nin: _ids,
+      //       },
+      //     },
+      //   };
+      // }
+
+      // if (f2p) {
+      //   queryMatch['rarity'] = { $lt: 5 };
+      // }
     }
 
     return this.abyssBattleModel
       .find(queryFilter)
       .populate({
         path: 'party',
-        select: 'oid -_id',
+        select: 'oid rarity -_id',
       })
       .exec();
   }
@@ -66,6 +71,32 @@ export class AbyssBattleService {
     const battles = await this.list(filter);
 
     _.forEach(battles, ({ floor_level, battle_index, party }) => {
+      if (filter) {
+        if (filter.charIds) {
+          if (
+            _.difference(
+              filter.charIds,
+              party.map((member: any) => member.oid),
+            ).length !== 0
+          ) {
+            return;
+          }
+        }
+
+        if (filter.f2p) {
+          if (
+            _.find(party, ({ oid, rarity }: any) => {
+              if (filter.charIds) {
+                return !_.includes(filter.charIds, oid) && rarity === 5;
+              } else {
+                return rarity === 5;
+              }
+            })
+          )
+            return;
+        }
+      }
+
       const floorIdx = _.findIndex(abyssData, { floor_level });
 
       if (floorIdx > -1) {
