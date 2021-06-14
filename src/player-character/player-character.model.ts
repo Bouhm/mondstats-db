@@ -1,5 +1,4 @@
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
-import { ArtifactSet } from 'src/artifact-set/artifact-set.model';
 
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -10,7 +9,7 @@ import { Player } from '../player/player.model';
 import { Weapon } from '../weapon/weapon.model';
 
 @ObjectType()
-export class WeaponBuild {
+export class BuildWeapon {
   @Field(() => Number)
   oid: number;
 
@@ -19,12 +18,24 @@ export class WeaponBuild {
 }
 
 @ObjectType()
-export class BuildStats {
-  @Field(() => [WeaponBuild])
-  weapons: WeaponBuild[];
+export class BuildSet {
+  @Field(() => Number)
+  oid: number;
 
-  @Field(() => [ArtifactSet])
-  artifacts: ArtifactSet[];
+  @Field(() => Number)
+  activation_number: number;
+}
+
+@ObjectType()
+export class BuildStats {
+  @Field(() => Number)
+  buildId: number;
+
+  @Field(() => [BuildWeapon])
+  weapons: BuildWeapon[];
+
+  @Field(() => [BuildSet])
+  artifacts: BuildSet[];
 
   @Field(() => Number)
   count: number;
@@ -32,14 +43,10 @@ export class BuildStats {
 
 @ObjectType()
 export class CharacterStats {
-  @Field(() => String)
-  name: string;
-
+  // @Field(() => Number)
+  // avg_level: number;
   @Field(() => Number)
   oid: number;
-
-  @Field(() => Number)
-  avg_level: number;
 
   @Field(() => [BuildStats])
   builds: BuildStats[];

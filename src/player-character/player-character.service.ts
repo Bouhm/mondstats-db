@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import { Model } from 'mongoose';
-import { Affix, ArtifactSet, ArtifactSetDocument } from 'src/artifact-set/artifact-set.model';
+import { Affix, ArtifactSet } from 'src/artifact-set/artifact-set.model';
+import { WeaponDocument } from 'src/weapon/weapon.model';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -26,18 +27,15 @@ export class PlayerCharacterService {
   constructor(
     @InjectModel(PlayerCharacter.name)
     private playerCharacterModel: Model<PlayerCharacterDocument>,
-
-    @InjectModel(ArtifactSet.name)
-    private artifactSetModel: Model<ArtifactSetDocument>,
   ) {}
 
   list(filter: ListPlayerCharacterInput) {
     const queryFilter = {};
 
-    if (queryFilter) {
+    if (filter) {
       const { charIds, uids } = filter;
       if (charIds && charIds.length > 0) {
-        queryFilter['oid'] = { $in: charIds };
+        queryFilter['charIds'] = { $in: charIds };
       }
 
       if (uids && uids.length > 0) {
@@ -62,9 +60,11 @@ export class PlayerCharacterService {
   async aggregate(filter: ListPlayerCharacterInput) {
     const characterData: CharacterStats[] = [];
     const playerCharacters = await this.list(filter);
-    const playerSets: any = {};
 
-    _.forEach(playerCharacters, ({ oid, weapon, artifacts }) => {
+    _.forEach(playerCharacters, ({ oid, weapon, artifacts, constellation, level }: any) => {
+      const charWeapon = <WeaponDocument>weapon;
+      const playerSets: any = {};
+
       // Get artifact set combinations
       _.forEach(artifacts, (relic: any) => {
         if (playerSets.hasOwnProperty(relic['set'].oid)) {
@@ -77,63 +77,79 @@ export class PlayerCharacterService {
         }
       });
 
-      const artifactSetCombinations: { id: number; activation_number: number }[] = [];
+      if (_.keys(playerSets).length > 2) return;
 
-      _.forIn(playerSets, (set, id) => {
+      let buildIdNum = -1;
+      const artifactSetCombinations: { oid: number; activation_number: number }[] = [];
+
+      _.forIn(playerSets, (set, oid) => {
         const activationNum = _getActivationNumber(set.count, set.affixes);
+        buildIdNum += parseInt(oid) * activationNum;
 
-        if (activationNum > 0) {
+        if (activationNum > 1) {
           artifactSetCombinations.push({
-            id: parseInt(id),
-            activation_number: activationNum
+            oid: parseInt(oid),
+            activation_number: activationNum,
           });
         }
       });
 
-      if (data.characters[charDat.id]) {
-        data.characters[charDat.id].constellations[cNum]++;
-      
-        const buildIdx = _.findIndex(data.characters[charDat.id].builds, { buildId: buildIdNum.toString() })
+      const charIdx = _.findIndex(characterData, { oid });
+
+      if (charIdx > -1) {
+        characterData[charIdx].constellations[constellation]++;
+
+        const buildIdx = _.findIndex(characterData[charIdx].builds, { buildId: buildIdNum });
         if (buildIdx < 0) {
-          data.characters[charDat.id].builds.push({
-            buildId: buildIdNum.toString(),
-            weapons: [{ id: char.weapon.id, count: 1 }],
+          characterData[charIdx].builds.push({
+            buildId: buildIdNum,
+            weapons: [{ oid: charWeapon.oid, count: 1 }],
             artifacts: artifactSetCombinations,
-            count: 1
-          })
+            count: 1,
+          });
         } else {
           // Update weapons
-          const weaponIdx = _.findIndex(data.characters[charDat.id].builds[buildIdx].weapons, { id: char.weapon.id })
+          const weaponIdx = _.findIndex(characterData[charIdx].builds[buildIdx].weapons, {
+            oid: charWeapon.oid,
+          });
           if (weaponIdx < 0) {
-            data.characters[charDat.id].builds[buildIdx].weapons.push({ id: char.weapon.id, count: 1 })
+            characterData[charIdx].builds[buildIdx].weapons.push({ oid: charWeapon.oid, count: 1 });
           } else {
-            data.characters[charDat.id].builds[buildIdx].weapons[weaponIdx].count++;
+            characterData[charIdx].builds[buildIdx].weapons[weaponIdx].count++;
           }
-    
+
           // Update artifact set count
-          data.characters[charDat.id].builds[buildIdx].count++;
+          characterData[charIdx].builds[buildIdx].count++;
         }
-    
-        data.characters[charDat.id].total++;
-        data.characters[charDat.id].avgLevel = Math.floor(
-          (data.characters[charDat.id].avgLevel * data.characters[charDat.id].total + char.level) / (data.characters[charDat.id].total)
-        );
+
+        characterData[charIdx].total++;
+        // characterData[charIdx].avg_level = Math.floor(
+        //   characterData[charIdx].avg_level + (level - characterData[charIdx].avg_level) / characterData[charIdx].total,
+        // );
       } else {
-        data.characters[charDat.id] = {
-          id: charDat.id,
-          name: charDat.name,
+        const constellations = new Array(7).fill(0);
+        constellations[constellation] = 1;
+
+        characterData.push({
+          oid,
           constellations,
-          avgLevel: char.level,
-          builds: [{
-            buildId: buildIdNum.toString(),
-            weapons: [{ id: char.weapon.id, count: 1 }],
-            artifacts: artifactSetCombinations,
-            count: 1
-          }],
-          total: 1
-        }
+          builds: [
+            {
+              buildId: buildIdNum,
+              weapons: [{ oid: charWeapon.oid, count: 1 }],
+              artifacts: artifactSetCombinations,
+              count: 1,
+            },
+          ],
+          total: 1,
+        });
       }
-  
     });
+
+    _.forEach(characterData, ({ builds }, i) => {
+      characterData[i].builds = _.take(_.orderBy(builds, 'count', 'desc'), 10);
+    });
+
+    return characterData;
   }
 }

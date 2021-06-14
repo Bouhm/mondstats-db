@@ -38,10 +38,21 @@ type ArtifactSet {
   oid: Float!
 }
 
+type BuildSet {
+  activation_number: Float!
+  oid: Float!
+}
+
 type BuildStats {
-  artifacts: [ArtifactSet!]!
+  artifacts: [BuildSet!]!
+  buildId: Float!
   count: Float!
-  weapons: [WeaponBuild!]!
+  weapons: [BuildWeapon!]!
+}
+
+type BuildWeapon {
+  count: Float!
+  oid: Float!
 }
 
 type Character {
@@ -53,6 +64,13 @@ type Character {
   name: String!
   oid: Float!
   rarity: Float!
+}
+
+type CharacterStats {
+  builds: [BuildStats!]!
+  constellations: [Float!]!
+  oid: Float!
+  total: Float!
 }
 
 type Constellation {
@@ -121,6 +139,7 @@ type Query {
   abyssStats(filter: ListAbyssBattleInput): [AbyssStats!]!
   artifacts(filter: ListArtifactInput): [Artifact!]!
   artifactsSets(filter: ListArtifactSetInput): [ArtifactSet!]!
+  characterStats(filter: ListPlayerCharacterInput): [CharacterStats!]!
   characters(filter: ListCharacterInput): [Character!]!
   playerCharacters(filter: ListPlayerCharacterInput): [PlayerCharacter!]!
   players(filter: ListPlayerInput): [Player!]!
@@ -136,9 +155,4 @@ type Weapon {
   rarity: Float!
   type: Float!
   type_name: String!
-}
-
-type WeaponBuild {
-  count: Float!
-  oid: Float!
 }

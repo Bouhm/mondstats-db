@@ -107,7 +107,7 @@ export class AbyssBattleService {
 
     _.forEach(abyssData, ({ party_stats }) => {
       _.forEach(party_stats, (battle, i) => {
-        party_stats[i] = _.take(_.sortBy(battle, 'count'), 20);
+        party_stats[i] = _.take(_.orderBy(battle, 'count', 'desc'), 10);
       });
     });
 
