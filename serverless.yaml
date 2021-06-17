@@ -1,5 +1,5 @@
-service: favonius-server
 app: favonius-server
+service: favonius-server-api
 useDotenv: true
 
 plugins:
@@ -8,6 +8,7 @@ plugins:
 
 provider:
   name: aws
+  profile: serverless-admin
   runtime: nodejs12.x
   region: us-west-2
   lambdaHashingVersion: 20201221
@@ -17,5 +18,10 @@ functions:
     handler: src/lambda.handler
     events:
       - http:
-          method: any
-          path: /{any+}
+          path: graphql
+          method: post
+          cors: true
+      - http:
+          path: graphql
+          method: get
+          cors: true
