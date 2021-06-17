@@ -1,11 +1,11 @@
 import _ from 'lodash';
 import { Model } from 'mongoose';
-import { Affix, ArtifactSet } from 'src/artifact-set/artifact-set.model';
-import { WeaponDocument } from 'src/weapon/weapon.model';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
+import { Affix, ArtifactSet } from '../artifact-set/artifact-set.model';
+import { WeaponDocument } from '../weapon/weapon.model';
 import { ListPlayerCharacterInput } from './player-character.inputs';
 import { CharacterStats, PlayerCharacter, PlayerCharacterDocument } from './player-character.model';
 

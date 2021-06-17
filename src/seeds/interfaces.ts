@@ -1,3 +1,15 @@
+export interface IAffix {
+  activation_number: number;
+  effect: string;
+}
+
+export interface IArtifactSet {
+  [id: string]: {
+    count: number;
+    affixes: IAffix[];
+  };
+}
+
 export interface IAbyssResponse {
   schedule_id: number;
   start_time: string;

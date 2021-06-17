@@ -1,5 +1,6 @@
 import _ from 'lodash';
-import { IAffix } from 'src/seeds/interfaces';
+
+import { IAffix } from '../seeds/interfaces';
 
 export function getServerFromUid(uid: number) {
   switch (('' + uid)[0]) {

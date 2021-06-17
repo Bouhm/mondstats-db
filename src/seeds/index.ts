@@ -13,7 +13,7 @@ import PlayerCharacterModel, { PlayerCharacterDocument } from '../player-charact
 import PlayerModel, { PlayerDocument } from '../player/player.model';
 import connectDb from '../util/connection';
 import WeaponModel from '../weapon/weapon.model';
-import { IAbyssResponse, ICharacterResponse } from './interfaces';
+import { IAbyssResponse, IArtifactSet, ICharacterResponse } from './interfaces';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const DEVELOPMENT = true;
@@ -190,7 +190,7 @@ const handleBlock = async (tokenIdx: number) => {
 
 // Aggregate spiral abyss data
 const getSpiralAbyssThreshold = async (server: string, uid: number, threshold = 8) => {
-  const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${uid}&schedule_type=2`;
+  const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${uid}&schedule_type=1`;
 
   try {
     const resp = await axios.get(apiUrl, {
@@ -248,7 +248,51 @@ const getPlayerCharacters = async (server: string, uid: number, threshold = 50) 
     });
 };
 
+function _getActivationNumber(count: number, affixes: any[]) {
+  const activations: number[] = affixes.map((effect) => effect.activation_number);
+
+  let activation = 0;
+  _.forEach(activations, (activation_num) => {
+    if (count >= activation_num) {
+      activation = activation_num;
+    }
+  });
+
+  return activation;
+}
+
 const aggregateCharacterData = async (char: ICharacterResponse) => {
+  const artifactSets: IArtifactSet = {};
+  _.forEach(char.reliquaries, (relic) => {
+    if (artifactSets.hasOwnProperty(relic.set.id)) {
+      artifactSets[relic.set.id].count++;
+    } else {
+      artifactSets[relic.set.id] = {
+        count: 1,
+        affixes: relic.set.affixes,
+      };
+    }
+  });
+
+  const artifactSetCombinations: { id: number; activation_number: number }[] = [];
+
+  _.forIn(artifactSets, (setData, id) => {
+    const activationNum = _getActivationNumber(setData.count, setData.affixes);
+    if (activationNum > 0) {
+      artifactSetCombinations.push({
+        id: parseInt(id),
+        activation_number: activationNum,
+      });
+    }
+  });
+
+  // Skip incomplete builds
+  if (
+    !artifactSetCombinations.length ||
+    (artifactSetCombinations.length === 1 && artifactSetCombinations[0].activation_number < 4)
+  )
+    return;
+
   // Update database
   // Weapons
   const charWeapon = {

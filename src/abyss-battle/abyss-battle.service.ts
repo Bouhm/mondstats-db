@@ -1,11 +1,11 @@
 import _ from 'lodash';
 import { Model } from 'mongoose';
-import { Character, CharacterDocument } from 'src/character/character.model';
-import { PlayerCharacterDocument } from 'src/player-character/player-character.model';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
+import { Character, CharacterDocument } from '../character/character.model';
+import { PlayerCharacterDocument } from '../player-character/player-character.model';
 import { ListAbyssBattleInput } from './abyss-battle.inputs';
 import { AbyssBattle, AbyssBattleDocument, AbyssStats } from './abyss-battle.model';
 
