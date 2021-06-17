@@ -1,18 +1,16 @@
-service:
-  name: favonius-server
-
-useDotEnv: true
-lambdaHashingVersion: 20201221
+service: favonius-server
+app: favonius-server
+useDotenv: true
 
 plugins:
-  - serverless-plugin-typescript
   - serverless-plugin-optimize
   - serverless-offline
 
 provider:
-  name: default
+  name: aws
   runtime: nodejs12.x
   region: us-west-2
+  lambdaHashingVersion: 20201221
 
 functions:
   main:
