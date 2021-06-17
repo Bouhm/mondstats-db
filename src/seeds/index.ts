@@ -583,5 +583,5 @@ mongoose.connection.once('open', async () => {
   blockedIndices = new Array(TOKENS.length).fill(false);
 
   const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
-  aggregateAllCharacterData();
+  aggregateAllCharacterData(lastPlayer.uid);
 });
