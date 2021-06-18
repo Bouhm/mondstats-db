@@ -15,7 +15,7 @@ provider:
 
 functions:
   main:
-    handler: dist/serverless.handler
+    handler: src/serverless.handler
     events:
       - http:
           path: graphql
