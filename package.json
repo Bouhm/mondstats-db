@@ -41,6 +41,7 @@
     "rxjs": "^6.6.6"
   },
   "optionalDependencies": {
+    "@jest/reporters": "27.0.4",
     "fsevents": "2.1.2"
   },
   "devDependencies": {
