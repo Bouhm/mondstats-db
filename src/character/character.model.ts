@@ -4,7 +4,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @ObjectType()
-export class Constellation {
+class Constellation {
   @Field(() => String)
   effect: string;
 

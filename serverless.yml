@@ -25,3 +25,8 @@ functions:
           path: graphql
           method: GET
           cors: true
+      - http:
+          path: playground
+          method: ANY
+          cors: true
+          timeout: 300 # optional, in seconds, default is 6
