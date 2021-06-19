@@ -1,34 +1,33 @@
-import { Context, Handler } from 'aws-lambda';
+import { APIGatewayProxyHandler } from 'aws-lambda';
 import { createServer, proxy } from 'aws-serverless-express';
 import { eventContext } from 'aws-serverless-express/middleware';
 import express from 'express';
 import { Server } from 'http';
 
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 
 import { AppModule } from './app/app.module';
 
-// NOTE: If you get ERR_CONTENT_DECODING_FAILED in your browser, this is likely
-// due to a compressed response (e.g. gzip) which has not been handled correctly
-// by aws-serverless-express and/or API Gateway. Add the necessary MIME types to
-// binaryMimeTypes below
-const binaryMimeTypes: string[] = [];
-
 let cachedServer: Server;
 
-async function bootstrapServer(): Promise<Server> {
-  if (!cachedServer) {
-    const expressApp = express();
-    const nestApp = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
-    nestApp.use(eventContext());
-    await nestApp.init();
-    cachedServer = createServer(expressApp, undefined, binaryMimeTypes);
-  }
-  return cachedServer;
-}
 
-export const handler: Handler = async (event: any, context: Context) => {
-  cachedServer = await bootstrapServer();
+const bootstrapServer = async (): Promise<Server> => {
+  const expressApp = express();
+  expressApp.use(eventContext());
+  const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
+  app.useGlobalPipes(new ValidationPipe({ forbidUnknownValues: true }));
+  app.enableCors();
+  await app.init();
+  return createServer(expressApp);
+};
+
+export const handler: APIGatewayProxyHandler = async (event, context) => {
+  if (!cachedServer) {
+    const server = await bootstrapServer();
+    cachedServer = server;
+  }
+
   return proxy(cachedServer, event, context, 'PROMISE').promise;
 };

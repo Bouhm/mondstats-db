@@ -3,7 +3,7 @@ service: favonius-server-api
 useDotenv: true
 
 plugins:
-  - serverless-plugin-optimize
+  - serverless-plugin-typescript
   - serverless-offline
 
 provider:
