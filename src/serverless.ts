@@ -12,7 +12,6 @@ import { AppModule } from './app/app.module';
 
 let cachedServer: Server;
 
-
 const bootstrapServer = async (): Promise<Server> => {
   const expressApp = express();
   expressApp.use(eventContext());
@@ -25,9 +24,7 @@ const bootstrapServer = async (): Promise<Server> => {
 
 export const handler: APIGatewayProxyHandler = async (event, context) => {
   if (!cachedServer) {
-    const server = await bootstrapServer();
-    cachedServer = server;
+    cachedServer = await bootstrapServer();
   }
-
   return proxy(cachedServer, event, context, 'PROMISE').promise;
 };

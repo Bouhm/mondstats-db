@@ -19,9 +19,9 @@ functions:
     events:
       - http:
           path: graphql
-          method: post
+          method: POST
           cors: true
       - http:
           path: graphql
-          method: get
+          method: GET
           cors: true
