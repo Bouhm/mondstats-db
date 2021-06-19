@@ -21,12 +21,15 @@ functions:
           path: graphql
           method: POST
           cors: true
+          integration: LAMBDA
       - http:
           path: graphql
           method: GET
           cors: true
+          integration: LAMBDA
       - http:
           path: playground
           method: ANY
           cors: true
+          integration: LAMBDA
           timeout: 300 # optional, in seconds, default is 6
