@@ -40,10 +40,6 @@
     "rimraf": "^3.0.2",
     "rxjs": "^6.6.6"
   },
-  "optionalDependencies": {
-    "@jest/reporters": "27.0.4",
-    "fsevents": "2.1.2"
-  },
   "devDependencies": {
     "@nestjs/schematics": "^7.3.0",
     "@nestjs/testing": "^7.6.15",
