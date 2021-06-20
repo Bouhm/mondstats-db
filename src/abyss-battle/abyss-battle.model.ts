@@ -6,7 +6,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { PlayerCharacter } from '../player-character/player-character.model';
 import { Player } from '../player/player.model';
 
-@ObjectType()
+@ObjectType('PartyStats')
 export class PartyStats {
   @Field(() => [Number])
   party: number[];
@@ -15,7 +15,7 @@ export class PartyStats {
   count: number;
 }
 
-@ObjectType()
+@ObjectType('AbyssStats')
 export class AbyssStats {
   @Field(() => [[PartyStats]])
   party_stats: PartyStats[][];

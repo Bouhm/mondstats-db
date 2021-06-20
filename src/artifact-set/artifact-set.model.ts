@@ -3,7 +3,7 @@ import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-@ObjectType()
+@ObjectType('Affix')
 export class Affix {
   @Field(() => Number)
   activation_number: number;

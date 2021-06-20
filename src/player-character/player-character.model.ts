@@ -8,7 +8,7 @@ import { Character } from '../character/character.model';
 import { Player } from '../player/player.model';
 import { Weapon } from '../weapon/weapon.model';
 
-@ObjectType()
+@ObjectType('BuildWeapon')
 export class BuildWeapon {
   @Field(() => Number)
   oid: number;
@@ -17,7 +17,7 @@ export class BuildWeapon {
   count: number;
 }
 
-@ObjectType()
+@ObjectType('BuildSet')
 export class BuildSet {
   @Field(() => Number)
   oid: number;
@@ -26,7 +26,7 @@ export class BuildSet {
   activation_number: number;
 }
 
-@ObjectType()
+@ObjectType('BuildStats')
 export class BuildStats {
   @Field(() => Number)
   buildId: number;
@@ -41,7 +41,7 @@ export class BuildStats {
   count: number;
 }
 
-@ObjectType()
+@ObjectType('CharacterStats')
 export class CharacterStats {
   // @Field(() => Number)
   // avg_level: number;

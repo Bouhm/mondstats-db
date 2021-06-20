@@ -1,7 +1,6 @@
 app: favonius-server
 service: favonius-server-api
 useDotenv: true
-timeout: 300 # optional, in seconds, default is 6
 
 plugins:
   - serverless-plugin-typescript

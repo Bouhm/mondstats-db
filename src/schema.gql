@@ -57,7 +57,7 @@ type BuildWeapon {
 
 type Character {
   _id: String!
-  constellations: [Constellation!]!
+  constellations: [ConstellationData!]!
   element: String!
   icon: String!
   image: String!
@@ -73,7 +73,7 @@ type CharacterStats {
   total: Float!
 }
 
-type Constellation {
+type ConstellationData {
   effect: String!
   icon: String!
   name: String!
