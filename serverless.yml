@@ -2,9 +2,19 @@ app: favonius-server
 service: favonius-server-api
 useDotenv: true
 
+package:
+  patterns:
+    - '!dist/**'
+    - '!src/seeds/**'
+
 plugins:
   - serverless-plugin-typescript
+  # - serverless-plugin-optimize
   - serverless-offline
+
+# custom:
+#   serverless-offline:
+#     allowCache: true # ~100ms
 
 provider:
   name: aws
@@ -15,7 +25,7 @@ provider:
 
 functions:
   main:
-    handler: src/serverless.handler
+    handler: src/lambda.handler
     events:
       - http:
           path: graphql

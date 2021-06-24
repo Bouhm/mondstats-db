@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
-import { Character, CharacterDocument } from '../character/character.model';
+// import { Character, CharacterDocument } from '../character/character.model';
 import { PlayerCharacterDocument } from '../player-character/player-character.model';
 import { ListAbyssBattleInput } from './abyss-battle.inputs';
 import { AbyssBattle, AbyssBattleDocument, AbyssStats } from './abyss-battle.model';
@@ -25,9 +25,6 @@ export class AbyssBattleService {
   constructor(
     @InjectModel(AbyssBattle.name)
     private abyssBattleModel: Model<AbyssBattleDocument>,
-
-    @InjectModel(Character.name)
-    private characterModel: Model<CharacterDocument>,
   ) {}
 
   async list(filter: ListAbyssBattleInput) {

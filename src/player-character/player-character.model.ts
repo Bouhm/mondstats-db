@@ -3,11 +3,6 @@ import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-import { Artifact } from '../artifact/artifact.model';
-import { Character } from '../character/character.model';
-import { Player } from '../player/player.model';
-import { Weapon } from '../weapon/weapon.model';
-
 @ObjectType('BuildWeapon')
 export class BuildWeapon {
   @Field(() => Number)
@@ -71,7 +66,7 @@ export class PlayerCharacter {
   @Field(() => String)
   @Prop({
     type: MongooseSchema.Types.ObjectId,
-    ref: Character.name,
+    ref: 'Character',
     required: true,
   })
   character: MongooseSchema.Types.ObjectId;
@@ -79,7 +74,7 @@ export class PlayerCharacter {
   @Field(() => String)
   @Prop({
     type: MongooseSchema.Types.ObjectId,
-    ref: Player.name,
+    ref: 'Player',
     required: true,
   })
   player: MongooseSchema.Types.ObjectId;
@@ -87,7 +82,7 @@ export class PlayerCharacter {
   @Field(() => [String])
   @Prop({
     type: [MongooseSchema.Types.ObjectId],
-    ref: Artifact.name,
+    ref: 'Artifact',
     required: true,
   })
   artifacts: MongooseSchema.Types.ObjectId[];
@@ -107,7 +102,7 @@ export class PlayerCharacter {
   @Field(() => String)
   @Prop({
     type: MongooseSchema.Types.ObjectId,
-    ref: Weapon.name,
+    ref: 'Weapon',
     required: true,
   })
   weapon: MongooseSchema.Types.ObjectId;

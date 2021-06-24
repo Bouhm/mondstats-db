@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
-import { Character, CharacterSchema } from '../character/character.model';
+// import { Character, CharacterSchema } from '../character/character.model';
 import { AbyssBattle, AbyssBattleSchema } from './abyss-battle.model';
 import { AbyssBattleResolver } from './abyss-battle.resolver';
 import { AbyssBattleService } from './abyss-battle.service';
@@ -10,7 +10,7 @@ import { AbyssBattleService } from './abyss-battle.service';
   imports: [
     MongooseModule.forFeature([
       { name: AbyssBattle.name, schema: AbyssBattleSchema },
-      { name: Character.name, schema: CharacterSchema },
+      // { name: Character.name, schema: CharacterSchema },
     ]),
   ],
   providers: [AbyssBattleService, AbyssBattleResolver],
