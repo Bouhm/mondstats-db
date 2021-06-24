@@ -10,6 +10,7 @@
     "seed": "ts-node ./src/seeds/index.ts"
   },
   "dependencies": {
+    "axios": "^0.21.1",
     "dotenv": "^10.0.0",
     "graphql": "^15.5.0",
     "graphql-tools": "^7.0.5",
