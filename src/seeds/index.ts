@@ -123,21 +123,21 @@ const getHeaders = () => {
   accIdx = _clamp(0, TOKENS.length - 1, accIdx);
 
   return {
-    Host: 'api-os-takumi.mihoyo.com',
+    'Host': 'api-os-takumi.mihoyo.com',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
-    Accept: 'application/json, text/plain, */*',
+    'Accept': 'application/json, text/plain, */*',
     'Accept-Language': 'en-US,en;q=0.5',
     'Accept-Encoding': 'gzip, deflate, br',
     'x-rpc-client_type': '4',
     'x-rpc-app_version': '1.5.0',
     'x-rpc-language': 'en-us',
-    DS: DS[0],
-    Origin: 'https://webstatic-sea.hoyolab.com',
-    DNT: '1',
-    Connection: 'keep-alive',
-    Referer: 'https://webstatic-sea.hoyolab.com/',
-    Cookie: TOKENS[accIdx],
-    TE: 'Trailers',
+    'DS': DS[0],
+    'Origin': 'https://webstatic-sea.hoyolab.com',
+    'DNT': '1',
+    'Connection': 'keep-alive',
+    'Referer': 'https://webstatic-sea.hoyolab.com/',
+    'Cookie': TOKENS[accIdx],
+    'TE': 'Trailers',
     'X-Forwarded-For': PROXIES[proxyIdx].ip,
     'X-Forwarded-Port': PROXIES[proxyIdx].port,
   };
@@ -203,7 +203,7 @@ const getSpiralAbyssThreshold = async (server: string, uid: number, threshold = 
     if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
       return null;
     }
-    // if (resp.data && resp.data.message && DEVELOPMENT) console.log('First pass: ' + resp.data.message);
+    if (resp.data && resp.data.message && DEVELOPMENT) console.log('First pass: ' + resp.data.message);
     if (!resp.data || !resp.data.data) {
       return false;
     }
