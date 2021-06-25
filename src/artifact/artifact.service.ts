@@ -16,10 +16,10 @@ export class ArtifactService {
   list(filter: ListArtifactInput) {
     const queryFilter = {};
 
-    if (queryFilter) {
-      const { oids } = filter;
-      if (oids && oids.length > 0) {
-        queryFilter['oid'] = { $in: oids };
+    if (filter) {
+      const { ids } = filter;
+      if (ids && ids.length > 0) {
+        queryFilter['id'] = { $in: ids };
       }
     }
 

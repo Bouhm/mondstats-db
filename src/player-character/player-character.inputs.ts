@@ -5,8 +5,8 @@ export class ListPlayerCharacterInput {
   @Field(() => Boolean, { nullable: true })
   f2p?: boolean;
 
-  @Field(() => [Number], { nullable: true })
-  charIds?: number[];
+  @Field(() => [String], { nullable: true })
+  charIds?: string[];
 
   @Field(() => [Number], { nullable: true })
   uids?: number[];

@@ -16,10 +16,10 @@ export class PlayerService {
   list(filter: ListPlayerInput) {
     const queryFilter = {};
 
-    if (queryFilter) {
+    if (filter) {
       const { uids } = filter;
       if (uids && uids.length > 0) {
-        queryFilter['oid'] = { $in: uids };
+        queryFilter['uid'] = { $in: uids };
       }
     }
 
