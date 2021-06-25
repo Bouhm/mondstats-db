@@ -142,7 +142,7 @@ const getHeaders = () => {
   };
 };
 
-const server = 'asia';
+const server = 'usa';
 
 function _getBaseUid(server: string, start = 0) {
   let uidBase = 100000000;
@@ -582,6 +582,6 @@ mongoose.connection.once('open', async () => {
   loadFromJson();
   blockedIndices = new Array(TOKENS.length).fill(false);
 
-  const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
+  // const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
   aggregateAllCharacterData();
 });
