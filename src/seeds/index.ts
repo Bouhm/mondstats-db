@@ -144,7 +144,7 @@ const getHeaders = () => {
     'x-rpc-client_type': '4',
     'x-rpc-app_version': '1.5.0',
     'x-rpc-language': 'en-us',
-    DS: DS[0],
+    DS,
     Origin: 'https://webstatic-sea.hoyolab.com',
     DNT: '1',
     Connection: 'keep-alive',
