@@ -25,6 +25,7 @@ const URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWOR
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
       playground: true,
+      introspection: true,
       path: '/dev/playground',
       debug: false,
     }),
