@@ -123,26 +123,27 @@ const getHeaders = () => {
   accIdx = _clamp(0, TOKENS.length - 1, accIdx);
 
   return {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:86.0) Gecko/20100101 Firefox/86.0',
+    Host: 'api-os-takumi.mihoyo.com',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
     Accept: 'application/json, text/plain, */*',
     'Accept-Language': 'en-US,en;q=0.5',
     'Accept-Encoding': 'gzip, deflate, br',
-    'Content-Type': 'application/json;charset=utf-8',
+    'x-rpc-client_type': '4',
     'x-rpc-app_version': '1.5.0',
     'x-rpc-language': 'en-us',
-    'X-Forwarded-For': PROXIES[proxyIdx].ip,
-    'X-Forwarded-Port': PROXIES[proxyIdx].port,
+    DS: DS[0],
     Origin: 'https://webstatic-sea.hoyolab.com',
     DNT: '1',
-    DS: DS[0],
     Connection: 'keep-alive',
     Referer: 'https://webstatic-sea.hoyolab.com/',
     Cookie: TOKENS[accIdx],
     TE: 'Trailers',
+    'X-Forwarded-For': PROXIES[proxyIdx].ip,
+    'X-Forwarded-Port': PROXIES[proxyIdx].port,
   };
 };
 
-const server = 'usa';
+const server = 'asia';
 
 function _getBaseUid(server: string, start = 0) {
   let uidBase = 100000000;
@@ -202,7 +203,7 @@ const getSpiralAbyssThreshold = async (server: string, uid: number, threshold = 
     if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
       return null;
     }
-    // if (resp.data && resp.data.message && DEVELOPMENT) console.log("First pass: " + resp.data.message);
+    // if (resp.data && resp.data.message && DEVELOPMENT) console.log('First pass: ' + resp.data.message);
     if (!resp.data || !resp.data.data) {
       return false;
     }
@@ -232,7 +233,7 @@ const getPlayerCharacters = async (server: string, uid: number, threshold = 50) 
       if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
         return null;
       }
-      // if (resp.data && resp.data.message && DEVELOPMENT) console.log("Second pass: " + resp.data.message);
+      // if (resp.data && resp.data.message && DEVELOPMENT) console.log('Second pass: ' + resp.data.message);
       if (!resp.data || !resp.data.data) {
         return [];
       }
@@ -582,6 +583,6 @@ mongoose.connection.once('open', async () => {
   loadFromJson();
   blockedIndices = new Array(TOKENS.length).fill(false);
 
-  // const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
-  aggregateAllCharacterData();
+  const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
+  aggregateAllCharacterData(lastPlayer.uid);
 });
