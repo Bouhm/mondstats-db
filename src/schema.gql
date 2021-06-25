@@ -67,9 +67,9 @@ type Character {
 }
 
 type CharacterStats {
+  _id: String!
   builds: [BuildStats!]!
   constellations: [Float!]!
-  oid: Float!
   total: Float!
 }
 
@@ -82,25 +82,25 @@ type Constellation {
 }
 
 input ListAbyssBattleInput {
-  charIds: [Float!]
+  charIds: [String!]
   f2p: Boolean
   floorLevels: [String!]
 }
 
 input ListArtifactInput {
-  oids: [Float!]
+  ids: [String!]
 }
 
 input ListArtifactSetInput {
-  oids: [Float!]
+  ids: [String!]
 }
 
 input ListCharacterInput {
-  oids: [Float!]
+  ids: [String!]
 }
 
 input ListPlayerCharacterInput {
-  charIds: [Float!]
+  charIds: [String!]
   f2p: Boolean
   uids: [Float!]
 }
@@ -139,8 +139,8 @@ type PlayerCharacter {
 type Query {
   abyssBattles(filter: ListAbyssBattleInput): [AbyssBattle!]!
   abyssStats(filter: ListAbyssBattleInput): [AbyssStats!]!
+  artifactSets(filter: ListArtifactSetInput): [ArtifactSet!]!
   artifacts(filter: ListArtifactInput): [Artifact!]!
-  artifactsSets(filter: ListArtifactSetInput): [ArtifactSet!]!
   characterStats(filter: ListPlayerCharacterInput): [CharacterStats!]!
   characters(filter: ListCharacterInput): [Character!]!
   playerCharacters(filter: ListPlayerCharacterInput): [PlayerCharacter!]!

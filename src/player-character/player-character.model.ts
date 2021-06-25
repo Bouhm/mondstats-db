@@ -40,8 +40,8 @@ export class BuildStats {
 export class CharacterStats {
   // @Field(() => Number)
   // avg_level: number;
-  @Field(() => Number)
-  oid: number;
+  @Field(() => String)
+  _id: string;
 
   @Field(() => [BuildStats])
   builds: BuildStats[];
