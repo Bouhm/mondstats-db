@@ -26,7 +26,6 @@ const URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWOR
       sortSchema: true,
       playground: true,
       introspection: true,
-      path: '/dev/playground',
       debug: false,
     }),
     AbyssBattleModule,
