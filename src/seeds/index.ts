@@ -4,6 +4,7 @@ import fs from 'fs';
 import https from 'https';
 import _ from 'lodash';
 import mongoose, { Schema } from 'mongoose';
+import { createInterface } from 'readline';
 
 import AbyssBattleModel from '../abyss-battle/abyss-battle.model';
 import ArtifactSetModel from '../artifact-set/artifact-set.model';
@@ -28,13 +29,18 @@ const axios = Axios.create({
   }),
 });
 
+const readLine = createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
 const tokensPath = './src/keys/tokens.json';
 const proxiesPath = './src/keys/proxies.json';
 const dsPath = './src/keys/DS.json';
 
 let PROXIES: Array<{ ip: string; port: string }> = [];
 let TOKENS: string[] = [];
-let DS: string[] = [];
+let DS = '1624656512,iHn5cQ,ad4efd9d96198014118dd7da1c14a0d8';
 let blockedIndices: boolean[] = [];
 let proxyIdx = 0;
 let accIdx = 0;
@@ -114,6 +120,13 @@ async function _sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const _updateDS = () => {
+  readLine.question('Update DS:', (input) => {
+    DS = input;
+    readLine.close();
+  });
+};
+
 function _clamp(min: number, max: number, num: number) {
   return Math.min(Math.max(num, min), max);
 }
@@ -123,21 +136,21 @@ const getHeaders = () => {
   accIdx = _clamp(0, TOKENS.length - 1, accIdx);
 
   return {
-    'Host': 'api-os-takumi.mihoyo.com',
+    Host: 'api-os-takumi.mihoyo.com',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
-    'Accept': 'application/json, text/plain, */*',
+    Accept: 'application/json, text/plain, */*',
     'Accept-Language': 'en-US,en;q=0.5',
     'Accept-Encoding': 'gzip, deflate, br',
     'x-rpc-client_type': '4',
     'x-rpc-app_version': '1.5.0',
     'x-rpc-language': 'en-us',
-    'DS': DS[0],
-    'Origin': 'https://webstatic-sea.hoyolab.com',
-    'DNT': '1',
-    'Connection': 'keep-alive',
-    'Referer': 'https://webstatic-sea.hoyolab.com/',
-    'Cookie': TOKENS[accIdx],
-    'TE': 'Trailers',
+    DS: DS[0],
+    Origin: 'https://webstatic-sea.hoyolab.com',
+    DNT: '1',
+    Connection: 'keep-alive',
+    Referer: 'https://webstatic-sea.hoyolab.com/',
+    Cookie: TOKENS[accIdx],
+    TE: 'Trailers',
     'X-Forwarded-For': PROXIES[proxyIdx].ip,
     'X-Forwarded-Port': PROXIES[proxyIdx].port,
   };
@@ -203,7 +216,11 @@ const getSpiralAbyssThreshold = async (server: string, uid: number, threshold = 
     if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
       return null;
     }
-    if (resp.data && resp.data.message && DEVELOPMENT) console.log('First pass: ' + resp.data.message);
+    if (resp.data && resp.data.message && DEVELOPMENT) {
+      if (resp.data.message.startsWith('invalid')) {
+        _updateDS();
+      }
+    }
     if (!resp.data || !resp.data.data) {
       return false;
     }
@@ -233,7 +250,11 @@ const getPlayerCharacters = async (server: string, uid: number, threshold = 50) 
       if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
         return null;
       }
-      // if (resp.data && resp.data.message && DEVELOPMENT) console.log('Second pass: ' + resp.data.message);
+      if (resp.data && resp.data.message && DEVELOPMENT) {
+        if (resp.data.message.startsWith('invalid')) {
+          _updateDS();
+        }
+      }
       if (!resp.data || !resp.data.data) {
         return [];
       }
@@ -452,7 +473,11 @@ const aggregatePlayerData = async (server: string, uid: number, characterIds: nu
       if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
         return null;
       }
-      // if (resp.data && resp.data.message && DEVELOPMENT) console.log("Third pass : " + resp.data.message);
+      if (resp.data && resp.data.message && DEVELOPMENT) {
+        if (resp.data.message.startsWith('invalid')) {
+          _updateDS();
+        }
+      }
       if (!resp.data || !resp.data.data) return false;
 
       await Promise.all(
@@ -572,7 +597,7 @@ const aggregateAllCharacterData = async (startUid = 0) => {
 const loadFromJson = () => {
   TOKENS = _.shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
   PROXIES = _.shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
-  DS = _.shuffle(JSON.parse(fs.readFileSync(dsPath, 'utf-8')));
+  // DS = _.shuffle(JSON.parse(fs.readFileSync(dsPath, 'utf-8')));
   // sampleChars = JSON.parse(fs.readFileSync('./src/db/sampleChars.json', 'utf-8'));
   // sampleAbyss = JSON.parse(fs.readFileSync('./src/db/sampleAbyss.json', 'utf-8'));
 };
