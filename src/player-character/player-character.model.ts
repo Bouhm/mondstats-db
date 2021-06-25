@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -109,7 +109,4 @@ export class PlayerCharacter {
 }
 
 export type PlayerCharacterDocument = PlayerCharacter & Document;
-
 export const PlayerCharacterSchema = SchemaFactory.createForClass(PlayerCharacter);
-
-export default mongoose.model<PlayerCharacterDocument>(PlayerCharacter.name, PlayerCharacterSchema);

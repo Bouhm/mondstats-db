@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -32,7 +32,4 @@ export class ArtifactSet {
 }
 
 export type ArtifactSetDocument = ArtifactSet & Document;
-
 export const ArtifactSetSchema = SchemaFactory.createForClass(ArtifactSet);
-
-export default mongoose.model<ArtifactSetDocument>(ArtifactSet.name, ArtifactSetSchema);
