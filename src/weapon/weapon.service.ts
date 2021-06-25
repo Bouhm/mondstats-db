@@ -16,7 +16,7 @@ export class WeaponService {
   list(filter: ListWeaponInput) {
     const queryFilter = {};
 
-    if (queryFilter) {
+    if (filter) {
       const { oids } = filter;
       if (oids && oids.length > 0) {
         queryFilter['oid'] = { $in: oids };
