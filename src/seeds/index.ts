@@ -242,7 +242,7 @@ const getSpiralAbyssThreshold = async (server: string, uid: number, threshold = 
     }
     if (resp.data && resp.data.message && DEVELOPMENT) {
       if (resp.data.message.startsWith('invalid')) {
-        _updateDS();
+        await _updateDS();
       }
     }
     if (!resp.data || !resp.data.data) {
@@ -269,14 +269,14 @@ const getPlayerCharacters = async (server: string, uid: number, threshold = 50) 
 
   return axios
     .get(apiUrl, { headers: getHeaders(), withCredentials: true })
-    .then((resp) => {
+    .then(async (resp) => {
       // Rate limit reached message
       if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
         return null;
       }
       if (resp.data && resp.data.message && DEVELOPMENT) {
         if (resp.data.message.startsWith('invalid')) {
-          _updateDS();
+          await _updateDS();
         }
       }
       if (!resp.data || !resp.data.data) {
@@ -499,7 +499,7 @@ const aggregatePlayerData = async (server: string, uid: number, characterIds: nu
       }
       if (resp.data && resp.data.message && DEVELOPMENT) {
         if (resp.data.message.startsWith('invalid')) {
-          _updateDS();
+          await _updateDS();
         }
       }
       if (!resp.data || !resp.data.data) return false;
@@ -633,7 +633,6 @@ mongoose.connection.once('open', async () => {
   blockedIndices = new Array(TOKENS.length).fill(false);
 
   await _updateDS();
-  console.log(DS);
-  // const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
-  // aggregateAllCharacterData(lastPlayer.uid);
+  const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
+  aggregateAllCharacterData(lastPlayer.uid);
 });
