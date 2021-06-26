@@ -20,8 +20,7 @@
     "playwright-firefox": "^1.12.3-1624660499000",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
-    "rxjs": "^6.6.6",
-    "xmlhttprequest": "^1.8.0"
+    "rxjs": "^6.6.6"
   },
   "devDependencies": {
     "@types/express": "^4.17.11",
