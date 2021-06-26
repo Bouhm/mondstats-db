@@ -4,7 +4,7 @@ import fs from 'fs';
 import https from 'https';
 import _ from 'lodash';
 import mongoose, { Schema } from 'mongoose';
-import { createInterface } from 'readline';
+import { firefox } from 'playwright-firefox';
 
 import AbyssBattleModel from '../abyss-battle/abyss-battle.model';
 import ArtifactSetModel from '../artifact-set/artifact-set.model';
@@ -29,18 +29,13 @@ const axios = Axios.create({
   }),
 });
 
-const readLine = createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
-
 const tokensPath = './src/keys/tokens.json';
 const proxiesPath = './src/keys/proxies.json';
-const dsPath = './src/keys/DS.json';
+// const dsPath = './src/keys/DS.json';
 
 let PROXIES: Array<{ ip: string; port: string }> = [];
 let TOKENS: string[] = [];
-let DS = '1624656512,iHn5cQ,ad4efd9d96198014118dd7da1c14a0d8';
+let DS = '';
 let blockedIndices: boolean[] = [];
 let proxyIdx = 0;
 let accIdx = 0;
@@ -120,10 +115,39 @@ async function _sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const _updateDS = () => {
-  readLine.question('Update DS:', (input) => {
-    DS = input;
-    readLine.close();
+// Grab DS
+const _updateDS = async () => {
+  // const cookieTokens = TOKENS[accIdx].split(' ');
+  // const ltoken = cookieTokens[0].split('=')[1].slice(0, -1);
+  // const ltuid = cookieTokens[1].split('=')[1];
+
+  const browser = await firefox.launch();
+  const context = await browser.newContext({
+    extraHTTPHeaders: {
+      Cookie: TOKENS[accIdx],
+      'x-rpc-client_type': '4',
+      'x-rpc-app_version': '1.5.0',
+    },
+  });
+
+  // context.addCookies([
+  //   { name: 'ltoken', value: ltoken, domain: '.hoyolab.com', path: '/' },
+  //   { name: 'ltuid', value: ltuid, domain: '.hoyolab.com', path: '/'  },
+  // ]);
+
+  const page = await context.newPage();
+
+  return new Promise<void>(async (resolve) => {
+    page.on('request', (req) => {
+      if (req.headers().ds) {
+        DS = req.headers().ds;
+        resolve();
+        browser.close();
+      }
+    });
+
+    const url = 'https://www.hoyolab.com/genshin/accountCenter/gameRecord?id=63548220';
+    await page.goto(url);
   });
 };
 
@@ -608,6 +632,8 @@ mongoose.connection.once('open', async () => {
   loadFromJson();
   blockedIndices = new Array(TOKENS.length).fill(false);
 
-  const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
-  aggregateAllCharacterData(lastPlayer.uid);
+  await _updateDS();
+  console.log(DS);
+  // const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
+  // aggregateAllCharacterData(lastPlayer.uid);
 });
