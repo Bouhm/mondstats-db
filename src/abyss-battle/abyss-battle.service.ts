@@ -1,11 +1,13 @@
 import _ from 'lodash';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
+import { CharacterDocument } from 'src/character/character.model';
+import { PlayerDocument } from 'src/player/player.model';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 // import { Character, CharacterDocument } from '../character/character.model';
-import { PlayerCharacterDocument } from '../player-character/player-character.model';
+import { PlayerCharacter, PlayerCharacterDocument } from '../player-character/player-character.model';
 import { ListAbyssBattleInput } from './abyss-battle.inputs';
 import { AbyssBattle, AbyssBattleDocument, AbyssStats } from './abyss-battle.model';
 
@@ -25,41 +27,85 @@ export class AbyssBattleService {
   constructor(
     @InjectModel(AbyssBattle.name)
     private abyssBattleModel: Model<AbyssBattleDocument>,
+
+    @InjectModel(AbyssBattle.name)
+    private characterModel: Model<CharacterDocument>,
+
+    @InjectModel(AbyssBattle.name)
+    private playerModel: Model<PlayerDocument>,
   ) {}
 
   async list(filter: ListAbyssBattleInput) {
     const queryFilter = {};
-    const queryMatch = {};
 
     if (filter) {
-      const { floorLevels, charIds, f2p } = filter;
+      const { floorLevels } = filter;
       if (floorLevels && floorLevels.length > 0) {
         queryFilter['floor_level'] = { $in: floorLevels };
       }
-
-      // if (charIds && charIds.length > 0) {
-      //   const _ids = _.map(await this.characterModel.find({ oid: { $in: charIds } }), (char) => char._id);
-      //   queryFilter['party'] = {
-      //     $not: {
-      //       $elemMatch: {
-      //         $nin: _ids,
-      //       },
-      //     },
-      //   };
-      // }
-
-      // if (f2p) {
-      //   queryMatch['rarity'] = { $lt: 5 };
-      // }
     }
 
-    return this.abyssBattleModel
+    const abyssBattles = await this.abyssBattleModel
       .find(queryFilter)
-      .populate({
-        path: 'party',
-        select: 'oid rarity -_id',
-      })
+      .populate([
+        {
+          path: 'party',
+          model: PlayerCharacter.name,
+          select: 'character -_id',
+          populate: {
+            path: 'character',
+            select: 'rarity _id',
+          },
+        },
+        {
+          path: 'player',
+          select: 'total_star',
+        },
+      ])
       .exec();
+
+    const filteredBattles = _.filter(abyssBattles, (battle) => {
+      if (filter.charIds) {
+        if (
+          _.difference(
+            filter.charIds,
+            _.map(battle.party, ({ character }: any) => character._id.toString()),
+          ).length !== 0
+        ) {
+          return false;
+        } else {
+          console.log(_.map(battle.party, ({ character }: any) => character._id.toString()));
+        }
+      }
+
+      if (filter.f2p) {
+        if (filter.charIds) {
+          if (
+            _.find(
+              battle.party,
+              (charObj: any) => charObj.rarity > 4 && _.includes(filter.charIds, charObj._id),
+            )
+          ) {
+            return false;
+          }
+        } else {
+          if (_.find(battle.party, (charObj: any) => charObj.rarity > 4)) {
+            return false;
+          }
+        }
+      }
+
+      if (filter.totalStars) {
+        const playerObj = battle.player as unknown as any;
+        if (playerObj.total_star < filter.totalStars) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    return filteredBattles;
   }
 
   async aggregate(filter: ListAbyssBattleInput) {
@@ -68,32 +114,6 @@ export class AbyssBattleService {
     const battles = await this.list(filter);
 
     _.forEach(battles, ({ floor_level, battle_index, party }) => {
-      if (filter) {
-        if (filter.charIds) {
-          if (
-            _.difference(
-              filter.charIds,
-              party.map((member: any) => member.oid),
-            ).length !== 0
-          ) {
-            return;
-          }
-        }
-
-        if (filter.f2p) {
-          if (
-            _.find(party, ({ oid, rarity }: any) => {
-              if (filter.charIds) {
-                return !_.includes(filter.charIds, oid) && rarity === 5;
-              } else {
-                return rarity === 5;
-              }
-            })
-          )
-            return;
-        }
-      }
-
       const floorIdx = _.findIndex(abyssData, { floor_level });
 
       if (floorIdx > -1) {

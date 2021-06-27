@@ -10,4 +10,7 @@ export class ListAbyssBattleInput {
 
   @Field(() => [String], { nullable: true })
   charIds?: string[];
+
+  @Field(() => Number, { nullable: true })
+  totalStars?: number;
 }
