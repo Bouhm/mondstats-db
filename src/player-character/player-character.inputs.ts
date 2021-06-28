@@ -8,6 +8,12 @@ export class ListPlayerCharacterInput {
   @Field(() => [String], { nullable: true })
   charIds?: string[];
 
+  @Field(() => [String], { nullable: true })
+  weaponIds?: string[];
+
+  @Field(() => [String], { nullable: true })
+  setIds?: string[];
+
   @Field(() => Number, { nullable: true })
   totalStars?: number;
 

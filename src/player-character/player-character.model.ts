@@ -33,8 +33,8 @@ export class BuildStats {
   count: number;
 }
 
-@ObjectType('CharacterStats')
-export class CharacterStats {
+@ObjectType('CharacterBuildStats')
+export class CharacterBuildStats {
   @Field(() => Number)
   avg_level: number;
   

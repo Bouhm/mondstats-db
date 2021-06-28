@@ -1,7 +1,7 @@
 import { Args, Query, Resolver } from '@nestjs/graphql';
 
 import { ListPlayerCharacterInput } from './player-character.inputs';
-import { CharacterStats, PlayerCharacter } from './player-character.model';
+import { CharacterBuildStats, PlayerCharacter } from './player-character.model';
 import { PlayerCharacterService } from './player-character.service';
 
 @Resolver()
@@ -13,8 +13,8 @@ export class PlayerCharacterResolver {
     return this.playerCharacterService.list(filter);
   }
 
-  @Query(() => [CharacterStats])
+  @Query(() => [CharacterBuildStats])
   async characterBuilds(@Args('filter', { nullable: true }) filter?: ListPlayerCharacterInput) {
-    return this.playerCharacterService.aggregate(filter);
+    return this.playerCharacterService.aggregateBuilds(filter);
   }
 }
