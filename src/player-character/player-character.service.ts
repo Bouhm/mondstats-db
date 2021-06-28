@@ -109,8 +109,6 @@ function _getCharacterData(playerCharacters) {
     }
   });
 
-  console.log("after foreach")
-  console.log(characterData[0])
   // _.forEach(characterData, ({ builds }, i) => {
   //   characterData[i].builds = _.take(_.orderBy(builds, 'count', 'desc'), 10);
   // });
@@ -165,9 +163,6 @@ export class PlayerCharacterService {
   async aggregate(filter: ListPlayerCharacterInput) {
     const characterData: CharacterStats[] = [];
     const playerCharacters = await this.list(filter);
-
-    console.log(playerCharacters.length)
-    console.log("before foreach")
 
     return _getCharacterData(playerCharacters)
   }

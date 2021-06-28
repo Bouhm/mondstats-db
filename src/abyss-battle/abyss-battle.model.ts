@@ -8,8 +8,8 @@ import { Player } from '../player/player.model';
 
 @ObjectType('PartyStats')
 export class PartyStats {
-  @Field(() => [Number])
-  party: number[];
+  @Field(() => [String])
+  party: string[];
 
   @Field(() => Number)
   count: number;

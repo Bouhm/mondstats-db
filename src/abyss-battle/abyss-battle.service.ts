@@ -27,12 +27,6 @@ export class AbyssBattleService {
   constructor(
     @InjectModel(AbyssBattle.name)
     private abyssBattleModel: Model<AbyssBattleDocument>,
-
-    @InjectModel(AbyssBattle.name)
-    private characterModel: Model<CharacterDocument>,
-
-    @InjectModel(AbyssBattle.name)
-    private playerModel: Model<PlayerDocument>,
   ) {}
 
   async list(filter: ListAbyssBattleInput) {
@@ -59,22 +53,29 @@ export class AbyssBattleService {
         },
         {
           path: 'player',
-          select: 'total_star',
+          select: 'total_star -_id',
         },
       ])
       .exec();
 
-    const filteredBattles = _.filter(abyssBattles, (battle) => {
+    const filteredBattles = [];
+    _.forEach(abyssBattles, (battle) => {
+      const _battle = battle as unknown as any;
+
+      const battleStats = {
+        party: _.map(_battle.party, (char) => char.character._id),
+        floor_level: _battle.floor_level,
+        battle_index: _battle.battle_index,
+      };
+
       if (filter.charIds) {
         if (
           _.difference(
             filter.charIds,
-            _.map(battle.party, ({ character }: any) => character._id.toString()),
-          ).length !== 0
+            _.map(_battle.party, ({ character }) => character._id.toString()),
+          ).length === 0
         ) {
-          return false;
-        } else {
-          console.log(_.map(battle.party, ({ character }: any) => character._id.toString()));
+          filteredBattles.push(battleStats);
         }
       }
 
@@ -82,29 +83,26 @@ export class AbyssBattleService {
         if (filter.charIds) {
           if (
             _.find(
-              battle.party,
-              (charObj: any) => charObj.rarity > 4 && _.includes(filter.charIds, charObj._id),
+              _battle.party,
+              ({ character }) => character.rarity < 5 && !_.includes(filter.charIds, character._id),
             )
           ) {
-            return false;
+            filteredBattles.push(battleStats);
           }
         } else {
-          if (_.find(battle.party, (charObj: any) => charObj.rarity > 4)) {
-            return false;
+          if (_.find(_battle.party, ({ character }) => character.rarity < 5)) {
+            filteredBattles.push(battleStats);
           }
         }
       }
 
       if (filter.totalStars) {
-        const playerObj = battle.player as unknown as any;
-        if (playerObj.total_star < filter.totalStars) {
-          return false;
+        if (_battle.player.total_star >= filter.totalStars) {
+          filteredBattles.push(battleStats);
         }
       }
-
-      return true;
     });
-
+    console.log(filteredBattles[0])
     return filteredBattles;
   }
 
@@ -115,17 +113,13 @@ export class AbyssBattleService {
 
     _.forEach(battles, ({ floor_level, battle_index, party }) => {
       const floorIdx = _.findIndex(abyssData, { floor_level });
-
+      console.log(party);
       if (floorIdx > -1) {
         const partyData = abyssData[floorIdx]['party_stats'];
-        const oids = _.map(
-          party,
-          (char: PlayerCharacterDocument) => char.oid,
-        ).sort() as unknown as number[];
 
         const partyIdx = _.findIndex(
           partyData[battle_index - 1],
-          (battle: { party: number[]; count: number }) => _.isEqual(battle.party, oids),
+          (battle: { party: string[]; count: number }) => _.isEqual(battle.party, party),
         );
 
         if (partyIdx > -1) {
@@ -133,13 +127,13 @@ export class AbyssBattleService {
         } else {
           if (partyData.length) {
             partyData[battle_index - 1].push({
-              party: oids,
+              party: party.sort(),
               count: 1,
             });
           } else {
             partyData[battle_index - 1] = [
               {
-                party: oids,
+                party: party.sort(),
                 count: 1,
               },
             ];
@@ -159,6 +153,7 @@ export class AbyssBattleService {
       });
     });
 
+    console.log(abyssData[0].party_stats[0]);
     return abyssData.sort(_compareFloor);
   }
 }

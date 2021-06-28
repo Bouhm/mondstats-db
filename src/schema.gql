@@ -116,7 +116,7 @@ input ListWeaponInput {
 
 type PartyStats {
   count: Float!
-  party: [Float!]!
+  party: [String!]!
 }
 
 type Player {
