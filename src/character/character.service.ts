@@ -1,4 +1,5 @@
 import fs from 'fs';
+import _ from 'lodash';
 import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
@@ -33,6 +34,11 @@ export class CharacterService {
 
   async save() {
     const characters = await this.characterModel.find().lean().exec();
+    _.forEach(characters, (character: any) => {
+      delete character.__v;
+      delete character.createdAt;
+      delete character.updatedAt;
+    });
     fs.writeFileSync('src/data/characters.json', JSON.stringify(characters));
   }
 }

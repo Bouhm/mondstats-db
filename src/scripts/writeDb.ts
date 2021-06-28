@@ -20,7 +20,7 @@ const abyssBattleService = new AbyssBattleService(abyssBattleModel);
 const artifactService = new ArtifactService(artifactModel);
 const artifactSetService = new ArtifactSetService(artifactSetModel);
 const weaponService = new WeaponService(weaponModel);
-  
+
 (async () => {
   connectDb();
   Promise.all([

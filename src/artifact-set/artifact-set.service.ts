@@ -1,4 +1,5 @@
 import fs from 'fs';
+import _ from 'lodash';
 import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
@@ -29,6 +30,11 @@ export class ArtifactSetService {
 
   async save() {
     const artifactSets = await this.artifactSetModel.find().lean().exec();
+    _.forEach(artifactSets, (set: any) => {
+      delete set.__v;
+      delete set.createdAt;
+      delete set.updatedAt;
+    });
     fs.writeFileSync('src/data/artifactSets.json', JSON.stringify(artifactSets));
   }
 }
