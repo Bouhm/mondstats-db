@@ -63,19 +63,16 @@ export class AbyssBattleService {
       const _battle = battle as unknown as any;
 
       const battleStats = {
-        party: _.map(_battle.party, (char) => char.character._id),
+        party: _.map(_battle.party, ({ character }) => character._id.toString()),
         floor_level: _battle.floor_level,
         battle_index: _battle.battle_index,
       };
 
+      if (battleStats.party.length < 4) return;
+
       if (filter.charIds) {
-        if (
-          _.difference(
-            filter.charIds,
-            _.map(_battle.party, ({ character }) => character._id.toString()),
-          ).length === 0
-        ) {
-          filteredBattles.push(battleStats);
+        if (_.difference(filter.charIds, battleStats.party).length !== 0) {
+          return;
         }
       }
 
@@ -84,25 +81,26 @@ export class AbyssBattleService {
           if (
             _.find(
               _battle.party,
-              ({ character }) => character.rarity < 5 && !_.includes(filter.charIds, character._id),
+              ({ character }) => character.rarity > 4 && !_.includes(filter.charIds, character._id),
             )
           ) {
-            filteredBattles.push(battleStats);
+            return;
           }
         } else {
-          if (_.find(_battle.party, ({ character }) => character.rarity < 5)) {
-            filteredBattles.push(battleStats);
+          if (_.find(_battle.party, ({ character }) => character.rarity > 4)) {
+            return;
           }
         }
       }
 
       if (filter.totalStars) {
         if (_battle.player.total_star >= filter.totalStars) {
-          filteredBattles.push(battleStats);
+          return;
         }
       }
+
+      filteredBattles.push(battleStats);
     });
-    console.log(filteredBattles[0])
     return filteredBattles;
   }
 
@@ -113,7 +111,6 @@ export class AbyssBattleService {
 
     _.forEach(battles, ({ floor_level, battle_index, party }) => {
       const floorIdx = _.findIndex(abyssData, { floor_level });
-      console.log(party);
       if (floorIdx > -1) {
         const partyData = abyssData[floorIdx]['party_stats'];
 
@@ -153,7 +150,6 @@ export class AbyssBattleService {
       });
     });
 
-    console.log(abyssData[0].party_stats[0]);
-    return abyssData.sort(_compareFloor);
+    return abyssData;
   }
 }
