@@ -27,6 +27,10 @@ const URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWOR
       playground: true,
       introspection: true,
       debug: false,
+      cors: {
+        origin: 'http://localhost:3000',
+        credentials: true,
+      },
     }),
     AbyssBattleModule,
     ArtifactModule,
