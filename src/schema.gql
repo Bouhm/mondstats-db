@@ -142,7 +142,8 @@ type Query {
   abyssStats(filter: ListAbyssBattleInput): [AbyssStats!]!
   artifactSets(filter: ListArtifactSetInput): [ArtifactSet!]!
   artifacts(filter: ListArtifactInput): [Artifact!]!
-  characterStats(filter: ListPlayerCharacterInput): [CharacterStats!]!
+  character(id: String): Character!
+  characterBuilds(filter: ListPlayerCharacterInput): [CharacterStats!]!
   characters(filter: ListCharacterInput): [Character!]!
   playerCharacters(filter: ListPlayerCharacterInput): [PlayerCharacter!]!
   players(filter: ListPlayerInput): [Player!]!

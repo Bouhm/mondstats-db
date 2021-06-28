@@ -8,6 +8,11 @@ import { CharacterService } from './character.service';
 export class CharacterResolver {
   constructor(private characterService: CharacterService) {}
 
+  @Query(() => Character)
+  async character(@Args('id', { nullable: true }) id: string) {
+    return this.characterService.findById(id);
+  }
+
   @Query(() => [Character])
   async characters(@Args('filter', { nullable: true }) filter?: ListCharacterInput) {
     return this.characterService.list(filter);

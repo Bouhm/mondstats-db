@@ -113,6 +113,7 @@ export class AbyssBattleService {
       const floorIdx = _.findIndex(abyssData, { floor_level });
       if (floorIdx > -1) {
         const partyData = abyssData[floorIdx]['party_stats'];
+        party.sort();
 
         const partyIdx = _.findIndex(
           partyData[battle_index - 1],
@@ -124,13 +125,13 @@ export class AbyssBattleService {
         } else {
           if (partyData.length) {
             partyData[battle_index - 1].push({
-              party: party.sort(),
+              party,
               count: 1,
             });
           } else {
             partyData[battle_index - 1] = [
               {
-                party: party.sort(),
+                party,
                 count: 1,
               },
             ];

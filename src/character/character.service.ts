@@ -13,13 +13,17 @@ export class CharacterService {
     private characterModel: Model<CharacterDocument>,
   ) {}
 
+  findById(id: string) {
+    return this.characterModel.findById(id);
+  }
+
   list(filter: ListCharacterInput) {
     const queryFilter = {};
 
     if (filter) {
       const { ids } = filter;
       if (ids && ids.length > 0) {
-        queryFilter['id'] = { $in: ids };
+        queryFilter['_id'] = { $in: ids };
       }
     }
 
