@@ -65,7 +65,7 @@ type Character {
   rarity: Float!
 }
 
-type CharacterStats {
+type CharacterBuildStats {
   avg_level: Float!
   builds: [BuildStats!]!
   char_id: String!
@@ -103,8 +103,10 @@ input ListCharacterInput {
 input ListPlayerCharacterInput {
   charIds: [String!]
   f2p: Boolean
+  setIds: [String!]
   totalStars: Float
   uids: [Float!]
+  weaponIds: [String!]
 }
 
 input ListPlayerInput {
@@ -144,7 +146,7 @@ type Query {
   artifactSets(filter: ListArtifactSetInput): [ArtifactSet!]!
   artifacts(filter: ListArtifactInput): [Artifact!]!
   character(id: String): Character!
-  characterBuilds(filter: ListPlayerCharacterInput): [CharacterStats!]!
+  characterBuilds(filter: ListPlayerCharacterInput): [CharacterBuildStats!]!
   characters(filter: ListCharacterInput): [Character!]!
   playerCharacters(filter: ListPlayerCharacterInput): [PlayerCharacter!]!
   players(filter: ListPlayerInput): [Player!]!

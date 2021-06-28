@@ -37,7 +37,7 @@ export class PlayerCharacterService {
     private playerCharacterModel: Model<PlayerCharacterDocument>,
   ) {}
 
-  async list(filter: ListPlayerCharacterInput) {
+  async list(filter: ListPlayerCharacterInput = {}) {
     const playerCharacters = await this.playerCharacterModel
       .find()
       .lean()
