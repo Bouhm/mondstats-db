@@ -23,6 +23,6 @@ export class ArtifactService {
       }
     }
 
-    return this.artifactModel.find(queryFilter).exec();
+    return this.artifactModel.find(queryFilter).lean().exec();
   }
 }

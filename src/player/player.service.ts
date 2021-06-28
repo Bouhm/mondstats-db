@@ -23,6 +23,6 @@ export class PlayerService {
       }
     }
 
-    return this.playerModel.find(queryFilter).exec();
+    return this.playerModel.find(queryFilter).lean().exec();
   }
 }

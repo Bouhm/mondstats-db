@@ -23,6 +23,6 @@ export class WeaponService {
       }
     }
 
-    return this.weaponModel.find(queryFilter).exec();
+    return this.weaponModel.find(queryFilter).lean().exec();
   }
 }

@@ -14,7 +14,7 @@ export class CharacterService {
   ) {}
 
   findById(id: string) {
-    return this.characterModel.findById(id);
+    return this.characterModel.findById(id).lean();
   }
 
   list(filter: ListCharacterInput) {
@@ -27,6 +27,6 @@ export class CharacterService {
       }
     }
 
-    return this.characterModel.find(queryFilter).exec();
+    return this.characterModel.find(queryFilter).lean().exec();
   }
 }
