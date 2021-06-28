@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
@@ -24,5 +25,10 @@ export class ArtifactSetService {
     }
 
     return this.artifactSetModel.find(queryFilter).lean().exec();
+  }
+
+  async save() {
+    const artifactSets = await this.artifactSetModel.find().lean().exec();
+    fs.writeFileSync('src/data/artifactSets.json', JSON.stringify(artifactSets));
   }
 }

@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
@@ -17,7 +18,7 @@ export class CharacterService {
     return this.characterModel.findById(id).lean();
   }
 
-  list(filter: ListCharacterInput) {
+  list(filter: ListCharacterInput = {}) {
     const queryFilter = {};
 
     if (filter) {
@@ -28,5 +29,10 @@ export class CharacterService {
     }
 
     return this.characterModel.find(queryFilter).lean().exec();
+  }
+
+  async save() {
+    const characters = await this.characterModel.find().lean().exec();
+    fs.writeFileSync('src/data/characters.json', JSON.stringify(characters));
   }
 }

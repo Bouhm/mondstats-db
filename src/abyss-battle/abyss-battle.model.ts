@@ -1,4 +1,4 @@
-import { Document, Schema as MongooseSchema } from 'mongoose';
+import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -56,5 +56,5 @@ export class AbyssBattle {
 }
 
 export type AbyssBattleDocument = AbyssBattle & Document;
-
 export const AbyssBattleSchema = SchemaFactory.createForClass(AbyssBattle);
+export default mongoose.model<AbyssBattleDocument>(AbyssBattle.name, AbyssBattleSchema);

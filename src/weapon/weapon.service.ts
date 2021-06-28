@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
@@ -13,7 +14,7 @@ export class WeaponService {
     private weaponModel: Model<WeaponDocument>,
   ) {}
 
-  list(filter: ListWeaponInput) {
+  list(filter: ListWeaponInput = {}) {
     const queryFilter = {};
 
     if (filter) {
@@ -24,5 +25,10 @@ export class WeaponService {
     }
 
     return this.weaponModel.find(queryFilter).lean().exec();
+  }
+
+  async save() {
+    const weapons = await this.weaponModel.find().lean().exec();
+    fs.writeFileSync('src/data/weapons.json', JSON.stringify(weapons));
   }
 }

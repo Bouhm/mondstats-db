@@ -15,6 +15,7 @@ export class CharacterResolver {
 
   @Query(() => [Character])
   async characters(@Args('filter', { nullable: true }) filter?: ListCharacterInput) {
-    return this.characterService.list(filter);
+    const characters = this.characterService.list(filter);
+    return characters;
   }
 }

@@ -10,6 +10,7 @@ export class ArtifactResolver {
 
   @Query(() => [Artifact])
   async artifacts(@Args('filter', { nullable: true }) filter?: ListArtifactInput) {
-    return this.artifactService.list(filter);
+    const artifacts = this.artifactService.list(filter);
+    return artifacts;
   }
 }

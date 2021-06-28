@@ -1,10 +1,11 @@
+import fs from 'fs';
 import _ from 'lodash';
 import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
-import { Affix, ArtifactSet } from '../artifact-set/artifact-set.model';
+import { Affix } from '../artifact-set/artifact-set.model';
 import { WeaponDocument } from '../weapon/weapon.model';
 import { ListPlayerCharacterInput } from './player-character.inputs';
 import { CharacterBuildStats, PlayerCharacter, PlayerCharacterDocument } from './player-character.model';
@@ -99,7 +100,7 @@ export class PlayerCharacterService {
     return filteredCharacters;
   }
 
-  async aggregateBuilds(filter: ListPlayerCharacterInput) {
+  async aggregateBuilds(filter: ListPlayerCharacterInput = {}) {
     const playerCharacters = await this.list(filter);
     const characterData: CharacterBuildStats[] = [];
 
@@ -195,5 +196,10 @@ export class PlayerCharacterService {
     });
 
     return characterData;
+  }
+
+  async save() {
+    const characterBuilds = await this.aggregateBuilds();
+    fs.writeFileSync('src/data/characterBuilds.json', JSON.stringify(characterBuilds));
   }
 }

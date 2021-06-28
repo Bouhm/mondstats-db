@@ -1,13 +1,12 @@
+import fs from 'fs';
 import _ from 'lodash';
-import { Model, Types } from 'mongoose';
-import { CharacterDocument } from 'src/character/character.model';
-import { PlayerDocument } from 'src/player/player.model';
+import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 // import { Character, CharacterDocument } from '../character/character.model';
-import { PlayerCharacter, PlayerCharacterDocument } from '../player-character/player-character.model';
+import { PlayerCharacter } from '../player-character/player-character.model';
 import { ListAbyssBattleInput } from './abyss-battle.inputs';
 import { AbyssBattle, AbyssBattleDocument, AbyssStats } from './abyss-battle.model';
 
@@ -105,7 +104,7 @@ export class AbyssBattleService {
     return filteredBattles;
   }
 
-  async aggregate(filter: ListAbyssBattleInput) {
+  async aggregate(filter: ListAbyssBattleInput = {}) {
     const battleIndices = 2;
     const abyssData: AbyssStats[] = [];
     const battles = await this.list(filter);
@@ -153,5 +152,10 @@ export class AbyssBattleService {
     });
 
     return abyssData;
+  }
+
+  async save() {
+    const abyssBattles = await this.aggregate();
+    fs.writeFileSync('src/data/abyssBattles.json', JSON.stringify(abyssBattles));
   }
 }

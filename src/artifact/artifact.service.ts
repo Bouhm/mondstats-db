@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
@@ -13,7 +14,7 @@ export class ArtifactService {
     private artifactModel: Model<ArtifactDocument>,
   ) {}
 
-  list(filter: ListArtifactInput) {
+  list(filter: ListArtifactInput = {}) {
     const queryFilter = {};
 
     if (filter) {
@@ -24,5 +25,10 @@ export class ArtifactService {
     }
 
     return this.artifactModel.find(queryFilter).lean().exec();
+  }
+
+  async save() {
+    const artifacts = await this.artifactModel.find().lean().exec();
+    fs.writeFileSync('src/data/artifacts.json', JSON.stringify(artifacts));
   }
 }
