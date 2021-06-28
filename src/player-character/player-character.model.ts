@@ -5,8 +5,8 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @ObjectType('BuildWeapon')
 export class BuildWeapon {
-  @Field(() => Number)
-  oid: number;
+  @Field(() => String)
+  _id: string;
 
   @Field(() => Number)
   count: number;
@@ -14,8 +14,8 @@ export class BuildWeapon {
 
 @ObjectType('BuildSet')
 export class BuildSet {
-  @Field(() => Number)
-  oid: number;
+  @Field(() => String)
+  _id: string;
 
   @Field(() => Number)
   activation_number: number;
@@ -23,9 +23,6 @@ export class BuildSet {
 
 @ObjectType('BuildStats')
 export class BuildStats {
-  @Field(() => Number)
-  buildId: number;
-
   @Field(() => [BuildWeapon])
   weapons: BuildWeapon[];
 
@@ -38,10 +35,11 @@ export class BuildStats {
 
 @ObjectType('CharacterStats')
 export class CharacterStats {
-  // @Field(() => Number)
-  // avg_level: number;
+  @Field(() => Number)
+  avg_level: number;
+  
   @Field(() => String)
-  _id: string;
+  char_id: string;
 
   @Field(() => [BuildStats])
   builds: BuildStats[];

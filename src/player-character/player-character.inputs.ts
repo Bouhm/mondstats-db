@@ -8,6 +8,9 @@ export class ListPlayerCharacterInput {
   @Field(() => [String], { nullable: true })
   charIds?: string[];
 
+  @Field(() => Number, { nullable: true })
+  totalStars?: number;
+
   @Field(() => [Number], { nullable: true })
   uids?: number[];
 }

@@ -29,7 +29,7 @@ export class AbyssBattleService {
     private abyssBattleModel: Model<AbyssBattleDocument>,
   ) {}
 
-  async list(filter: ListAbyssBattleInput) {
+  async list(filter: ListAbyssBattleInput = {}) {
     const queryFilter = {};
 
     if (filter) {
@@ -41,6 +41,7 @@ export class AbyssBattleService {
 
     const abyssBattles = await this.abyssBattleModel
       .find(queryFilter)
+      .lean()
       .populate([
         {
           path: 'party',
@@ -94,7 +95,7 @@ export class AbyssBattleService {
       }
 
       if (filter.totalStars) {
-        if (_battle.player.total_star >= filter.totalStars) {
+        if (_battle.player.total_star < filter.totalStars) {
           return;
         }
       }

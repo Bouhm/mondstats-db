@@ -9,6 +9,8 @@ import { WeaponDocument } from '../weapon/weapon.model';
 import { ListPlayerCharacterInput } from './player-character.inputs';
 import { CharacterStats, PlayerCharacter, PlayerCharacterDocument } from './player-character.model';
 
+const BP_WEAPONS = ["The Black Sword", "Serpent Spine", "Solar Pearl", "The Viridescent Hunt", "Deathmatch"]
+
 function _getActivationNumber(count: number, affixes: Affix[]) {
   const activations = _.map(affixes, (effect) => effect.activation_number);
 
@@ -24,16 +26,16 @@ function _getActivationNumber(count: number, affixes: Affix[]) {
 
 function _getCharacterData(playerCharacters) {
   const characterData: CharacterStats[] = [];
-  _.forEach(playerCharacters, ({ _id, weapon, artifacts, constellation, level }: any) => {
+  _.forEach(playerCharacters, ({ character, weapon, artifacts, constellation, level }: any) => {
     const charWeapon = <WeaponDocument>weapon;
     const playerSets: any = {};
 
     // Get artifact set combinations
     _.forEach(artifacts, (relic: any) => {
-      if (playerSets.hasOwnProperty(relic['set'].oid)) {
-        playerSets[relic['set'].oid].count++;
+      if (playerSets.hasOwnProperty(relic['set']._id)) {
+        playerSets[relic['set']._id].count++;
       } else {
-        playerSets[relic['set'].oid] = {
+        playerSets[relic['set']._id] = {
           count: 1,
           affixes: relic['set'].affixes,
         };
@@ -42,41 +44,40 @@ function _getCharacterData(playerCharacters) {
 
     if (_.keys(playerSets).length > 2) return;
 
-    let buildIdNum = -1;
-    const artifactSetCombinations: { oid: number; activation_number: number }[] = [];
+    let artifactSetCombinations: { _id: string; activation_number: number }[] = [];
 
-    _.forIn(playerSets, (set, oid) => {
+    _.forIn(playerSets, (set, _id) => {
       const activationNum = _getActivationNumber(set.count, set.affixes);
-      buildIdNum += parseInt(oid) * activationNum;
 
       if (activationNum > 1) {
         artifactSetCombinations.push({
-          oid: parseInt(oid),
+          _id,
           activation_number: activationNum,
         });
       }
     });
 
-    const charIdx = _.findIndex(characterData, { _id });
+    artifactSetCombinations = _.sortBy(artifactSetCombinations, set => set._id);
+
+    const charIdx = _.findIndex(characterData, { char_id: character._id });
 
     if (charIdx > -1) {
       characterData[charIdx].constellations[constellation]++;
 
-      const buildIdx = _.findIndex(characterData[charIdx].builds, { buildId: buildIdNum });
+      const buildIdx = _.findIndex(characterData[charIdx].builds, build => _.isEqual(build.artifacts, artifactSetCombinations));
       if (buildIdx < 0) {
         characterData[charIdx].builds.push({
-          buildId: buildIdNum,
-          weapons: [{ oid: charWeapon.oid, count: 1 }],
+          weapons: [{ _id: charWeapon._id, count: 1 }],
           artifacts: artifactSetCombinations,
           count: 1,
         });
       } else {
         // Update weapons
         const weaponIdx = _.findIndex(characterData[charIdx].builds[buildIdx].weapons, {
-          oid: charWeapon.oid,
+          _id: charWeapon._id,
         });
         if (weaponIdx < 0) {
-          characterData[charIdx].builds[buildIdx].weapons.push({ oid: charWeapon.oid, count: 1 });
+          characterData[charIdx].builds[buildIdx].weapons.push({ _id: charWeapon._id, count: 1 });
         } else {
           characterData[charIdx].builds[buildIdx].weapons[weaponIdx].count++;
         }
@@ -86,20 +87,20 @@ function _getCharacterData(playerCharacters) {
       }
 
       characterData[charIdx].total++;
-      // characterData[charIdx].avg_level = Math.floor(
-      //   characterData[charIdx].avg_level + (level - characterData[charIdx].avg_level) / characterData[charIdx].total,
-      // );
+      characterData[charIdx].avg_level = Math.floor(
+        characterData[charIdx].avg_level + (level - characterData[charIdx].avg_level) / characterData[charIdx].total,
+      );
     } else {
       const constellations = new Array(7).fill(0);
       constellations[constellation] = 1;
 
       characterData.push({
-        _id ,
+        char_id: character._id,
         constellations,
+        avg_level: level,
         builds: [
           {
-            buildId: buildIdNum,
-            weapons: [{ oid: charWeapon.oid, count: 1 }],
+            weapons: [{ _id: charWeapon._id, count: 1 }],
             artifacts: artifactSetCombinations,
             count: 1,
           },
@@ -109,9 +110,9 @@ function _getCharacterData(playerCharacters) {
     }
   });
 
-  // _.forEach(characterData, ({ builds }, i) => {
-  //   characterData[i].builds = _.take(_.orderBy(builds, 'count', 'desc'), 10);
-  // });
+  _.forEach(characterData, ({ builds }, i) => {
+    characterData[i].builds = _.take(_.orderBy(builds, 'count', 'desc'), 10);
+  });
 
   return characterData;
 }
@@ -123,45 +124,69 @@ export class PlayerCharacterService {
     private playerCharacterModel: Model<PlayerCharacterDocument>,
   ) {}
 
-  list(filter: ListPlayerCharacterInput) {
-    const queryFilter = {};
-    const queryMatch = {};
-
-    if (filter) {
-      const { charIds, uids, f2p } = filter;
-      if (charIds && charIds.length > 0) {
-        queryFilter['character'] = { $in: charIds };
-      }
-
-      if (uids && uids.length > 0) {
-        queryFilter['uid'] = { $in: uids };
-      }
-
-      if (f2p) {
-        queryMatch['rarity'] = { $lt: 5 };
-      }
-    }
-
-    return this.playerCharacterModel
-      .find(queryFilter)
-      .populate({
-        path: 'weapon',
-        select: 'rarity _id',
-        match: queryMatch,
-      })
-      .populate({
-        path: 'artifacts',
-        populate: {
-          path: 'set',
-          model: ArtifactSet.name,
-          select: 'affixes _id',
+  async list(filter: ListPlayerCharacterInput) {
+    const playerCharacters = await this.playerCharacterModel
+      .find()
+      .lean()
+      .populate([
+        {
+          path: 'character',
+          select: 'rarity _id',
         },
-      })
+        {
+          path: 'player',
+          select: 'total_star',
+        },
+        {
+          path: 'weapon',
+          select: 'rarity name _id',
+        },
+        {
+          path: 'artifacts',
+          select: 'set',
+          populate: {
+            path: 'set',
+            select: 'affixes _id'
+          }
+        }
+      ])
       .exec();
+
+    const filteredCharacters = [];
+    _.forEach(playerCharacters, (character) => {
+      const _character = character as unknown as any;
+      
+      if (filter.charIds) {
+        if (!filter.charIds.includes(_character.character._id.toString())) {
+          return;
+        }
+      }
+
+      if (filter.uids) {
+        if (!filter.uids.includes(_character.player.uid)) {
+          return
+        }
+      }
+
+      if (filter.f2p) {
+        if (_character.weapon.rarity > 4 || BP_WEAPONS.includes(_character.weapon.name)) {
+          return
+        }
+      }
+
+      if (filter.totalStars) {
+        if (_character.player.total_star < filter.totalStars) {
+          return;
+        }
+      }
+
+      filteredCharacters.push(character);
+    });
+
+    return filteredCharacters;
   }
 
   async aggregate(filter: ListPlayerCharacterInput) {
-    const characterData: CharacterStats[] = [];
     const playerCharacters = await this.list(filter);
 
     return _getCharacterData(playerCharacters)

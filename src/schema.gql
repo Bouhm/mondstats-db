@@ -39,20 +39,19 @@ type ArtifactSet {
 }
 
 type BuildSet {
+  _id: String!
   activation_number: Float!
-  oid: Float!
 }
 
 type BuildStats {
   artifacts: [BuildSet!]!
-  buildId: Float!
   count: Float!
   weapons: [BuildWeapon!]!
 }
 
 type BuildWeapon {
+  _id: String!
   count: Float!
-  oid: Float!
 }
 
 type Character {
@@ -67,8 +66,9 @@ type Character {
 }
 
 type CharacterStats {
-  _id: String!
+  avg_level: Float!
   builds: [BuildStats!]!
+  char_id: String!
   constellations: [Float!]!
   total: Float!
 }
@@ -103,6 +103,7 @@ input ListCharacterInput {
 input ListPlayerCharacterInput {
   charIds: [String!]
   f2p: Boolean
+  totalStars: Float
   uids: [Float!]
 }
 
