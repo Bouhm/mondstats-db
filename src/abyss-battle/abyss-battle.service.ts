@@ -122,6 +122,7 @@ export class AbyssBattleService {
 
         if (partyIdx > -1) {
           partyData[battle_index - 1][partyIdx].count++;
+          abyssData[floorIdx].totals[battle_index - 1]++;
         } else {
           if (partyData.length) {
             partyData[battle_index - 1].push({
@@ -140,14 +141,17 @@ export class AbyssBattleService {
       } else {
         abyssData.push({
           party_stats: new Array(battleIndices).fill([]),
+          totals: new Array(battleIndices).fill(0),
           floor_level,
         });
       }
     });
 
-    _.forEach(abyssData, ({ party_stats }) => {
+    const threshold = 0.05;
+
+    _.forEach(abyssData, ({ totals, party_stats }) => {
       _.forEach(party_stats, (battle, i) => {
-        party_stats[i] = _.take(_.orderBy(battle, 'count', 'desc'), 10);
+        party_stats[i] = _.orderBy(_.filter(battle, ({count}) => count / totals[i] >= threshold), 'count', 'desc');
       });
     });
 

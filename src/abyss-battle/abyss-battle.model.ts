@@ -20,6 +20,9 @@ export class AbyssStats {
   @Field(() => [[PartyStats]])
   party_stats: PartyStats[][];
 
+  @Field(() => [Number])
+  totals: number[]
+
   @Field(() => String)
   floor_level: string;
 }

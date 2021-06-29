@@ -191,8 +191,10 @@ export class PlayerCharacterService {
       }
     });
 
-    _.forEach(characterData, ({ builds }, i) => {
-      characterData[i].builds = _.take(_.orderBy(builds, 'count', 'desc'), 10);
+    const threshold = 0.05;
+
+    _.forEach(characterData, ({ total, builds }, i) => {
+      characterData[i].builds = _.orderBy(_.filter(builds, ({ count }) => count / total >= threshold), 'count', 'desc');
     });
 
     return characterData;
