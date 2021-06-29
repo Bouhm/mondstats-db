@@ -38,7 +38,7 @@ let TOKENS: string[] = [];
 let DS = '';
 let blockedIndices: boolean[] = [];
 let proxyIdx = 0;
-let accIdx = 0;
+let tokenIdx = 0;
 let iterationStart = Date.now();
 let areAllStillBlocked = true;
 let blockedLevel = 0;
@@ -81,12 +81,12 @@ const assignTraveler = (charData: ICharacterResponse) => {
   };
 };
 
-const _incrementAccIdx = async () => {
-  accIdx++;
+const _incrementTokenIdx = async () => {
+  tokenIdx++;
   _incrementProxyIdx();
 
-  if (accIdx > TOKENS.length - 1) {
-    accIdx = 0;
+  if (tokenIdx > TOKENS.length - 1) {
+    tokenIdx = 0;
 
     if (proxyIdx + TOKENS.length > PROXIES.length - 1) {
       proxyIdx = 0;
@@ -99,7 +99,7 @@ const _incrementAccIdx = async () => {
     await _sleep(restMs);
   }
 
-  // if (DEVELOPMENT) console.log("using next acc... " + accIdx);
+  // if (DEVELOPMENT) console.log("using next token... " + tokenIdx);
 };
 
 const _incrementProxyIdx = () => {
@@ -117,14 +117,14 @@ async function _sleep(ms: number) {
 
 // Grab DS
 const _updateDS = async () => {
-  // const cookieTokens = TOKENS[accIdx].split(' ');
+  // const cookieTokens = TOKENS[tokenIdx].split(' ');
   // const ltoken = cookieTokens[0].split('=')[1].slice(0, -1);
   // const ltuid = cookieTokens[1].split('=')[1];
 
   const browser = await firefox.launch();
   const context = await browser.newContext({
     extraHTTPHeaders: {
-      Cookie: TOKENS[accIdx],
+      Cookie: TOKENS[tokenIdx],
       'x-rpc-client_type': '4',
       'x-rpc-app_version': '1.5.0',
     },
@@ -157,7 +157,7 @@ function _clamp(min: number, max: number, num: number) {
 
 const getHeaders = () => {
   proxyIdx = _clamp(0, PROXIES.length - 1, proxyIdx);
-  accIdx = _clamp(0, TOKENS.length - 1, accIdx);
+  tokenIdx = _clamp(0, TOKENS.length - 1, tokenIdx);
 
   return {
     Host: 'api-os-takumi.mihoyo.com',
@@ -173,7 +173,7 @@ const getHeaders = () => {
     DNT: '1',
     Connection: 'keep-alive',
     Referer: 'https://webstatic-sea.hoyolab.com/',
-    Cookie: TOKENS[accIdx],
+    Cookie: TOKENS[tokenIdx],
     TE: 'Trailers',
     'X-Forwarded-For': PROXIES[proxyIdx].ip,
     'X-Forwarded-Port': PROXIES[proxyIdx].port,
@@ -220,7 +220,6 @@ const handleBlock = async (tokenIdx: number) => {
       blockedLevel = 0;
     }
 
-    console.log(new Date(), `Long wait... (${blockedLevel})`);
     await _sleep(longRests[blockedLevel]);
     blockedIndices = new Array(TOKENS.length).fill(false);
   }
@@ -440,48 +439,46 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   }
 };
 
-const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
-  return Promise.all(
-    _.map(
-      _.filter(abyssData.floors, (floor) => floor.index > 8),
-      (floor) => {
-        _.map(
-          _.filter(floor.levels, (level) => level.star > 2),
-          (level) => {
-            for (const battle of level.battles) {
-              const party: any[] = [];
-              for (const char of battle.avatars) {
-                try {
-                  const member = _.find(playerCharacterRefs, { oid: char.id });
-                  if (!member) return;
+const aggregateAbyssData = (abyssData: IAbyssResponse) => {
+  _.map(
+    _.filter(abyssData.floors, (floor) => floor.index > 8),
+    (floor) => {
+      _.map(
+        _.filter(floor.levels, (level) => level.star > 2),
+        (level) => {
+          _.forEach(level.battles, (battle) => {
+            const party: any[] = [];
+            for (const char of battle.avatars) {
+              try {
+                const member = _.find(playerCharacterRefs, { oid: char.id });
+                if (!member) return;
 
-                  party.push(member._id);
-                } catch (err) {
-                  console.log(err);
-                }
+                party.push(member._id);
+              } catch (err) {
+                console.log(err);
               }
+            }
 
-              const abyssBattle = {
+            const abyssBattle = {
+              floor_level: `${floor.index}-${level.index}`,
+              battle_index: battle.index,
+              player: playerRef._id,
+              party: party.sort(),
+            };
+
+            AbyssBattleModel.findOneAndUpdate(
+              {
                 floor_level: `${floor.index}-${level.index}`,
                 battle_index: battle.index,
                 player: playerRef._id,
-                party: party.sort(),
-              };
-
-              return AbyssBattleModel.findOneAndUpdate(
-                {
-                  floor_level: `${floor.index}-${level.index}`,
-                  battle_index: battle.index,
-                  player: playerRef._id,
-                },
-                { $setOnInsert: abyssBattle },
-                options,
-              );
-            }
-          },
-        );
-      },
-    ),
+              },
+              { $setOnInsert: abyssBattle },
+              options,
+            );
+          });
+        },
+      );
+    },
   );
 };
 
@@ -519,7 +516,7 @@ const aggregatePlayerData = async (server: string, uid: number, characterIds: nu
       );
 
       // Abyss data
-      await aggregateAbyssData(playerAbyssData);
+      aggregateAbyssData(playerAbyssData);
 
       return true;
     })
@@ -528,28 +525,21 @@ const aggregatePlayerData = async (server: string, uid: number, characterIds: nu
     });
 };
 
-const aggregateAllCharacterData = async (startUid = 0) => {
+const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
   let firstPass = false;
 
   const baseUid = _getBaseUid(server);
   const end = baseUid + 99999999;
-  let currIdx = 0;
-  let uid = !!startUid ? startUid : baseUid;
+  let currTokenIdx = 0;
+  let uid = !!initUid ? initUid : baseUid;
 
   while (uid < end) {
-    // Convoluted way of going through valid UIDs first, then new ones
-    // if (!checkedValidUids && i < startingUids.length - 1) {
-    //   uid = startingUids[i]
-    // } else {
-    //   if (!checkedValidUids && startingUids.length > i) {
-    //     checkedValidUids = true;
-    //     i = 1;
-    //   }
-    //   uid = startingUid + i;
-    // }
+    if (uids.length) {
+      uid = uids.pop();
+    }
 
-    // if (DEVELOPMENT) console.log(uid, i, dataNum);
-    // const server = _getServerFromUid(uid);
+    console.log(uid);
+
     playerCharacterRefs = [];
     areAllStillBlocked = true;
 
@@ -557,19 +547,19 @@ const aggregateAllCharacterData = async (startUid = 0) => {
       let shouldCollectData: boolean | null = firstPass;
       if (!firstPass) {
         shouldCollectData = await getSpiralAbyssThreshold(server, uid);
-        currIdx = accIdx;
-        await _incrementAccIdx();
+        currTokenIdx = tokenIdx;
+        await _incrementTokenIdx();
       }
 
       // Blocked
       if (shouldCollectData === null) {
-        await handleBlock(currIdx);
+        await handleBlock(currTokenIdx);
         continue;
       }
       areAllStillBlocked = false;
 
       if (!shouldCollectData) {
-        uid++;
+        if (!uids.length) uid++;
         continue;
       }
 
@@ -583,28 +573,28 @@ const aggregateAllCharacterData = async (startUid = 0) => {
           );
 
           const characterIds = await getPlayerCharacters(server, uid);
-          currIdx = accIdx;
-          await _incrementAccIdx();
+          currTokenIdx = tokenIdx;
+          await _incrementTokenIdx();
 
           if (characterIds === null) {
-            await handleBlock(currIdx);
+            await handleBlock(currTokenIdx);
             continue;
           } else {
             areAllStillBlocked = false;
             if (characterIds.length > 0) {
               const result = await aggregatePlayerData(server, uid, characterIds);
-              currIdx = accIdx;
-              await _incrementAccIdx();
+              currTokenIdx = tokenIdx;
+              await _incrementTokenIdx();
 
               if (result === null) {
-                await handleBlock(currIdx);
+                await handleBlock(currTokenIdx);
                 continue;
               } else {
                 areAllStillBlocked = false;
                 firstPass = false;
               }
             }
-            uid++;
+            if (!uids.length) uid++;
           }
         } catch (err) {
           console.log(err);
@@ -635,6 +625,23 @@ mongoose.connection.once('open', async () => {
   blockedIndices = new Array(TOKENS.length).fill(false);
 
   await _updateDS();
-  const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
-  aggregateAllCharacterData();
+
+  switch (process.env.npm_config_uid) {
+    default:
+    case 'last':
+      const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
+      aggregateAllCharacterData(lastPlayer.uid);
+      break;
+    case 'all':
+      aggregateAllCharacterData();
+      break;
+    case 'existing':
+      // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
+      const players = await PlayerModel.find().sort({ updatedAt: -1 });
+      const uids = _.map(players, (player) => player.uid);
+      aggregateAllCharacterData(0, uids);
+      break;
+  }
+
+  return () => mongoose.connection.close();
 });
