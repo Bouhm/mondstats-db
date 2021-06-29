@@ -627,13 +627,16 @@ mongoose.connection.once('open', async () => {
   switch (process.env.npm_config_uid) {
     default:
     case 'last':
+      console.log('Starting from last stored UID.');
       const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
       aggregateAllCharacterData(lastPlayer.uid);
       break;
     case 'all':
+      console.log('Starting from base UID.');
       aggregateAllCharacterData();
       break;
     case 'existing':
+      console.log('Updating existing UIDs.');
       // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
       const players = await PlayerModel.find().sort({ updatedAt: -1 });
       const uids = _.map(players, (player) => player.uid);
