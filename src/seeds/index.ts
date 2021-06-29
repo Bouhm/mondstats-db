@@ -94,7 +94,7 @@ const _incrementAccIdx = async () => {
       proxyIdx += TOKENS.length;
     }
 
-    const restMs = _clamp(0, maxRest, Date.now() - iterationStart) + 1000;
+    const restMs = _clamp(0, maxRest, Date.now() - iterationStart);
     iterationStart = Date.now();
     await _sleep(restMs);
   }
@@ -441,45 +441,47 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
 };
 
 const aggregateAbyssData = async (abyssData: IAbyssResponse) => {
-  _.map(
-    _.filter(abyssData.floors, (floor) => floor.index > 8),
-    (floor) => {
-      _.map(
-        _.filter(floor.levels, (level) => level.star > 2),
-        async (level) => {
-          for (const battle of level.battles) {
-            const party: any[] = [];
-            for (const char of battle.avatars) {
-              try {
-                const member = _.find(playerCharacterRefs, { oid: char.id });
-                if (!member) return;
+  return Promise.all(
+    _.map(
+      _.filter(abyssData.floors, (floor) => floor.index > 8),
+      (floor) => {
+        _.map(
+          _.filter(floor.levels, (level) => level.star > 2),
+          (level) => {
+            for (const battle of level.battles) {
+              const party: any[] = [];
+              for (const char of battle.avatars) {
+                try {
+                  const member = _.find(playerCharacterRefs, { oid: char.id });
+                  if (!member) return;
 
-                party.push(member._id);
-              } catch (err) {
-                console.log(err);
+                  party.push(member._id);
+                } catch (err) {
+                  console.log(err);
+                }
               }
-            }
 
-            const abyssBattle = {
-              floor_level: `${floor.index}-${level.index}`,
-              battle_index: battle.index,
-              player: playerRef._id,
-              party: party.sort(),
-            };
-
-            await AbyssBattleModel.findOneAndUpdate(
-              {
+              const abyssBattle = {
                 floor_level: `${floor.index}-${level.index}`,
                 battle_index: battle.index,
                 player: playerRef._id,
-              },
-              { $setOnInsert: abyssBattle },
-              options,
-            );
-          }
-        },
-      );
-    },
+                party: party.sort(),
+              };
+
+              return AbyssBattleModel.findOneAndUpdate(
+                {
+                  floor_level: `${floor.index}-${level.index}`,
+                  battle_index: battle.index,
+                  player: playerRef._id,
+                },
+                { $setOnInsert: abyssBattle },
+                options,
+              );
+            }
+          },
+        );
+      },
+    ),
   );
 };
 
@@ -634,5 +636,5 @@ mongoose.connection.once('open', async () => {
 
   await _updateDS();
   const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
-  aggregateAllCharacterData(lastPlayer.uid);
+  aggregateAllCharacterData();
 });
