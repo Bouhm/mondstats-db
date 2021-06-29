@@ -538,8 +538,6 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
       uid = uids.pop();
     }
 
-    console.log(uid);
-
     playerCharacterRefs = [];
     areAllStillBlocked = true;
 
