@@ -108,32 +108,32 @@ export class AbyssBattleService {
     const battleIndices = 2;
     const abyssData: AbyssStats[] = [];
     const battles = await this.list(filter);
-    const battle_indexes = { 1: 0, 2: 0 }
+    const total = battles.length;
 
     _.forEach(battles, ({ floor_level, battle_index, party }) => {
-      battle_indexes[battle_index]++;
       const floorIdx = _.findIndex(abyssData, { floor_level });
+      // const battleIdx = battle_index - 1;
+      const battleIdx = 0; // TEMP HACK TO COMPENSATE SCUFFED DATA
 
       if (floorIdx > -1) {
         const partyData = abyssData[floorIdx]['party_stats'];
         party.sort();
 
-        const partyIdx = _.findIndex(
-          partyData[battle_index - 1],
-          (battle: { party: string[]; count: number }) => _.isEqual(battle.party, party),
+        const partyIdx = _.findIndex(partyData[battleIdx], (battle: { party: string[]; count: number }) =>
+          _.isEqual(battle.party, party),
         );
 
         if (partyIdx > -1) {
-          partyData[battle_index - 1][partyIdx].count++;
-          abyssData[floorIdx].totals[battle_index - 1]++;
+          partyData[battleIdx][partyIdx].count++;
+          abyssData[floorIdx].totals[battleIdx]++;
         } else {
           if (partyData.length) {
-            partyData[battle_index - 1].push({
+            partyData[battleIdx].push({
               party,
               count: 1,
             });
           } else {
-            partyData[battle_index - 1] = [
+            partyData[battleIdx] = [
               {
                 party,
                 count: 1,
@@ -156,13 +156,12 @@ export class AbyssBattleService {
       }
     });
 
-    console.log(battle_indexes);
-    const threshold = 0.05;
+    const threshold = 10;
 
-    _.forEach(abyssData, ({ totals, party_stats }) => {
+    _.forEach(abyssData, ({ party_stats }) => {
       _.forEach(party_stats, (battle, i) => {
         party_stats[i] = _.orderBy(
-          _.filter(battle, ({ count }) => count / totals[i] >= threshold),
+          _.filter(battle, ({ count }) => count >= threshold),
           'count',
           'desc',
         );
