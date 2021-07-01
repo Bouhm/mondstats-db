@@ -208,6 +208,7 @@ function _getBaseUid(server: string, start = 0) {
 }
 
 const handleBlock = async (tokenIdx: number) => {
+  console.log(`Blocked at ${tokenIdx}: ${new Date()}`);
   blockedIndices[tokenIdx] = true;
 
   if (_.every(blockedIndices, true)) {
