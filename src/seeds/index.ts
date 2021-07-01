@@ -42,6 +42,7 @@ let tokenIdx = 0;
 let iterationStart = Date.now();
 let areAllStillBlocked = true;
 let blockedLevel = 0;
+let abyssSchedule = 1;
 const longRests = [60 * 60 * 1000, 6 * 60 * 60 * 1000, 12 * 60 * 60 * 1000];
 const maxRest = (60 * 10 * 1000) / 30;
 
@@ -227,7 +228,7 @@ const handleBlock = async (tokenIdx: number) => {
 
 // Aggregate spiral abyss data
 const getSpiralAbyssThreshold = async (server: string, uid: number, threshold = 8) => {
-  const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${uid}&schedule_type=1`;
+  const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${uid}&schedule_type=${abyssSchedule}`;
 
   try {
     const resp = await axios.get(apiUrl, {
@@ -474,7 +475,7 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
               },
               { $setOnInsert: abyssBattle },
               options,
-            )
+            );
           });
         },
       );
@@ -623,6 +624,18 @@ mongoose.connection.once('open', async () => {
   blockedIndices = new Array(TOKENS.length).fill(false);
 
   await _updateDS();
+
+  switch (process.env.npm_config_abyss) {
+    case 'last':
+      console.log('Using last abyss data...');
+      abyssSchedule = 2;
+      break;
+    default:
+    case 'current':
+      console.log('Using current abyss data...');
+      abyssSchedule = 1;
+      break;
+  }
 
   switch (process.env.npm_config_uid) {
     default:
