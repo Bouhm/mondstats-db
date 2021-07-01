@@ -95,7 +95,7 @@ const _incrementTokenIdx = async () => {
       proxyIdx += TOKENS.length;
     }
 
-    const restMs = _clamp(0, maxRest, Date.now() - iterationStart);
+    const restMs = _clamp(0, maxRest, Date.now() - iterationStart) + 1000;
     iterationStart = Date.now();
     await _sleep(restMs);
   }
@@ -227,8 +227,14 @@ const handleBlock = async (tokenIdx: number) => {
 };
 
 // Aggregate spiral abyss data
-const getSpiralAbyssThreshold = async (server: string, uid: number, threshold = 8) => {
-  const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${uid}&schedule_type=${abyssSchedule}`;
+const getSpiralAbyssThreshold = async (
+  server: string,
+  uid: number,
+  scheduleType = 1,
+  threshold = 8,
+  secondTry = false,
+) => {
+  const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${uid}&schedule_type=${scheduleType}`;
 
   try {
     const resp = await axios.get(apiUrl, {
@@ -241,6 +247,7 @@ const getSpiralAbyssThreshold = async (server: string, uid: number, threshold = 
       return null;
     }
     if (resp.data && resp.data.message && DEVELOPMENT) {
+      // console.log(resp.data.message);
       if (resp.data.message.startsWith('invalid')) {
         await _updateDS();
       }
@@ -254,8 +261,12 @@ const getSpiralAbyssThreshold = async (server: string, uid: number, threshold = 
     if (maxFloor.split('-')[0] >= threshold) {
       playerAbyssData = resp.data.data;
       return true;
-    } else {
+    } else if (secondTry) {
       return false;
+    } else {
+      // Try again with other abyss schedule
+      const newSchedule = scheduleType === 1 ? 2 : 1;
+      return await getSpiralAbyssThreshold(server, uid, newSchedule, threshold, true);
     }
   } catch (error) {
     console.log(error);
@@ -275,6 +286,7 @@ const getPlayerCharacters = async (server: string, uid: number, threshold = 50) 
         return null;
       }
       if (resp.data && resp.data.message && DEVELOPMENT) {
+        // console.log(resp.data.message);
         if (resp.data.message.startsWith('invalid')) {
           await _updateDS();
         }
@@ -343,7 +355,16 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   // Weapons
   const charWeapon = {
     oid: char.weapon.id,
-    ..._.pick(char.weapon, ['desc', 'name', 'rarity', 'type', 'type_name', 'icon']),
+    ..._.pick(char.weapon, [
+      'desc',
+      'name',
+      'rarity',
+      'level',
+      'affix_level',
+      'type',
+      'type_name',
+      'icon',
+    ]),
   };
 
   const weaponRef = await WeaponModel.findOneAndUpdate(
@@ -498,6 +519,7 @@ const aggregatePlayerData = async (server: string, uid: number, characterIds: nu
         return null;
       }
       if (resp.data && resp.data.message && DEVELOPMENT) {
+        // console.log(resp.data.message);
         if (resp.data.message.startsWith('invalid')) {
           await _updateDS();
         }
@@ -539,13 +561,15 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
       uid = uids.pop();
     }
 
+    console.log(uid);
+
     playerCharacterRefs = [];
     areAllStillBlocked = true;
 
     try {
       let shouldCollectData: boolean | null = firstPass;
       if (!firstPass) {
-        shouldCollectData = await getSpiralAbyssThreshold(server, uid);
+        shouldCollectData = await getSpiralAbyssThreshold(server, uid, abyssSchedule);
         currTokenIdx = tokenIdx;
         await _incrementTokenIdx();
       }
