@@ -45,6 +45,7 @@ let blockedLevel = 0;
 let abyssSchedule = 1;
 const longRests = [60 * 60 * 1000, 6 * 60 * 60 * 1000, 12 * 60 * 60 * 1000];
 const maxRest = (60 * 10 * 1000) / 30;
+let collectedTotal = 0;
 
 let playerRef: PlayerDocument;
 let playerCharacterRefs: PlayerCharacterDocument[] = [];
@@ -616,6 +617,8 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
               } else {
                 areAllStillBlocked = false;
                 firstPass = false;
+                collectedTotal++;
+                console.log("Total: ", collectedTotal)
               }
             }
             if (!uids.length) uid++;
