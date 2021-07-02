@@ -45,7 +45,7 @@ let blockedLevel = 0;
 let abyssSchedule = 1;
 const longRests = [60 * 60 * 1000, 6 * 60 * 60 * 1000, 12 * 60 * 60 * 1000];
 const maxRest = (60 * 10 * 1000) / 30;
-let delayMs = 0;
+let delayMs = 500;
 let collectedTotal = 0;
 
 let playerRef: PlayerDocument;
