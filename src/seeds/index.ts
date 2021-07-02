@@ -563,8 +563,6 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
       uid = uids.pop();
     }
 
-    console.log(uid);
-
     playerCharacterRefs = [];
     areAllStillBlocked = true;
 
@@ -618,7 +616,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
                 areAllStillBlocked = false;
                 firstPass = false;
                 collectedTotal++;
-                console.log("Total: ", collectedTotal)
+                console.log('Total: ', collectedTotal);
               }
             }
             if (!uids.length) uid++;
@@ -654,7 +652,7 @@ mongoose.connection.once('open', async () => {
   await _updateDS();
 
   switch (process.env.npm_config_abyss) {
-    case 'last':
+    case 'prev':
       console.log('Using last abyss data...');
       abyssSchedule = 2;
       break;
