@@ -45,6 +45,7 @@ let blockedLevel = 0;
 let abyssSchedule = 1;
 const longRests = [60 * 60 * 1000, 6 * 60 * 60 * 1000, 12 * 60 * 60 * 1000];
 const maxRest = (60 * 10 * 1000) / 30;
+let delayMs = 0;
 let collectedTotal = 0;
 
 let playerRef: PlayerDocument;
@@ -96,7 +97,7 @@ const _incrementTokenIdx = async () => {
       proxyIdx += TOKENS.length;
     }
 
-    const restMs = _clamp(0, maxRest, Date.now() - iterationStart) + 1000;
+    const restMs = _clamp(0, maxRest, Date.now() - iterationStart) + delayMs;
     iterationStart = Date.now();
     await _sleep(restMs);
   }
@@ -680,6 +681,7 @@ mongoose.connection.once('open', async () => {
       // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
       const players = await PlayerModel.find().sort({ updatedAt: -1 });
       const uids = _.map(players, (player) => player.uid);
+      delayMs = 5000;
       aggregateAllCharacterData(0, uids);
       break;
   }
