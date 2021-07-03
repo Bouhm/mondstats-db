@@ -17,7 +17,6 @@ import WeaponModel from '../weapon/weapon.model';
 import { IAbyssResponse, IArtifactSet, ICharacterResponse } from './interfaces';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-const DEVELOPMENT = true;
 
 const spiralAbyssApiUrl = 'https://api-os-takumi.mihoyo.com/game_record/genshin/api/spiralAbyss';
 const userApiUrl = 'https://api-os-takumi.mihoyo.com/game_record/genshin/api/index';
@@ -41,8 +40,8 @@ let proxyIdx = 0;
 let tokenIdx = 0;
 let iterationStart = Date.now();
 let areAllStillBlocked = true;
-let blockedLevel = 0;
 let abyssSchedule = 1;
+let blockedLevel = 0;
 const longRests = [60 * 60 * 1000, 6 * 60 * 60 * 1000, 12 * 60 * 60 * 1000];
 const maxRest = (60 * 10 * 1000) / 30;
 let delayMs = 500;
@@ -120,38 +119,44 @@ async function _sleep(ms: number) {
 
 // Grab DS
 const _updateDS = async () => {
-  // const cookieTokens = TOKENS[tokenIdx].split(' ');
-  // const ltoken = cookieTokens[0].split('=')[1].slice(0, -1);
-  // const ltuid = cookieTokens[1].split('=')[1];
+  try {
+    // const cookieTokens = TOKENS[tokenIdx].split(' ');
+    // const ltoken = cookieTokens[0].split('=')[1].slice(0, -1);
+    // const ltuid = cookieTokens[1].split('=')[1];
 
-  const browser = await firefox.launch();
-  const context = await browser.newContext({
-    extraHTTPHeaders: {
-      Cookie: TOKENS[tokenIdx],
-      'x-rpc-client_type': '4',
-      'x-rpc-app_version': '1.5.0',
-    },
-  });
-
-  // context.addCookies([
-  //   { name: 'ltoken', value: ltoken, domain: '.hoyolab.com', path: '/' },
-  //   { name: 'ltuid', value: ltuid, domain: '.hoyolab.com', path: '/'  },
-  // ]);
-
-  const page = await context.newPage();
-
-  return new Promise<void>(async (resolve) => {
-    page.on('request', (req) => {
-      if (req.headers().ds) {
-        DS = req.headers().ds;
-        resolve();
-        browser.close();
-      }
+    const browser = await firefox.launch();
+    const context = await browser.newContext({
+      extraHTTPHeaders: {
+        Cookie: TOKENS[tokenIdx],
+        'x-rpc-client_type': '4',
+        'x-rpc-app_version': '1.5.0',
+      },
     });
 
-    const url = 'https://www.hoyolab.com/genshin/accountCenter/gameRecord?id=63548220';
-    await page.goto(url);
-  });
+    // context.addCookies([
+    //   { name: 'ltoken', value: ltoken, domain: '.hoyolab.com', path: '/' },
+    //   { name: 'ltuid', value: ltuid, domain: '.hoyolab.com', path: '/'  },
+    // ]);
+
+    const page = await context.newPage();
+
+    return new Promise<void>(async (resolve) => {
+      page.on('request', (req) => {
+        if (req.headers().ds) {
+          DS = req.headers().ds;
+          resolve();
+          browser.close();
+        }
+      });
+
+      const url = 'https://www.hoyolab.com/genshin/accountCenter/gameRecord?id=63548220';
+      await page.goto(url);
+    });
+  } catch {
+    await _sleep(30 * 1000);
+    console.log('Failed to update DS, trying again...');
+    return await _updateDS();
+  }
 };
 
 function _clamp(min: number, max: number, num: number) {
@@ -210,10 +215,15 @@ function _getBaseUid(server: string, start = 0) {
 }
 
 const handleBlock = async (tokenIdx: number) => {
-  console.log(`Blocked at ${tokenIdx}: ${new Date()}`);
   blockedIndices[tokenIdx] = true;
+  console.log(
+    `${_.filter(blockedIndices, (blocked) => blocked).length}/${
+      blockedIndices.length
+    } blocked: ${new Date()}`,
+  );
 
-  if (_.filter(blockedIndices, (blocked) => blocked).length - 1) {
+  if (_.filter(blockedIndices, (blocked) => blocked).length >= TOKENS.length) {
+    console.log('--- ALL BLOCKED ---');
     if (areAllStillBlocked) {
       blockedLevel++;
 
@@ -224,14 +234,14 @@ const handleBlock = async (tokenIdx: number) => {
       blockedLevel = 0;
     }
 
+    console.log('Long rest: ' + blockedLevel);
     await _sleep(longRests[blockedLevel]);
-    console.log('Long rest ' + blockedLevel);
     blockedIndices = new Array(TOKENS.length).fill(false);
   }
 };
 
 // Aggregate spiral abyss data
-const getSpiralAbyssThreshold = async (
+const getSpiralAbyssData = async (
   server: string,
   uid: number,
   scheduleType = 1,
@@ -248,13 +258,12 @@ const getSpiralAbyssThreshold = async (
 
     // Rate limit reached message
     if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
+      // console.log('Abyss data: ', resp.data.message);
       return null;
     }
-    if (resp.data && resp.data.message && DEVELOPMENT) {
-      // console.log(resp.data.message);
-      if (resp.data.message.startsWith('invalid')) {
-        await _updateDS();
-      }
+    if (resp.data && resp.data.message && resp.data.message.startsWith('invalid')) {
+      // console.log('Abyss data: ', resp.data.message);
+      return undefined;
     }
     if (!resp.data || !resp.data.data) {
       return false;
@@ -270,7 +279,7 @@ const getSpiralAbyssThreshold = async (
     } else {
       // Try again with other abyss schedule
       const newSchedule = scheduleType === 1 ? 2 : 1;
-      return await getSpiralAbyssThreshold(server, uid, newSchedule, threshold, true);
+      return await getSpiralAbyssData(server, uid, newSchedule, threshold, true);
     }
   } catch (error) {
     console.log(error);
@@ -287,13 +296,12 @@ const getPlayerCharacters = async (server: string, uid: number, threshold = 50) 
     .then(async (resp) => {
       // Rate limit reached message
       if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
+        // console.log('Character list data: ', resp.data.message);
         return null;
       }
-      if (resp.data && resp.data.message && DEVELOPMENT) {
-        // console.log(resp.data.message);
-        if (resp.data.message.startsWith('invalid')) {
-          await _updateDS();
-        }
+      if (resp.data && resp.data.message && resp.data.message.startsWith('invalid')) {
+        // console.log('Abyss data: ', resp.data.message);
+        return undefined;
       }
       if (!resp.data || !resp.data.data) {
         return [];
@@ -520,13 +528,12 @@ const aggregatePlayerData = async (server: string, uid: number, characterIds: nu
     .then(async (resp) => {
       // Rate limit reached message
       if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
+        // console.log('Player characters data: ', resp.data.message);
         return null;
       }
-      if (resp.data && resp.data.message && DEVELOPMENT) {
-        // console.log(resp.data.message);
-        if (resp.data.message.startsWith('invalid')) {
-          await _updateDS();
-        }
+      if (resp.data && resp.data.message && resp.data.message.startsWith('invalid')) {
+        // console.log('Abyss data: ', resp.data.message);
+        return undefined;
       }
       if (!resp.data || !resp.data.data) return false;
 
@@ -565,13 +572,15 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
       uid = uids.pop();
     }
 
+    // console.log(uid);
+
     playerCharacterRefs = [];
     areAllStillBlocked = true;
 
     try {
       let shouldCollectData: boolean | null = firstPass;
       if (!firstPass) {
-        shouldCollectData = await getSpiralAbyssThreshold(server, uid, abyssSchedule);
+        shouldCollectData = await getSpiralAbyssData(server, uid, abyssSchedule);
         currTokenIdx = tokenIdx;
         await _incrementTokenIdx();
       }
@@ -579,6 +588,9 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
       // Blocked
       if (shouldCollectData === null) {
         await handleBlock(currTokenIdx);
+        continue;
+      } else if (shouldCollectData === undefined) {
+        await _updateDS();
         continue;
       }
       areAllStillBlocked = false;
@@ -604,6 +616,9 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
           if (characterIds === null) {
             await handleBlock(currTokenIdx);
             continue;
+          } else if (shouldCollectData === undefined) {
+            await _updateDS();
+            continue;
           } else {
             areAllStillBlocked = false;
             if (characterIds.length > 0) {
@@ -613,6 +628,9 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
 
               if (result === null) {
                 await handleBlock(currTokenIdx);
+                continue;
+              } else if (shouldCollectData === undefined) {
+                await _updateDS();
                 continue;
               } else {
                 areAllStillBlocked = false;
@@ -681,7 +699,7 @@ mongoose.connection.once('open', async () => {
       // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
       const players = await PlayerModel.find().sort({ updatedAt: -1 });
       const uids = _.map(players, (player) => player.uid);
-      delayMs = 5000;
+      delayMs = 6000;
       aggregateAllCharacterData(0, uids);
       break;
   }
