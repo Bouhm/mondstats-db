@@ -18,7 +18,7 @@ const playerCharacterService = new PlayerCharacterService(playerCharacterModel);
 const characterService = new CharacterService(characterModel);
 const abyssBattleService = new AbyssBattleService(abyssBattleModel);
 const artifactService = new ArtifactService(artifactModel);
-const artifactSetService = new ArtifactSetService(artifactSetModel);
+const artifactSetService = new ArtifactSetService(artifactSetModel, artifactModel);
 const weaponService = new WeaponService(weaponModel);
 
 (async () => {

@@ -156,7 +156,7 @@ export class AbyssBattleService {
       }
     });
 
-    const threshold = 3;
+    const threshold = 2;
 
     _.forEach(abyssData, ({ party_stats }) => {
       _.forEach(party_stats, (battle, i) => {

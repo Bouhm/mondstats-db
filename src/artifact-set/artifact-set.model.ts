@@ -22,6 +22,10 @@ export class ArtifactSet {
   @Prop({ required: true, unique: true })
   oid: number;
 
+  @Field(() => Number)
+  @Prop({ required: true })
+  rarity: number;
+
   @Field(() => [Affix])
   @Prop({ required: true })
   affixes: Affix[];

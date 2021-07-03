@@ -1,6 +1,7 @@
 import fs from 'fs';
 import _ from 'lodash';
 import { Model } from 'mongoose';
+import { ArtifactDocument } from 'src/artifact/artifact.model';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -13,6 +14,7 @@ export class ArtifactSetService {
   constructor(
     @InjectModel(ArtifactSet.name)
     private artifactSetModel: Model<ArtifactSetDocument>,
+    private artifactModel: Model<ArtifactDocument>,
   ) {}
 
   list(filter: ListArtifactSetInput) {
@@ -29,12 +31,18 @@ export class ArtifactSetService {
   }
 
   async save() {
-    const artifactSets = await this.artifactSetModel.find().lean().exec();
-    _.forEach(artifactSets, (set: any) => {
-      delete set.__v;
-      delete set.createdAt;
-      delete set.updatedAt;
-    });
+    let artifactSets = await this.artifactSetModel.find().lean().exec();
+    artifactSets = await Promise.all(
+      _.map(artifactSets, async (set: any) => {
+        const artifacts = await this.artifactModel.find({ set: set._id, pos: 5 }).lean().exec();
+        const max = _.maxBy(artifacts, 'rarity') as unknown as any;
+        set.rarity = max.rarity;
+        delete set.__v;
+        delete set.createdAt;
+        delete set.updatedAt;
+        return set;
+      }),
+    );
     fs.writeFileSync('src/data/artifactSets.json', JSON.stringify(artifactSets));
   }
 }

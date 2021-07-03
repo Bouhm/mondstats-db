@@ -31,10 +31,6 @@ export class Artifact {
   @Prop({ required: true })
   pos_name: string;
 
-  @Field(() => Number)
-  @Prop({ required: true })
-  rarity: number;
-
   @Field(() => String)
   @Prop({
     type: MongooseSchema.Types.ObjectId,
