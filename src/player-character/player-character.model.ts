@@ -35,9 +35,6 @@ export class BuildStats {
 
 @ObjectType('CharacterBuildStats')
 export class CharacterBuildStats {
-  @Field(() => Number)
-  avg_level: number;
-
   @Field(() => String)
   char_id: string;
 

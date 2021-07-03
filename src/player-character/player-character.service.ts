@@ -132,6 +132,7 @@ export class PlayerCharacterService {
     const characterBuilds: CharacterBuildStats[] = [];
     const weaponStats = [];
     const artifactSetStats = [];
+    const characterStats = [];
 
     _.forEach(playerCharacters, ({ character, weapon, artifacts, constellation, level }: any) => {
       const charWeapon = <WeaponDocument>weapon;
@@ -199,10 +200,10 @@ export class PlayerCharacterService {
         }
 
         characterBuilds[charIdx].total++;
-        characterBuilds[charIdx].avg_level = Math.floor(
-          characterBuilds[charIdx].avg_level +
-            (level - characterBuilds[charIdx].avg_level) / characterBuilds[charIdx].total,
-        );
+        // characterBuilds[charIdx].avg_level = Math.floor(
+        //   characterBuilds[charIdx].avg_level +
+        //     (level - characterBuilds[charIdx].avg_level) / characterBuilds[charIdx].total,
+        // );
       } else {
         const constellations = new Array(7).fill(0);
         constellations[constellation] = 1;
@@ -210,7 +211,7 @@ export class PlayerCharacterService {
         characterBuilds.push({
           char_id: character._id,
           constellations,
-          avg_level: level,
+          // avg_level: level,
           builds: [
             {
               weapons: [{ _id: charWeapon._id, count: 1 }],
@@ -222,10 +223,15 @@ export class PlayerCharacterService {
         });
       }
 
-      // ===== WEAPON STATS =====
+      // ===== CHARACTER STATS ====
+      const charStatIdx = _.findIndex(characterStats, { _id: character._id });
+      if (charStatIdx > -1) {
 
-      const weaponStatIdx = _.findIndex(weaponStats, { id: charWeapon._id });
-      if (weaponStats[weaponStatIdx]) {
+      }
+
+      // ===== WEAPON STATS =====
+      const weaponStatIdx = _.findIndex(weaponStats, { _id: charWeapon._id });
+      if (weaponStatIdx > -1) {
         if (weaponStats[weaponStatIdx].characters[character._id]) {
           weaponStats[weaponStatIdx].characters[character._id]++;
         } else {
@@ -235,6 +241,7 @@ export class PlayerCharacterService {
         weaponStats[weaponStatIdx].count++;
       } else {
         weaponStats.push({
+          _id: charWeapon._id,
           characters: {
             [character._id]: 1,
           },
@@ -245,9 +252,10 @@ export class PlayerCharacterService {
       }
 
       // ===== ARTIFACT SET STATS =====
-
-      const artifactStatIdx = _.findIndex(artifactSetStats, { artifacts: artifactSetCombinations });
-      if (artifactSetStats[artifactStatIdx]) {
+      const artifactStatIdx = _.findIndex(artifactSetStats, (artifacts) =>
+        _.isEqual(artifacts, artifactSetCombinations),
+      );
+      if (artifactStatIdx > -1) {
         if (artifactSetStats[artifactStatIdx].characters[character._id]) {
           artifactSetStats[artifactStatIdx].characters[character._id]++;
         } else {
@@ -346,10 +354,10 @@ export class PlayerCharacterService {
         }
 
         characterData[charIdx].total++;
-        characterData[charIdx].avg_level = Math.floor(
-          characterData[charIdx].avg_level +
-            (level - characterData[charIdx].avg_level) / characterData[charIdx].total,
-        );
+        // characterData[charIdx].avg_level = Math.floor(
+        //   characterData[charIdx].avg_level +
+        //     (level - characterData[charIdx].avg_level) / characterData[charIdx].total,
+        // );
       } else {
         const constellations = new Array(7).fill(0);
         constellations[constellation] = 1;
@@ -357,7 +365,7 @@ export class PlayerCharacterService {
         characterData.push({
           char_id: character._id,
           constellations,
-          avg_level: level,
+          // avg_level: level,
           builds: [
             {
               weapons: [{ _id: charWeapon._id, count: 1 }],
