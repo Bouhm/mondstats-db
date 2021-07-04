@@ -1,13 +1,12 @@
 import fs from 'fs';
 import _ from 'lodash';
 import { Model } from 'mongoose';
-import abyssBattleModel, { AbyssBattle, AbyssBattleDocument } from 'src/abyss-battle/abyss-battle.model';
-import { AbyssBattleService } from 'src/abyss-battle/abyss-battle.service';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { Affix } from '../artifact-set/artifact-set.model';
+import abyssBattles from '../data/abyssBattles.json';
 import artifactSets from '../data/artifactSets.json';
 import { WeaponDocument } from '../weapon/weapon.model';
 import { ListPlayerCharacterInput } from './player-character.inputs';
@@ -36,17 +35,10 @@ function _getActivationNumber(count: number, affixes: Affix[]) {
 
 @Injectable()
 export class PlayerCharacterService {
-  abyssBattleService: AbyssBattleService;
-
   constructor(
     @InjectModel(PlayerCharacter.name)
     private playerCharacterModel: Model<PlayerCharacterDocument>,
-
-    @InjectModel(AbyssBattle.name)
-    private abyssBattleModel: Model<AbyssBattleDocument>,
-  ) {
-    this.abyssBattleService = new AbyssBattleService(abyssBattleModel);
-  }
+  ) {}
 
   async list(filter: ListPlayerCharacterInput = {}) {
     const playerCharacters = await this.playerCharacterModel
@@ -111,11 +103,23 @@ export class PlayerCharacterService {
   }
 
   async aggregateAll() {
-    const abyssTeamCounts = [];
-    const abyssBattles = await this.abyssBattleService.aggregateAndGroup();
-    _.forEach(abyssBattles, battle => {
-      
-    })
+    const abyssTeamCounts = {};
+    const _abyssBattles = abyssBattles as unknown as any;
+    _.forEach(_abyssBattles, ({ party_stats }) => {
+      _.forEach(party_stats, (battle) => {
+        _.forEach(battle, ({ party, count }) => {
+          _.forEach(party, (charId) => {
+            if (abyssTeamCounts[charId]) {
+              abyssTeamCounts[charId] += count;
+            } else {
+              abyssTeamCounts[charId] = count;
+            }
+          });
+        });
+      });
+    });
+
+    console.log(abyssTeamCounts);
 
     const playerCharacters = await this.playerCharacterModel
       .find()
@@ -148,8 +152,6 @@ export class PlayerCharacterService {
     const weaponStats = [];
     const artifactSetStats = [];
     const characterStats = [];
-
-
 
     _.forEach(playerCharacters, ({ _id, character, weapon, artifacts, constellation, level }: any) => {
       const charWeapon = <WeaponDocument>weapon;
@@ -243,11 +245,12 @@ export class PlayerCharacterService {
       // ===== CHARACTER STATS ====
       const charStatIdx = _.findIndex(characterStats, { _id: character._id });
       if (charStatIdx > -1) {
+        characterStats[charStatIdx].total++;
       } else {
         characterStats.push({
           _id: character._id,
           total: 1,
-          abyssCount: 1,
+          abyssCount: abyssTeamCounts[character._id],
         });
       }
 
@@ -274,7 +277,7 @@ export class PlayerCharacterService {
       }
 
       // ===== ARTIFACT SET STATS =====
-      const artifactStatIdx = _.findIndex(artifactSetStats, (artifacts) =>
+      const artifactStatIdx = _.findIndex(artifactSetStats, ({ artifacts }) =>
         _.isEqual(artifacts, artifactSetCombinations),
       );
       if (artifactStatIdx > -1) {
@@ -306,7 +309,7 @@ export class PlayerCharacterService {
       );
     });
 
-    return { weaponStats, artifactSetStats, characterBuilds: characterBuilds };
+    return { weaponStats, artifactSetStats, characterStats, characterBuilds };
   }
 
   async aggregateBuilds(filter: ListPlayerCharacterInput = {}) {
@@ -414,9 +417,10 @@ export class PlayerCharacterService {
   }
 
   async save() {
-    const { weaponStats, artifactSetStats, characterBuilds } = await this.aggregateAll();
+    const { weaponStats, artifactSetStats, characterStats, characterBuilds } = await this.aggregateAll();
     fs.writeFileSync('src/data/weaponStats.json', JSON.stringify(weaponStats));
     fs.writeFileSync('src/data/artifactSetStats.json', JSON.stringify(artifactSetStats));
     fs.writeFileSync('src/data/characterBuilds.json', JSON.stringify(characterBuilds));
+    fs.writeFileSync('src/data/characterStats.json', JSON.stringify(characterStats));
   }
 }

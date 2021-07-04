@@ -9,6 +9,6 @@ import { PlayerCharacterService } from './player-character.service';
 
 @Module({
   imports: [MongooseModule.forFeature([{ name: PlayerCharacter.name, schema: PlayerCharacterSchema }])],
-  providers: [PlayerCharacterService, PlayerCharacterResolver, AbyssBattleService],
+  providers: [PlayerCharacterService, PlayerCharacterResolver],
 })
 export class PlayerCharacterModule {}
