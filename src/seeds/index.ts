@@ -616,7 +616,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
           if (characterIds === null) {
             await handleBlock(currTokenIdx);
             continue;
-          } else if (shouldCollectData === undefined) {
+          } else if (characterIds === undefined) {
             await _updateDS();
             continue;
           } else {
@@ -629,7 +629,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
               if (result === null) {
                 await handleBlock(currTokenIdx);
                 continue;
-              } else if (shouldCollectData === undefined) {
+              } else if (result === undefined) {
                 await _updateDS();
                 continue;
               } else {
