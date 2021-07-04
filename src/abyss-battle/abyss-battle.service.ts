@@ -104,6 +104,35 @@ export class AbyssBattleService {
     return filteredBattles;
   }
 
+  async aggregateAndGroup() {
+    await this.abyssBattleModel.aggregate([
+      {
+        $group: {
+          _id: { level: '$floor_level', party: '$party', index: '$battle_index' },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $group: {
+          _id: { level: '$_id.level', index: '$_id.index' },
+          parties: {
+            $push: {
+              party: '$_id.party',
+              count: '$count',
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          floor: { $concat: ['$_id.level', '-', { $toString: '$_id.index' }] },
+          _id: '$$REMOVE',
+          index: '$$REMOVE',
+        },
+      },
+    ]);
+  }
+
   async aggregate(filter: ListAbyssBattleInput = {}) {
     const battleIndices = 2;
     const abyssData: AbyssStats[] = [];

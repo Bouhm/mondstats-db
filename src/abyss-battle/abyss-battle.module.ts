@@ -13,6 +13,7 @@ import { AbyssBattleService } from './abyss-battle.service';
       // { name: Character.name, schema: CharacterSchema },
     ]),
   ],
+  exports: [AbyssBattleService],
   providers: [AbyssBattleService, AbyssBattleResolver],
 })
 export class AbyssBattleModule {}

@@ -1,6 +1,8 @@
 import fs from 'fs';
 import _ from 'lodash';
 import { Model } from 'mongoose';
+import abyssBattleModel, { AbyssBattle, AbyssBattleDocument } from 'src/abyss-battle/abyss-battle.model';
+import { AbyssBattleService } from 'src/abyss-battle/abyss-battle.service';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -34,10 +36,17 @@ function _getActivationNumber(count: number, affixes: Affix[]) {
 
 @Injectable()
 export class PlayerCharacterService {
+  abyssBattleService: AbyssBattleService;
+
   constructor(
     @InjectModel(PlayerCharacter.name)
     private playerCharacterModel: Model<PlayerCharacterDocument>,
-  ) {}
+
+    @InjectModel(AbyssBattle.name)
+    private abyssBattleModel: Model<AbyssBattleDocument>,
+  ) {
+    this.abyssBattleService = new AbyssBattleService(abyssBattleModel);
+  }
 
   async list(filter: ListPlayerCharacterInput = {}) {
     const playerCharacters = await this.playerCharacterModel
@@ -102,6 +111,12 @@ export class PlayerCharacterService {
   }
 
   async aggregateAll() {
+    const abyssTeamCounts = [];
+    const abyssBattles = await this.abyssBattleService.aggregateAndGroup();
+    _.forEach(abyssBattles, battle => {
+      
+    })
+
     const playerCharacters = await this.playerCharacterModel
       .find()
       .lean()
@@ -134,7 +149,9 @@ export class PlayerCharacterService {
     const artifactSetStats = [];
     const characterStats = [];
 
-    _.forEach(playerCharacters, ({ character, weapon, artifacts, constellation, level }: any) => {
+
+
+    _.forEach(playerCharacters, ({ _id, character, weapon, artifacts, constellation, level }: any) => {
       const charWeapon = <WeaponDocument>weapon;
       const playerSets: any = {};
 
@@ -226,7 +243,12 @@ export class PlayerCharacterService {
       // ===== CHARACTER STATS ====
       const charStatIdx = _.findIndex(characterStats, { _id: character._id });
       if (charStatIdx > -1) {
-
+      } else {
+        characterStats.push({
+          _id: character._id,
+          total: 1,
+          abyssCount: 1,
+        });
       }
 
       // ===== WEAPON STATS =====
