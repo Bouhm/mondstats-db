@@ -41,8 +41,8 @@ let tokenIdx = 0;
 let iterationStart = Date.now();
 let areAllStillBlocked = true;
 let abyssSchedule = 1;
-let blockedLevel = 0;
-const longRests = [60 * 60 * 1000, 6 * 60 * 60 * 1000, 12 * 60 * 60 * 1000];
+// let blockedLevel = 0;
+const longRest = 24 * 60 * 60 * 1000;
 const maxRest = (60 * 10 * 1000) / 30;
 let delayMs = 500;
 let collectedTotal = 0;
@@ -224,18 +224,18 @@ const handleBlock = async (tokenIdx: number) => {
 
   if (_.filter(blockedIndices, (blocked) => blocked).length >= TOKENS.length) {
     console.log('--- ALL BLOCKED ---');
-    if (areAllStillBlocked) {
-      blockedLevel++;
+    // if (areAllStillBlocked) {
+    //   blockedLevel++;
 
-      if (blockedLevel > longRests.length - 1) {
-        blockedLevel = longRests.length - 1;
-      }
-    } else {
-      blockedLevel = 0;
-    }
+    //   if (blockedLevel > longRests.length - 1) {
+    //     blockedLevel = longRests.length - 1;
+    //   }
+    // } else {
+    //   blockedLevel = 0;
+    // }
 
-    console.log('Long rest: ' + blockedLevel);
-    await _sleep(longRests[blockedLevel]);
+    console.log('Long rest...');
+    await _sleep(longRest);
     blockedIndices = new Array(TOKENS.length).fill(false);
   }
 };
