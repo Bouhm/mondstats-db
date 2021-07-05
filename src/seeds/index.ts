@@ -695,7 +695,6 @@ mongoose.connection.once('open', async () => {
       // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
       const players = await PlayerModel.find().sort({ updatedAt: -1 });
       const uids = _.map(players, (player) => player.uid);
-      delayMs = 6000;
       aggregateAllCharacterData(0, uids);
       break;
   }
