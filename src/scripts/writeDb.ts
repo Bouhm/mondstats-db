@@ -34,5 +34,5 @@ const weaponService = new WeaponService(weaponModel);
     playerCharacterService.save(),
   ]);
 
-  return () => mongoose.connection.close();
+  return mongoose.connection.close();
 })();

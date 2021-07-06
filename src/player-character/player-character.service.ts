@@ -151,7 +151,7 @@ export class PlayerCharacterService {
         const artifactSetCombinations = [];
         _.forEach(_.countBy(artifacts, 'set'), (count, _id) => {
           if (count > 1) {
-            let activation_number = 0;
+            let activation_number = count;
             if (count % 2 !== 0) {
               activation_number = count - 1;
             }
@@ -237,7 +237,7 @@ export class PlayerCharacterService {
         if (activationNum > 1) {
           artifactSetCombinations.push({
             _id,
-            activation_number: activationNum
+            activation_number: activationNum,
           });
         }
       });
@@ -345,11 +345,11 @@ export class PlayerCharacterService {
 
         artifactSetStats[artifactStatIdx].count++;
       } else {
-        const abyssSetIdx = _.findIndex(abyssUsageCounts.artifactSets, (set: any) => {
-          return _.isEqual(set.artifacts, artifactSetCombinations);
-        });
+        const abyssSetIdx = _.findIndex(abyssUsageCounts.artifactSets, ({ artifacts }) =>
+          _.isEqual(artifacts, artifactSetCombinations),
+        );
 
-        const abyssCount = abyssSetIdx > -1 ? abyssUsageCounts.artifactSets[abyssSetIdx] : 0;
+        const abyssCount = abyssSetIdx > -1 ? abyssUsageCounts.artifactSets[abyssSetIdx].count : 0;
         artifactSetStats.push({
           artifacts: artifactSetCombinations,
           characters: {
