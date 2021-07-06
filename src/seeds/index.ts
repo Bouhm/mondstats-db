@@ -476,7 +476,7 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
       _.map(
         _.filter(floor.levels, (level) => level.star > 2),
         (level) => {
-          _.forEach(level.battles, (battle) => {
+          _.forEach(level.battles, async (battle) => {
             const party: any[] = [];
             for (const char of battle.avatars) {
               try {
@@ -496,7 +496,7 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
               party: party.sort(),
             };
 
-            AbyssBattleModel.findOneAndUpdate(
+            await AbyssBattleModel.findOneAndUpdate(
               {
                 floor_level: `${floor.index}-${level.index}`,
                 battle_index: battle.index,
