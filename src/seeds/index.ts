@@ -241,7 +241,7 @@ const getSpiralAbyssData = async (
   server: string,
   uid: number,
   scheduleType = 1,
-  threshold = 11,
+  threshold = 9,
   secondTry = false,
 ) => {
   const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${uid}&schedule_type=${scheduleType}`;
