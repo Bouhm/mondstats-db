@@ -5,13 +5,13 @@ import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
+import { AbyssBattle, AbyssBattleDocument } from '../abyss-battle/abyss-battle.model';
 import { Affix } from '../artifact-set/artifact-set.model';
 // import abyssBattles from '../data/abyssBattles.json';
 import artifactSets from '../data/artifactSets.json';
 import { WeaponDocument } from '../weapon/weapon.model';
 import { ListPlayerCharacterInput } from './player-character.inputs';
 import { CharacterBuildStats, PlayerCharacter, PlayerCharacterDocument } from './player-character.model';
-import { AbyssBattle, AbyssBattleDocument } from '../abyss-battle/abyss-battle.model';
 
 const BP_WEAPONS = [
   'The Black Sword',
@@ -110,7 +110,7 @@ export class PlayerCharacterService {
     const abyssUsageCounts = {
       characters: {},
       weapons: {},
-      artifactSets: []
+      artifactSets: [],
     };
     const abyssBattles = await this.abyssBattleModel
       .find()
@@ -134,21 +134,21 @@ export class PlayerCharacterService {
       ])
       .exec();
 
-    _.forEach(abyssBattles, ({party}) => {
-      _.forEach(party, ({character, artifacts, weapon}: any) => {
+    _.forEach(abyssBattles, ({ party }) => {
+      _.forEach(party, ({ character, artifacts, weapon }: any) => {
         if (abyssUsageCounts.characters[character._id]) {
           abyssUsageCounts.characters[character._id]++;
         } else {
           abyssUsageCounts.characters[character._id] = 1;
         }
-        
+
         if (abyssUsageCounts.weapons[weapon]) {
           abyssUsageCounts.weapons[weapon]++;
         } else {
           abyssUsageCounts.weapons[weapon] = 1;
         }
 
-        let artifactSetCombinations = [];
+        const artifactSetCombinations = [];
         _.forEach(_.countBy(artifacts, 'set'), (count, _id) => {
           if (count > 1) {
             let activation_number = 0;
@@ -157,22 +157,22 @@ export class PlayerCharacterService {
             }
             artifactSetCombinations.push({
               _id,
-              activation_number
-            })
+              activation_number,
+            });
           }
-        })
+        });
 
         const buildIdx = _.findIndex(abyssUsageCounts.artifactSets, (build: any) =>
           _.isEqual(build.artifacts, artifactSetCombinations),
         );
-        
+
         if (buildIdx > 0) {
           abyssUsageCounts.artifactSets[buildIdx].count++;
         } else {
           abyssUsageCounts.artifactSets.push({
             artifacts: artifactSetCombinations,
-            count: 1
-          })
+            count: 1,
+          });
         }
       });
     });
@@ -229,7 +229,7 @@ export class PlayerCharacterService {
 
       if (_.keys(playerSets).length > 2) return;
 
-      let artifactSetCombinations: { _id: string; activation_number: number; rarity: number }[] = [];
+      let artifactSetCombinations: { _id: string; activation_number: number }[] = [];
 
       _.forIn(playerSets, (set, _id) => {
         const activationNum = _getActivationNumber(set.count, set.affixes);
@@ -237,8 +237,7 @@ export class PlayerCharacterService {
         if (activationNum > 1) {
           artifactSetCombinations.push({
             _id,
-            activation_number: activationNum,
-            rarity: _.maxBy(_.filter(artifactSets, { _id }), 'rarity').rarity,
+            activation_number: activationNum
           });
         }
       });
@@ -270,7 +269,7 @@ export class PlayerCharacterService {
           characterBuilds[charIdx].builds.push({
             weapons: [{ _id: charWeapon._id, count: 1 }],
             artifacts: artifactSetCombinations,
-            count: 1
+            count: 1,
           });
         }
 
@@ -329,7 +328,7 @@ export class PlayerCharacterService {
           type_name: charWeapon.type_name,
           rarity: charWeapon.rarity,
           count: 1,
-          abyssCount: abyssUsageCounts.weapons[charWeapon._id]
+          abyssCount: abyssUsageCounts.weapons[charWeapon._id],
         });
       }
 
@@ -347,17 +346,17 @@ export class PlayerCharacterService {
         artifactSetStats[artifactStatIdx].count++;
       } else {
         const abyssSetIdx = _.findIndex(abyssUsageCounts.artifactSets, (set: any) => {
-          return _.isEqual(set.artifacts, artifactSetCombinations)
-        })
+          return _.isEqual(set.artifacts, artifactSetCombinations);
+        });
 
-        let abyssCount = abyssSetIdx > -1 ? abyssUsageCounts.artifactSets[abyssSetIdx] : 0
+        const abyssCount = abyssSetIdx > -1 ? abyssUsageCounts.artifactSets[abyssSetIdx] : 0;
         artifactSetStats.push({
           artifacts: artifactSetCombinations,
           characters: {
             [character._id]: 1,
           },
           count: 1,
-          abyssCount
+          abyssCount,
         });
       }
     });
