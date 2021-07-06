@@ -605,9 +605,18 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
             options,
           );
 
-          const characterIds = await getPlayerCharacters(server, uid);
-          currTokenIdx = tokenIdx;
-          await _incrementTokenIdx();
+          let characterIds = [];
+          const playerCharacters = await PlayerCharacterModel.find({ player: playerRef._id })
+            .lean()
+            .populate({ path: 'character', select: 'oid -_id' });
+
+          if (playerCharacters) {
+            characterIds = _.map(playerCharacters, (pc: any) => pc.oid);
+          } else {
+            characterIds = await getPlayerCharacters(server, uid);
+            currTokenIdx = tokenIdx;
+            await _incrementTokenIdx();
+          }
 
           if (characterIds === null) {
             await handleBlock(currTokenIdx);
