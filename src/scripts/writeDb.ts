@@ -32,8 +32,5 @@ const weaponService = new WeaponService(weaponModel);
     artifactSetService.save(),
     weaponService.save(),
     playerCharacterService.save(),
-  ]).then(() => {
-    mongoose.connection.close();
-    return
-  });
+  ]).then(() => mongoose.connection.close());
 })();
