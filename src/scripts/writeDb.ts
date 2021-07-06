@@ -14,7 +14,7 @@ import connectDb from '../util/connection';
 import weaponModel from '../weapon/weapon.model';
 import { WeaponService } from '../weapon/weapon.service';
 
-const playerCharacterService = new PlayerCharacterService(playerCharacterModel);
+const playerCharacterService = new PlayerCharacterService(playerCharacterModel, abyssBattleModel);
 const characterService = new CharacterService(characterModel);
 const abyssBattleService = new AbyssBattleService(abyssBattleModel);
 const artifactService = new ArtifactService(artifactModel);

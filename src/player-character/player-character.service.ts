@@ -6,11 +6,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { Affix } from '../artifact-set/artifact-set.model';
-import abyssBattles from '../data/abyssBattles.json';
+// import abyssBattles from '../data/abyssBattles.json';
 import artifactSets from '../data/artifactSets.json';
 import { WeaponDocument } from '../weapon/weapon.model';
 import { ListPlayerCharacterInput } from './player-character.inputs';
 import { CharacterBuildStats, PlayerCharacter, PlayerCharacterDocument } from './player-character.model';
+import { AbyssBattle, AbyssBattleDocument } from '../abyss-battle/abyss-battle.model';
 
 const BP_WEAPONS = [
   'The Black Sword',
@@ -38,6 +39,9 @@ export class PlayerCharacterService {
   constructor(
     @InjectModel(PlayerCharacter.name)
     private playerCharacterModel: Model<PlayerCharacterDocument>,
+
+    @InjectModel(AbyssBattle.name)
+    private abyssBattleModel: Model<AbyssBattleDocument>,
   ) {}
 
   async list(filter: ListPlayerCharacterInput = {}) {
@@ -103,23 +107,47 @@ export class PlayerCharacterService {
   }
 
   async aggregateAll() {
-    const abyssTeamCounts = {};
-    const _abyssBattles = abyssBattles as unknown as any;
-    _.forEach(_abyssBattles, ({ party_stats }) => {
-      _.forEach(party_stats, (battle) => {
-        _.forEach(battle, ({ party, count }) => {
-          _.forEach(party, (charId) => {
-            if (abyssTeamCounts[charId]) {
-              abyssTeamCounts[charId] += count;
-            } else {
-              abyssTeamCounts[charId] = count;
-            }
-          });
-        });
-      });
-    });
+    const abyssUsageCounts = {
+      characters: {},
+      weapons: {},
+      artifacts: {}
+    };
+    const abyssBattles = await this.abyssBattleModel
+      .find()
+      .lean()
+      .populate([
+        {
+          path: 'party',
+          model: PlayerCharacter.name,
+          select: 'weapon artifacts character -battle_index -floor_level -player -_id',
+          populate: [
+            {
+              path: 'character',
+              select: '_id',
+            },
+            {
+              path: 'artifacts',
+              select: 'set -_id',
+            },
+          ],
+        },
+      ])
+      .exec();
 
-    console.log(abyssTeamCounts);
+    console.log(abyssBattles[0])
+    return
+
+    // _.forEach(abyssBattles, ({party}) => {
+    //   _.forEach(party, (charId) => {
+    //     if (abyssUsageCounts.characters[charId]) {
+    //       abyssUsageCounts.characters[charId] += count;
+    //     } else {
+    //       abyssUsageCounts.characters[charId] = count;
+    //     }
+    //   });
+    // });
+
+    console.log(abyssUsageCounts.characters);
 
     const playerCharacters = await this.playerCharacterModel
       .find()
@@ -250,7 +278,7 @@ export class PlayerCharacterService {
         characterStats.push({
           _id: character._id,
           total: 1,
-          abyssCount: abyssTeamCounts[character._id],
+          abyssCount: abyssUsageCounts.characters[character._id],
         });
       }
 
