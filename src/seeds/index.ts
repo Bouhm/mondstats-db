@@ -42,7 +42,7 @@ let iterationStart = Date.now();
 let areAllStillBlocked = true;
 let abyssSchedule = 1;
 const blockedLevel = 0;
-const longRest = 12 * 60 * 60 * 1000;
+const longRest = 6 * 60 * 60 * 1000;
 const maxRest = (60 * 10 * 1000) / 30;
 const delayMs = 500;
 let collectedTotal = 0;
@@ -230,7 +230,7 @@ const handleBlock = async (tokenIdx: number) => {
     //   blockedLevel = 0;
     // }
 
-    console.log('Long rest...', new Date());
+    console.log('Long rest...', new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
     await _sleep(longRest);
     blockedIndices = new Array(TOKENS.length).fill(false);
   }
