@@ -43,7 +43,7 @@ let areAllStillBlocked = true;
 let abyssSchedule = 1;
 const blockedLevel = 0;
 const longRest = 6 * 60 * 60 * 1000;
-const maxRest = (60 * 60 * 1000) / 30;
+const maxRest = longRest / 30;
 const delayMs = 500;
 let collectedTotal = 0;
 
