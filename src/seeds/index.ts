@@ -42,9 +42,9 @@ let iterationStart = Date.now();
 let areAllStillBlocked = true;
 let abyssSchedule = 1;
 const blockedLevel = 0;
-const longRest = 6 * 60 * 60 * 1000;
+const longRest = 24 * 60 * 60 * 1000;
 const maxRest = longRest / 30;
-const delayMs = 500;
+const delayMs = 200;
 let collectedTotal = 0;
 
 let playerRef: PlayerDocument;
