@@ -33,6 +33,15 @@ export class BuildStats {
   count: number;
 }
 
+@ObjectType()
+export class TeamStats {
+  @Field(() => [PlayerCharacter])
+  party: MongooseSchema.Types.ObjectId[];
+
+  @Field(() => Number)
+  count: number;
+}
+
 @ObjectType('CharacterBuildStats')
 export class CharacterBuildStats {
   @Field(() => String)
@@ -43,6 +52,9 @@ export class CharacterBuildStats {
 
   @Field(() => [Number])
   constellations: number[];
+
+  @Field(() => [TeamStats])
+  teams: TeamStats[];
 
   @Field(() => Number)
   total: number;
