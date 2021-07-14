@@ -12,7 +12,7 @@ type AbyssBattle {
 
 type AbyssStats {
   floor_level: String!
-  party_stats: [[PartyStats!]!]!
+  parties: [[PartyStats!]!]!
   totals: [Float!]!
 }
 

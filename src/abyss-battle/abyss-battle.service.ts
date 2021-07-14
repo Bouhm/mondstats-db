@@ -81,7 +81,8 @@ export class AbyssBattleService {
           if (
             _.find(
               _battle.party,
-              ({ character }) => character.rarity > 4 && !_.includes(filter.charIds, character._id),
+              ({ character }) =>
+                character.rarity > 4 && !_.includes(filter.charIds, character._id.toString()),
             )
           ) {
             return;
@@ -104,49 +105,30 @@ export class AbyssBattleService {
     return filteredBattles;
   }
 
-  async aggregateTeams() {
-    const topTeams = await this.abyssBattleModel
-      .aggregate([
-        {
-          $group: {
-            _id: {
-              party: '$party',
-            },
-            count: {
-              $sum: 1,
-            },
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            parties: {
-              $push: {
-                party: '$_id.party',
-                count: '$count',
-              },
-            },
-          },
-        },
-      ])
-      .exec();
-
-    return _.take(_.orderBy(topTeams.parties, 'count', 'desc'), 20);
-  }
-
   async aggregateBattles(filter: ListAbyssBattleInput = {}) {
     const battleIndices = 2;
-    const abyssData: AbyssStats[] = [];
+    const abyssBattles: AbyssStats[] = [];
+    let abyssTeams = [];
     const battles = await this.list(filter);
-    const total = battles.length;
 
     _.forEach(battles, ({ floor_level, battle_index, party }) => {
-      const floorIdx = _.findIndex(abyssData, { floor_level });
-      // const battleIdx = battle_index - 1;
-      const battleIdx = 0; // TEMP HACK TO COMPENSATE SCUFFED DATA
+      // Aggregate teams
+      const teamIdx = _.findIndex(abyssTeams, { party });
+      if (teamIdx > -1) {
+        abyssTeams[teamIdx].count++;
+      } else {
+        abyssTeams.push({
+          party,
+          count: 1,
+        });
+      }
+
+      // Aggregate abyss battles
+      const floorIdx = _.findIndex(abyssBattles, { floor_level });
+      const battleIdx = battle_index - 1;
 
       if (floorIdx > -1) {
-        const partyData = abyssData[floorIdx]['party_stats'];
+        const partyData = abyssBattles[floorIdx]['parties'];
         party.sort();
 
         const partyIdx = _.findIndex(partyData[battleIdx], (battle: { party: string[]; count: number }) =>
@@ -155,7 +137,7 @@ export class AbyssBattleService {
 
         if (partyIdx > -1) {
           partyData[battleIdx][partyIdx].count++;
-          abyssData[floorIdx].totals[battleIdx]++;
+          abyssBattles[floorIdx].totals[battleIdx]++;
         } else {
           if (partyData.length) {
             partyData[battleIdx].push({
@@ -172,14 +154,14 @@ export class AbyssBattleService {
           }
         }
       } else {
-        const party_stats = new Array(battleIndices).fill([]);
+        const parties = new Array(battleIndices).fill([]);
         const totals = new Array(battleIndices).fill(0);
 
-        party_stats[battle_index][0] = { party, count: 1 };
+        parties[battle_index][0] = { party, count: 1 };
         totals[battle_index] = 1;
 
-        abyssData.push({
-          party_stats,
+        abyssBattles.push({
+          parties,
           totals,
           floor_level,
         });
@@ -188,9 +170,11 @@ export class AbyssBattleService {
 
     const threshold = 2;
 
-    _.forEach(abyssData, ({ party_stats }) => {
-      _.forEach(party_stats, (battle, i) => {
-        party_stats[i] = _.orderBy(
+    abyssTeams = _.take(_.orderBy(abyssTeams, 'count', 'desc'), 20);
+
+    _.forEach(abyssBattles, ({ parties }) => {
+      _.forEach(parties, (battle, i) => {
+        parties[i] = _.orderBy(
           _.filter(battle, ({ count }) => count >= threshold),
           'count',
           'desc',
@@ -198,18 +182,11 @@ export class AbyssBattleService {
       });
     });
 
-    return abyssData;
+    return { teams: abyssTeams, abyss: abyssBattles };
   }
 
   async save() {
-    const abyssTeams = await this.aggregateTeams();
-    const abyssBattles = await this.aggregateBattles();
-    fs.writeFileSync(
-      'src/data/abyssBattles.json',
-      JSON.stringify({
-        teams: abyssTeams,
-        battles: abyssBattles,
-      }),
-    );
+    const abyssData = await this.aggregateBattles();
+    fs.writeFileSync('src/data/abyssBattles.json', JSON.stringify(abyssData));
   }
 }
