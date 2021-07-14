@@ -104,8 +104,37 @@ export class AbyssBattleService {
     return filteredBattles;
   }
 
+  async aggregateTeams() {
+    const topTeams = await this.abyssBattleModel
+      .aggregate([
+        {
+          $group: {
+            _id: {
+              party: '$party',
+            },
+            count: {
+              $sum: 1,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            parties: {
+              $push: {
+                party: '$_id.party',
+                count: '$count',
+              },
+            },
+          },
+        },
+      ])
+      .exec();
 
-  async aggregate(filter: ListAbyssBattleInput = {}) {
+    return _.take(_.orderBy(topTeams.parties, 'count', 'desc'), 20);
+  }
+
+  async aggregateBattles(filter: ListAbyssBattleInput = {}) {
     const battleIndices = 2;
     const abyssData: AbyssStats[] = [];
     const battles = await this.list(filter);
@@ -173,7 +202,14 @@ export class AbyssBattleService {
   }
 
   async save() {
-    const abyssBattles = await this.aggregate();
-    fs.writeFileSync('src/data/abyssBattles.json', JSON.stringify(abyssBattles));
+    const abyssTeams = await this.aggregateTeams();
+    const abyssBattles = await this.aggregateBattles();
+    fs.writeFileSync(
+      'src/data/abyssBattles.json',
+      JSON.stringify({
+        teams: abyssTeams,
+        battles: abyssBattles,
+      }),
+    );
   }
 }

@@ -24,15 +24,15 @@ const weaponService = new WeaponService(weaponModel);
 (async () => {
   connectDb();
 
-  // await abyssBattleService.save();
+  await abyssBattleService.save();
 
-  await Promise.all([
-    // characterService.save(),
-    // artifactService.save(),
-    // artifactSetService.save(),
-    // weaponService.save(),
-    playerCharacterService.save(),
-  ]);
+  // await Promise.all([
+  //   characterService.save(),
+  //   artifactService.save(),
+  //   artifactSetService.save(),
+  //   weaponService.save(),
+  //   playerCharacterService.save(),
+  // ]);
 
   return mongoose.connection.close();
 })();
