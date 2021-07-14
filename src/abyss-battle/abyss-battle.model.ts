@@ -18,7 +18,7 @@ export class PartyStats {
 @ObjectType('AbyssStats')
 export class AbyssStats {
   @Field(() => [[PartyStats]])
-  battleParties: PartyStats[][];
+  battle_parties: PartyStats[][];
 
   @Field(() => [Number])
   totals: number[]

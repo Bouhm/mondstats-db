@@ -128,7 +128,7 @@ export class AbyssBattleService {
       const battleIdx = battle_index - 1;
 
       if (floorIdx > -1) {
-        const partyData = abyssBattles[floorIdx]['battleParties'];
+        const partyData = abyssBattles[floorIdx]['battle_parties'];
         party.sort();
 
         const partyIdx = _.findIndex(partyData[battleIdx], (battle: { party: string[]; count: number }) =>
@@ -154,14 +154,14 @@ export class AbyssBattleService {
           }
         }
       } else {
-        const battleParties = new Array(battleIndices).fill([]);
+        const battle_parties = new Array(battleIndices).fill([]);
         const totals = new Array(battleIndices).fill(0);
 
-        battleParties[battle_index][0] = { party, count: 1 };
+        battle_parties[battle_index][0] = { party, count: 1 };
         totals[battle_index] = 1;
 
         abyssBattles.push({
-          battleParties,
+          battle_parties,
           totals,
           floor_level,
         });
@@ -172,9 +172,9 @@ export class AbyssBattleService {
 
     abyssTeams = _.take(_.orderBy(abyssTeams, 'count', 'desc'), 20);
 
-    _.forEach(abyssBattles, ({ battleParties }) => {
-      _.forEach(battleParties, (battle, i) => {
-        battleParties[i] = _.orderBy(
+    _.forEach(abyssBattles, ({ battle_parties }) => {
+      _.forEach(battle_parties, (battle, i) => {
+        battle_parties[i] = _.orderBy(
           _.filter(battle, ({ count }) => count >= threshold),
           'count',
           'desc',
