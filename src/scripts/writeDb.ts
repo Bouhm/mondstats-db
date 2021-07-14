@@ -24,13 +24,13 @@ const weaponService = new WeaponService(weaponModel);
 (async () => {
   connectDb();
 
-  await abyssBattleService.save();
+  // await abyssBattleService.save();
 
   await Promise.all([
-    characterService.save(),
-    artifactService.save(),
-    artifactSetService.save(),
-    weaponService.save(),
+    // characterService.save(),
+    // artifactService.save(),
+    // artifactSetService.save(),
+    // weaponService.save(),
     playerCharacterService.save(),
   ]);
 

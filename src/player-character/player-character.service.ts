@@ -199,7 +199,7 @@ export class PlayerCharacterService {
       .exec();
 
     _.forEach(abyssBattles, ({ party }) => {
-      const charIds =_.map(party, ({ character }: any) => character._id).sort();
+      const charIds =_.map(party, ({ character }: any) => character._id.toString()).sort();
       const teamIndex = _.findIndex(teams, { party: charIds });
         
       if (teamIndex > -1) {
@@ -211,8 +211,6 @@ export class PlayerCharacterService {
         })
       }
     });
-
-    console.log(teams[0])
 
     const playerCharacters = await this.playerCharacterModel
       .find()
@@ -249,6 +247,7 @@ export class PlayerCharacterService {
     _.forEach(playerCharacters, ({ _id, character, weapon, artifacts, constellation, level }: any) => {
       const charWeapon = <WeaponDocument>weapon;
       const playerSets: any = {};
+      const parties = _.filter(teams, ({party}) => _.includes(party, character._id.toString()));
 
       // ===== PLAYER BUILDS =====
 
@@ -330,12 +329,7 @@ export class PlayerCharacterService {
               count: 1,
             },
           ],
-          teams: [
-            // {
-            //   party,
-            //   count: 1
-            // }
-          ],
+          teams: _.take(_.orderBy(parties, 'count', 'desc'), 10),
           total: 1,
         });
       }
@@ -522,6 +516,7 @@ export class PlayerCharacterService {
   }
 
   async save() {
+    // await this.aggregateAll();
     const { weaponStats, artifactSetStats, characterStats, characterBuilds } = await this.aggregateAll();
     fs.writeFileSync('src/data/weaponStats.json', JSON.stringify(weaponStats));
     fs.writeFileSync('src/data/artifactSetStats.json', JSON.stringify(artifactSetStats));
