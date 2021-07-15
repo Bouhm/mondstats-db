@@ -691,8 +691,8 @@ mongoose.connection.once('open', async () => {
   switch (process.env.npm_config_uid) {
     default:
     case 'last':
-      console.log('Starting from last stored UID...');
-      const lastPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 });
+      console.log('Starting from last UID...');
+      const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid');
       aggregateAllCharacterData(lastPlayer.uid);
       break;
     case 'all':
