@@ -96,7 +96,7 @@ const _incrementTokenIdx = async () => {
       proxyIdx += TOKENS.length;
     }
 
-    const restMs = _clamp(0, maxRest, Date.now() - iterationStart) + delayMs;
+    const restMs = _.clamp(maxRest - (Date.now() - iterationStart), 0, maxRest) + delayMs;
     iterationStart = Date.now();
     await _sleep(restMs);
   }
@@ -159,13 +159,9 @@ const _updateDS = async () => {
   }
 };
 
-function _clamp(min: number, max: number, num: number) {
-  return Math.min(Math.max(num, min), max);
-}
-
 const getHeaders = () => {
-  proxyIdx = _clamp(0, PROXIES.length - 1, proxyIdx);
-  tokenIdx = _clamp(0, TOKENS.length - 1, tokenIdx);
+  proxyIdx = _.clamp(proxyIdx, 0, PROXIES.length - 1);
+  tokenIdx = _.clamp(tokenIdx, 0, TOKENS.length - 1);
 
   return {
     Host: 'api-os-takumi.mihoyo.com',
