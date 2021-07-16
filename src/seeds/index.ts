@@ -684,24 +684,29 @@ mongoose.connection.once('open', async () => {
       break;
   }
 
-  switch (process.env.npm_config_uid) {
-    default:
-    case 'last':
-      console.log('Starting after last UID...');
-      const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid');
-      aggregateAllCharacterData(lastPlayer.uid + 1);
-      break;
-    case 'all':
-      console.log('Starting from base UID...');
-      aggregateAllCharacterData();
-      break;
-    case 'existing':
-      console.log('Updating existing UIDs...');
-      // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
-      const players = await PlayerModel.find().sort({ updatedAt: -1 });
-      const uids = _.map(players, (player) => player.uid);
-      aggregateAllCharacterData(0, uids);
-      break;
+  if (parseInt(process.env.npm_config_uid)) {
+    console.log('Starting from ' + process.env.npm_config_uid);
+    aggregateAllCharacterData(parseInt(process.env.npm_config_uid));
+  } else {
+    switch (process.env.npm_config_uid) {
+      default:
+      case 'last':
+        console.log('Starting after last UID...');
+        const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid');
+        aggregateAllCharacterData(lastPlayer.uid + 1);
+        break;
+      case 'all':
+        console.log('Starting from base UID...');
+        aggregateAllCharacterData();
+        break;
+      case 'existing':
+        console.log('Updating existing UIDs...');
+        // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
+        const players = await PlayerModel.find().sort({ updatedAt: -1 });
+        const uids = _.map(players, (player) => player.uid);
+        aggregateAllCharacterData(0, uids);
+        break;
+    }
   }
 
   return () => mongoose.connection.close();
