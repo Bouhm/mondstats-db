@@ -601,7 +601,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
             .lean()
             .populate({ path: 'character', select: 'oid -_id' });
 
-          if (playerCharacters) {
+          if (playerCharacters && playerCharacters.length > 0) {
             characterIds = _.map(playerCharacters, (pc: any) => pc.oid);
           } else {
             characterIds = await getPlayerCharacters(server, uid);
