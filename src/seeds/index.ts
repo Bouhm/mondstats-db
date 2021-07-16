@@ -661,11 +661,11 @@ const loadFromJson = () => {
 // Run functions
 connectDb();
 mongoose.connection.once('open', async () => {
-  await PlayerCharacterModel.deleteMany({
-    createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-  });
-  await PlayerModel.deleteMany({ createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } });
-  await AbyssBattleModel.deleteMany({ createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } });
+  // await PlayerCharacterModel.deleteMany({
+  //   createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+  // });
+  // await PlayerModel.deleteMany({ createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } });
+  // await AbyssBattleModel.deleteMany({ createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } });
 
   loadFromJson();
   blockedIndices = new Array(TOKENS.length).fill(false);
