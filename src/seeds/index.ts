@@ -42,9 +42,9 @@ let iterationStart = Date.now();
 let areAllStillBlocked = true;
 let abyssSchedule = 1;
 const blockedLevel = 0;
-const longRest = 60 * 60 * 1000;
 const maxRest = (24 * 60 * 60 * 1000) / 30;
 const delayMs = 200;
+let count = 0;
 let collectedTotal = 0;
 
 let playerRef: PlayerDocument;
@@ -227,7 +227,7 @@ const handleBlock = async (tokenIdx: number) => {
     // }
 
     console.log('Long rest...', new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-    await _sleep(longRest);
+    await _sleep(maxRest);
     blockedIndices = new Array(TOKENS.length).fill(false);
   }
 };
@@ -248,6 +248,7 @@ const getSpiralAbyssData = async (
       withCredentials: true,
     });
 
+    // console.log(resp.data.message, tokenIdx, ++count);
     // Rate limit reached message
     if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
       // console.log('Abyss data: ', resp.data.message);
@@ -564,17 +565,13 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
       uid = uids.pop();
     }
 
-    // console.log(uid);
-
     playerCharacterRefs = [];
     areAllStillBlocked = true;
 
     try {
-      let shouldCollectData: boolean | null = firstPass;
+      let shouldCollectData = firstPass;
       if (!firstPass) {
         shouldCollectData = await getSpiralAbyssData(server, uid, abyssSchedule);
-        currTokenIdx = tokenIdx;
-        await _incrementTokenIdx();
       }
 
       // Blocked
@@ -593,6 +590,9 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
       }
 
       if (shouldCollectData) {
+        currTokenIdx = tokenIdx;
+        await _incrementTokenIdx();
+
         try {
           firstPass = true;
           playerRef = await PlayerModel.findOneAndUpdate(
@@ -667,6 +667,12 @@ const loadFromJson = () => {
 // Run functions
 connectDb();
 mongoose.connection.once('open', async () => {
+  // await PlayerCharacterModel.deleteMany({
+  //   createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+  // });
+  // await PlayerModel.deleteMany({ createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } });
+  // await AbyssBattleModel.deleteMany({ createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } });
+
   loadFromJson();
   blockedIndices = new Array(TOKENS.length).fill(false);
 
@@ -687,9 +693,9 @@ mongoose.connection.once('open', async () => {
   switch (process.env.npm_config_uid) {
     default:
     case 'last':
-      console.log('Starting from last UID...');
+      console.log('Starting after last UID...');
       const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid');
-      aggregateAllCharacterData(lastPlayer.uid);
+      aggregateAllCharacterData(lastPlayer.uid + 1);
       break;
     case 'all':
       console.log('Starting from base UID...');
