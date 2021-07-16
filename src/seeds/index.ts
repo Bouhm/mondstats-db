@@ -44,7 +44,7 @@ let abyssSchedule = 1;
 const blockedLevel = 0;
 const maxRest = (24 * 60 * 60 * 1000) / 30;
 const delayMs = 200;
-let count = 0;
+const count = 0;
 let collectedTotal = 0;
 
 let playerRef: PlayerDocument;
@@ -590,6 +590,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
       }
 
       if (shouldCollectData) {
+        console.log(`Collecting data for player ${uid}...`);
         currTokenIdx = tokenIdx;
         await _incrementTokenIdx();
 
