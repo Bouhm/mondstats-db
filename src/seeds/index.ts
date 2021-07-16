@@ -553,8 +553,6 @@ const aggregatePlayerData = async (server: string, uid: number, characterIds: nu
 };
 
 const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
-  let firstPass = false;
-
   const baseUid = _getBaseUid(server);
   const end = baseUid + 99999999;
   let currTokenIdx = 0;
@@ -569,10 +567,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
     areAllStillBlocked = true;
 
     try {
-      let shouldCollectData = firstPass;
-      if (!firstPass) {
-        shouldCollectData = await getSpiralAbyssData(server, uid, abyssSchedule);
-      }
+      const shouldCollectData = await getSpiralAbyssData(server, uid, abyssSchedule);
 
       // Blocked
       if (shouldCollectData === null) {
@@ -595,7 +590,6 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
         await _incrementTokenIdx();
 
         try {
-          firstPass = true;
           playerRef = await PlayerModel.findOneAndUpdate(
             { uid },
             { uid, total_star: playerAbyssData.total_star },
@@ -636,7 +630,6 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
                 continue;
               } else {
                 areAllStillBlocked = false;
-                firstPass = false;
                 collectedTotal++;
                 console.log('Total: ', collectedTotal);
               }
@@ -668,11 +661,11 @@ const loadFromJson = () => {
 // Run functions
 connectDb();
 mongoose.connection.once('open', async () => {
-  // await PlayerCharacterModel.deleteMany({
-  //   createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-  // });
-  // await PlayerModel.deleteMany({ createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } });
-  // await AbyssBattleModel.deleteMany({ createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } });
+  await PlayerCharacterModel.deleteMany({
+    createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+  });
+  await PlayerModel.deleteMany({ createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } });
+  await AbyssBattleModel.deleteMany({ createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } });
 
   loadFromJson();
   blockedIndices = new Array(TOKENS.length).fill(false);
