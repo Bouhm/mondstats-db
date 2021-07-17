@@ -48,7 +48,7 @@ const count = 0;
 let collectedTotal = 0;
 
 let playerRef: PlayerDocument;
-let playerCharacterRefs: PlayerCharacterDocument[] = [];
+let playerCharRefMap: { [oid: string]: any } = {};
 let playerAbyssData: IAbyssResponse;
 
 const options = {
@@ -281,7 +281,7 @@ const getSpiralAbyssData = async (
 };
 
 // Get player's owned character ids
-const getPlayerCharacters = async (server: string, uid: number, threshold = 50) => {
+const getPlayerCharacters = async (server: string, uid: number, threshold = 40) => {
   const apiUrl = `${userApiUrl}?server=os_${server}&role_id=${uid}`;
 
   return axios
@@ -462,7 +462,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
       { $setOnInsert: playerCharacter },
       options,
     );
-    playerCharacterRefs.push(playerCharacterRef);
+    playerCharRefMap[playerCharacter.oid] = playerCharacterRef._id;
   }
 };
 
@@ -474,26 +474,16 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
         _.filter(floor.levels, (level) => level.star > 2),
         (level) => {
           _.forEach(level.battles, async (battle) => {
-            const party: any[] = [];
-            for (const char of battle.avatars) {
-              try {
-                const member = _.find(playerCharacterRefs, { oid: char.id });
-                if (!member) return;
-
-                party.push(member._id);
-              } catch (err) {
-                console.log(err);
-              }
-            }
-
             const abyssBattle = {
               floor_level: `${floor.index}-${level.index}`,
               battle_index: battle.index,
               player: playerRef._id,
-              party: party.sort(),
+              party: _.map(battle.avatars, (char) => playerCharRefMap[char.id]),
             };
 
-            await AbyssBattleModel.findOneAndUpdate(
+            if (_.some(abyssBattle.party, (char) => char === null || char === undefined)) return;
+
+            const aBattle = await AbyssBattleModel.findOneAndUpdate(
               {
                 floor_level: `${floor.index}-${level.index}`,
                 battle_index: battle.index,
@@ -540,7 +530,7 @@ const aggregatePlayerData = async (server: string, uid: number, characterIds: nu
             return aggregateCharacterData(char);
           }
         }),
-      );
+      )
 
       // Abyss data
       aggregateAbyssData(playerAbyssData);
@@ -563,7 +553,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
       uid = uids.pop();
     }
 
-    playerCharacterRefs = [];
+    playerCharRefMap = {};
     areAllStillBlocked = true;
 
     try {
@@ -571,6 +561,8 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
 
       // Blocked
       if (shouldCollectData === null) {
+        currTokenIdx = tokenIdx;
+        await _incrementTokenIdx();
         await handleBlock(currTokenIdx);
         continue;
       } else if (shouldCollectData === undefined) {
