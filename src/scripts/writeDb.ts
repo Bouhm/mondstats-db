@@ -26,13 +26,13 @@ const weaponService = new WeaponService(weaponModel);
 
   await abyssBattleService.save();
 
-  await Promise.all([
-    characterService.save(),
-    artifactService.save(),
-    artifactSetService.save(),
-    weaponService.save(),
-    playerCharacterService.save(),
-  ]);
+  // await Promise.all([
+  //   characterService.save(),
+  //   artifactService.save(),
+  //   artifactSetService.save(),
+  //   weaponService.save(),
+  //   playerCharacterService.save(),
+  // ]);
 
   mongoose.connection.close();
 })();

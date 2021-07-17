@@ -105,23 +105,40 @@ export class AbyssBattleService {
     return filteredBattles;
   }
 
-  async aggregateBattles(filter: ListAbyssBattleInput = {}) {
+  async aggregateBattles() {
     const battleIndices = 2;
     const abyssBattles: AbyssStats[] = [];
     let abyssTeams = [];
-    const battles = await this.list(filter);
-    const battle_indexes = { 1: 0, 2: 0 };
+    const battles = await this.abyssBattleModel
+      .find()
+      .lean()
+      .populate([
+        {
+          path: 'party',
+          model: PlayerCharacter.name,
+          select: 'character -_id',
+          populate: {
+            path: 'character',
+            select: '_id',
+          },
+        },
+      ])
+      .exec();
+    // const battle_indexes = { 1: 0, 2: 0 };
 
     _.forEach(battles, ({ floor_level, battle_index, party }) => {
-      battle_indexes[battle_index]++;
+      // battle_indexes[battle_index]++;
+
+      const battleParty = _.map(party, ({ character }: any) => character._id.toString());
+      battleParty.sort();
 
       // Aggregate teams
-      const teamIdx = _.findIndex(abyssTeams, { party });
+      const teamIdx = _.findIndex(abyssTeams, { party: battleParty });
       if (teamIdx > -1) {
         abyssTeams[teamIdx].count++;
       } else {
         abyssTeams.push({
-          party,
+          party: battleParty,
           count: 1,
         });
       }
@@ -131,11 +148,9 @@ export class AbyssBattleService {
 
       if (floorIdx > -1) {
         const partyData = abyssBattles[floorIdx]['battle_parties'];
-        party.sort();
 
-        const partyIdx = _.findIndex(
-          partyData[battle_index - 1],
-          (battle: { party: string[]; count: number }) => _.isEqual(battle.party, party),
+        const partyIdx = _.findIndex(partyData[battle_index - 1], (battle: any) =>
+          _.isEqual(battle.party, battleParty),
         );
 
         if (partyIdx > -1) {
@@ -144,13 +159,13 @@ export class AbyssBattleService {
         } else {
           if (partyData.length) {
             partyData[battle_index - 1].push({
-              party,
+              party: battleParty,
               count: 1,
             });
           } else {
             partyData[battle_index - 1] = [
               {
-                party,
+                party: battleParty,
                 count: 1,
               },
             ];
@@ -160,8 +175,8 @@ export class AbyssBattleService {
         const battle_parties = new Array(battleIndices).fill([]);
         const totals = new Array(battleIndices).fill(0);
 
-        battle_parties[battle_index][0] = { party, count: 1 };
-        totals[battle_index] = 1;
+        battle_parties[battle_index - 1][0] = { party, count: 1 };
+        totals[battle_index - 1] = 1;
 
         abyssBattles.push({
           battle_parties,
