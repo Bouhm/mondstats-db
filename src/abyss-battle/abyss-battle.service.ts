@@ -110,8 +110,11 @@ export class AbyssBattleService {
     const abyssBattles: AbyssStats[] = [];
     let abyssTeams = [];
     const battles = await this.list(filter);
+    const battle_indexes = { 1: 0, 2: 0 };
 
     _.forEach(battles, ({ floor_level, battle_index, party }) => {
+      battle_indexes[battle_index]++;
+
       // Aggregate teams
       const teamIdx = _.findIndex(abyssTeams, { party });
       if (teamIdx > -1) {
@@ -125,27 +128,27 @@ export class AbyssBattleService {
 
       // Aggregate abyss battles
       const floorIdx = _.findIndex(abyssBattles, { floor_level });
-      const battleIdx = battle_index - 1;
 
       if (floorIdx > -1) {
         const partyData = abyssBattles[floorIdx]['battle_parties'];
         party.sort();
 
-        const partyIdx = _.findIndex(partyData[battleIdx], (battle: { party: string[]; count: number }) =>
-          _.isEqual(battle.party, party),
+        const partyIdx = _.findIndex(
+          partyData[battle_index - 1],
+          (battle: { party: string[]; count: number }) => _.isEqual(battle.party, party),
         );
 
         if (partyIdx > -1) {
-          partyData[battleIdx][partyIdx].count++;
-          abyssBattles[floorIdx].totals[battleIdx]++;
+          partyData[battle_index - 1][partyIdx].count++;
+          abyssBattles[floorIdx].totals[battle_index - 1]++;
         } else {
           if (partyData.length) {
-            partyData[battleIdx].push({
+            partyData[battle_index - 1].push({
               party,
               count: 1,
             });
           } else {
-            partyData[battleIdx] = [
+            partyData[battle_index - 1] = [
               {
                 party,
                 count: 1,
