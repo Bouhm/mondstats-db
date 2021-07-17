@@ -188,7 +188,7 @@ export class AbyssBattleService {
 
     const threshold = 2;
 
-    abyssTeams = _.take(_.orderBy(abyssTeams, 'count', 'desc'), 20);
+    abyssTeams = _.orderBy(abyssTeams, 'count', 'desc');
 
     _.forEach(abyssBattles, ({ battle_parties }) => {
       _.forEach(battle_parties, (battle, i) => {

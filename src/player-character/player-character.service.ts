@@ -178,7 +178,7 @@ export class PlayerCharacterService {
     //   });
     // });
 
-    let teams = [];
+    const teams = [];
 
     const abyssBattles = await this.abyssBattleModel
       .find()
@@ -199,16 +199,16 @@ export class PlayerCharacterService {
       .exec();
 
     _.forEach(abyssBattles, ({ party }) => {
-      const charIds =_.map(party, ({ character }: any) => character._id.toString()).sort();
+      const charIds = _.map(party, ({ character }: any) => character._id.toString()).sort();
       const teamIndex = _.findIndex(teams, { party: charIds });
-        
+
       if (teamIndex > -1) {
         teams[teamIndex].count++;
       } else {
         teams.push({
           party: charIds,
-          count: 1
-        })
+          count: 1,
+        });
       }
     });
 
@@ -247,7 +247,7 @@ export class PlayerCharacterService {
     _.forEach(playerCharacters, ({ _id, character, weapon, artifacts, constellation, level }: any) => {
       const charWeapon = <WeaponDocument>weapon;
       const playerSets: any = {};
-      const parties = _.filter(teams, ({party}) => _.includes(party, character._id.toString()));
+      let parties = _.filter(teams, ({ party }) => _.includes(party, character._id.toString()));
 
       // ===== PLAYER BUILDS =====
 
@@ -318,6 +318,9 @@ export class PlayerCharacterService {
         const constellations = new Array(7).fill(0);
         constellations[constellation] = 1;
 
+        const threshold = 2;
+        parties = _.filter(parties, ({ count }) => count > threshold);
+
         characterBuilds.push({
           char_id: character._id,
           constellations,
@@ -329,7 +332,7 @@ export class PlayerCharacterService {
               count: 1,
             },
           ],
-          teams: _.take(_.orderBy(parties, 'count', 'desc'), 10),
+          teams: _.orderBy(parties, 'count', 'desc'),
           total: 1,
         });
       }
