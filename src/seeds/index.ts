@@ -43,7 +43,7 @@ let areAllStillBlocked = true;
 let abyssSchedule = 1;
 const blockedLevel = 0;
 const maxRest = (24 * 60 * 60 * 1000) / 30;
-const delayMs = 200;
+const delayMs = 1000;
 const count = 0;
 let collectedTotal = 0;
 
@@ -483,7 +483,7 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
 
             if (_.some(abyssBattle.party, (char) => char === null || char === undefined)) return;
 
-            const aBattle = await AbyssBattleModel.findOneAndUpdate(
+            await AbyssBattleModel.findOneAndUpdate(
               {
                 floor_level: `${floor.index}-${level.index}`,
                 battle_index: battle.index,
@@ -530,7 +530,7 @@ const aggregatePlayerData = async (server: string, uid: number, characterIds: nu
             return aggregateCharacterData(char);
           }
         }),
-      )
+      );
 
       // Abyss data
       aggregateAbyssData(playerAbyssData);
