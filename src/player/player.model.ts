@@ -14,10 +14,20 @@ export class Player {
   uid: number;
 
   @Field(() => Number)
+  total_battles: number;
+
+  @Field(() => Number)
+  total_wins: number;
+
+  @Field(() => Number)
+  schedule_id: number;
+
+  @Field(() => Number)
   @Prop({ required: true })
   total_star: number;
 }
 
 export type PlayerDocument = Player & Document;
+
 export const PlayerSchema = SchemaFactory.createForClass(Player);
 export default mongoose.model<PlayerDocument>(Player.name, PlayerSchema);
