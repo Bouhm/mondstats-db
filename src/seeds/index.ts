@@ -10,7 +10,7 @@ import AbyssBattleModel from '../abyss-battle/abyss-battle.model';
 import ArtifactSetModel from '../artifact-set/artifact-set.model';
 import ArtifactModel from '../artifact/artifact.model';
 import CharacterModel from '../character/character.model';
-import PlayerCharacterModel, { PlayerCharacterDocument } from '../player-character/player-character.model';
+import PlayerCharacterModel from '../player-character/player-character.model';
 import PlayerModel, { PlayerDocument } from '../player/player.model';
 import connectDb from '../util/connection';
 import WeaponModel from '../weapon/weapon.model';
@@ -20,7 +20,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const spiralAbyssApiUrl = 'https://api-os-takumi.mihoyo.com/game_record/genshin/api/spiralAbyss';
 const userApiUrl = 'https://api-os-takumi.mihoyo.com/game_record/genshin/api/index';
-const charApiUrl = 'https://bbs-api-os.hoyolab.com/game_record/genshin/api/character';
+const charApiUrl = 'https://api-os-takumi.mihoyo.com/game_record/genshin/api/character';
 
 const axios = Axios.create({
   httpsAgent: new https.Agent({
@@ -43,7 +43,7 @@ let areAllStillBlocked = true;
 let abyssSchedule = 1;
 const blockedLevel = 0;
 const maxRest = (24 * 60 * 60 * 1000) / 30;
-const delayMs = 1000;
+const delayMs = 5000;
 const count = 0;
 let collectedTotal = 0;
 
