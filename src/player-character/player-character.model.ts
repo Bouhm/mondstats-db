@@ -99,6 +99,9 @@ export class PlayerCharacter {
   @Prop({ required: true })
   level: number;
 
+  @Field(() => Number)
+  strongest_strike: number;
+
   @Field(() => String)
   @Prop({
     type: MongooseSchema.Types.ObjectId,

@@ -446,7 +446,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
       }
     }
 
-    const playerCharacter = {
+    const playerCharacter: any = {
       oid: character.oid,
       character: characterRef._id,
       artifacts: artifactRefIds,
@@ -456,6 +456,10 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
       weapon: weaponRef._id,
       player: playerRef._id,
     };
+
+    if (playerAbyssData.damage_rank.length && playerAbyssData.damage_rank[0].avatar_id === character.oid) {
+      playerCharacter.strongest_strike = playerAbyssData.damage_rank[0].value;
+    }
 
     const playerCharacterRef = await PlayerCharacterModel.findOneAndUpdate(
       { character: characterRef._id, player: playerRef._id },
@@ -584,7 +588,13 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
         try {
           playerRef = await PlayerModel.findOneAndUpdate(
             { uid },
-            { uid, total_star: playerAbyssData.total_star },
+            {
+              uid,
+              total_star: playerAbyssData.total_star,
+              total_battles: playerAbyssData.total_battle_times,
+              total_wins: playerAbyssData.total_win_times,
+              schedule_id: playerAbyssData.schedule_id,
+            },
             options,
           );
 

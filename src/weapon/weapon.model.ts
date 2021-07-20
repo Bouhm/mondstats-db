@@ -29,13 +29,13 @@ export class Weapon {
   @Prop({ required: true })
   rarity: number;
 
-  @Field(() => Number)
-  @Prop({ required: true })
-  level: number;
+  // @Field(() => Number)
+  // @Prop({ required: true })
+  // level: number;
 
-  @Field(() => Number)
-  @Prop({ required: true })
-  affix_level: number;
+  // @Field(() => Number)
+  // @Prop({ required: true })
+  // affix_level: number;
 
   @Field(() => Number)
   @Prop({ required: true })
