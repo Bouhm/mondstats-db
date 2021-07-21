@@ -43,7 +43,7 @@ let areAllStillBlocked = true;
 let abyssSchedule = 1;
 const blockedLevel = 0;
 const maxRest = (24 * 60 * 60 * 1000) / 30;
-const delayMs = 5000;
+const delayMs = 2000;
 const count = 0;
 let collectedTotal = 0;
 
@@ -58,29 +58,36 @@ const options = {
   useFindAndModify: false,
 };
 
-const assignTraveler = (charData: ICharacterResponse) => {
+const assignTravelerOid = (charData: ICharacterResponse) => {
   let oid = 100;
-  let element = 'Anemo';
 
-  switch (charData.constellations[0].id) {
-    // Anemo
-    case 71:
-      element = 'Anemo';
+  switch (charData.element) {
+    case 'Anemo':
       oid = 100;
       break;
-    // Geo
-    case 91:
-      element = 'Geo';
+    case 'Geo':
       oid = 101;
+      break;
+    case 'Electro':
+      oid = 102;
+      break;
+    case 'Cryo':
+      oid = 103;
+      break;
+    case 'Hydro':
+      oid = 104;
+      break;
+    case 'Dendro':
+      oid = 105;
+      break;
+    case 'Pyro':
+      oid = 106;
       break;
     default:
       break;
   }
 
-  return {
-    oid,
-    element,
-  };
+  return oid;
 };
 
 const _incrementTokenIdx = async () => {
@@ -422,9 +429,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   };
 
   if (character.name === 'Traveler') {
-    const { oid, element } = assignTraveler(char);
-    character.oid = oid;
-    character.element = element;
+    character.oid = assignTravelerOid(char);
   }
 
   // _.map(character.constellations, constellation => {
