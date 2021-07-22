@@ -416,7 +416,6 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
     }
 
     const playerCharacter: any = {
-      oid: character.oid,
       character: characterRef._id,
       artifacts: artifactRefIds,
       constellation: cNum,
@@ -435,7 +434,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
       { $setOnInsert: playerCharacter },
       options,
     );
-    playerCharRefMap[playerCharacter.oid] = playerCharacterRef._id;
+    playerCharRefMap[character.oid] = playerCharacterRef._id;
   }
 };
 
