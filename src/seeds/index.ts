@@ -58,6 +58,38 @@ const options = {
   useFindAndModify: false,
 };
 
+const assignTravelerOid = (charData: ICharacterResponse) => {
+  let oid = 100;
+
+  switch (charData.element) {
+    case 'Anemo':
+      oid = 100;
+      break;
+    case 'Geo':
+      oid = 101;
+      break;
+    case 'Electro':
+      oid = 102;
+      break;
+    case 'Cryo':
+      oid = 103;
+      break;
+    case 'Hydro':
+      oid = 104;
+      break;
+    case 'Dendro':
+      oid = 105;
+      break;
+    case 'Pyro':
+      oid = 106;
+      break;
+    default:
+      break;
+  }
+
+  return oid;
+};
+
 const _incrementTokenIdx = async () => {
   tokenIdx++;
   _incrementProxyIdx();
@@ -395,6 +427,10 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
       };
     }),
   };
+
+  if (character.name === 'Traveler') {
+    character.oid = assignTravelerOid(char);
+  }
 
   // _.map(character.constellations, constellation => {
   //   delete constellation.is_actived
