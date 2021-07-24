@@ -32,6 +32,17 @@ export class Weapon {
   // @Field(() => Number)
   // @Prop({ required: true })
   // level: number;
+<<<<<<< HEAD
+=======
+
+  // @Field(() => Number)
+  // @Prop({ required: true })
+  // affix_level: number;
+
+  @Field(() => Number)
+  @Prop({ required: true })
+  level: number;
+>>>>>>> ae545d83283b9e19104d1857440f902d41913d17
 
   // @Field(() => Number)
   // @Prop({ required: true })
