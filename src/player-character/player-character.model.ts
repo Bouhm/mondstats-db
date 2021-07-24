@@ -66,10 +66,6 @@ export class PlayerCharacter {
   @Field(() => String)
   _id: MongooseSchema.Types.ObjectId;
 
-  @Field(() => Number)
-  @Prop({ required: true })
-  oid: number;
-
   @Field(() => String)
   @Prop({
     type: MongooseSchema.Types.ObjectId,
@@ -105,6 +101,9 @@ export class PlayerCharacter {
   @Field(() => Number)
   @Prop({ required: true })
   level: number;
+
+  @Field(() => Number)
+  strongest_strike: number;
 
   @Field(() => String)
   @Prop({
