@@ -5,16 +5,30 @@ import https from 'https';
 import _ from 'lodash';
 import mongoose, { Schema } from 'mongoose';
 import { firefox } from 'playwright-firefox';
+import simpleGit from 'simple-git';
 
 import AbyssBattleModel from '../abyss-battle/abyss-battle.model';
+import { AbyssBattleService } from '../abyss-battle/abyss-battle.service';
 import ArtifactSetModel from '../artifact-set/artifact-set.model';
+import { ArtifactSetService } from '../artifact-set/artifact-set.service';
 import ArtifactModel from '../artifact/artifact.model';
+import { ArtifactService } from '../artifact/artifact.service';
 import CharacterModel from '../character/character.model';
+import { CharacterService } from '../character/character.service';
 import PlayerCharacterModel from '../player-character/player-character.model';
+import { PlayerCharacterService } from '../player-character/player-character.service';
 import PlayerModel, { PlayerDocument } from '../player/player.model';
 import connectDb from '../util/connection';
 import WeaponModel from '../weapon/weapon.model';
+import { WeaponService } from '../weapon/weapon.service';
 import { IAbyssResponse, IArtifactSet, ICharacterResponse } from './interfaces';
+
+const playerCharacterService = new PlayerCharacterService(PlayerCharacterModel, AbyssBattleModel);
+const characterService = new CharacterService(CharacterModel);
+const abyssBattleService = new AbyssBattleService(AbyssBattleModel);
+const artifactService = new ArtifactService(ArtifactModel);
+const artifactSetService = new ArtifactSetService(ArtifactSetModel, ArtifactModel);
+const weaponService = new WeaponService(WeaponModel);
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -27,6 +41,8 @@ const axios = Axios.create({
     rejectUnauthorized: false,
   }),
 });
+
+const git = simpleGit();
 
 const tokensPath = './src/keys/tokens.json';
 const proxiesPath = './src/keys/proxies.json';
@@ -42,9 +58,12 @@ let iterationStart = Date.now();
 let areAllStillBlocked = true;
 let abyssSchedule = 1;
 const blockedLevel = 0;
-const maxRest = (24 * 60 * 60 * 1000) / 30;
-const delayMs = 2000;
+const dayMs = 24 * 60 * 60 * 1000;
+const maxRest = dayMs / 30;
+let delayMs = 200;
 const count = 0;
+let dateStart;
+let dateUpdate;
 let collectedTotal = 0;
 
 let playerRef: PlayerDocument;
@@ -57,6 +76,12 @@ const options = {
   runValidators: true,
   useFindAndModify: false,
 };
+
+function getNextMonday(date: Date) {
+  const day = date.getDay() || 7;
+  if (day !== 1) date.setHours(-24 * (day - 1)) + 7 * dayMs;
+  return new Date(date).setUTCHours(23, 59, 59, 999);
+}
 
 const assignTravelerOid = (charData: ICharacterResponse) => {
   let oid = 100;
@@ -101,6 +126,27 @@ const _incrementTokenIdx = async () => {
       proxyIdx = 0;
     } else {
       proxyIdx += TOKENS.length;
+    }
+
+    if (dateStart > dateUpdate) {
+      dateStart = new Date();
+      dateUpdate = getNextMonday(dateStart);
+
+      await abyssBattleService.save();
+
+      await Promise.all([
+        characterService.save(),
+        artifactService.save(),
+        artifactSetService.save(),
+        weaponService.save(),
+        playerCharacterService.save(),
+      ]);
+
+      // Update repo
+      console.log('pushing up database updates...');
+      await git.add(['data']);
+      await git.commit('AUTOUPDATE', ['data']);
+      await git.push();
     }
 
     const restMs = _.clamp(maxRest - (Date.now() - iterationStart), 0, maxRest) + delayMs;
@@ -160,7 +206,7 @@ const _updateDS = async () => {
       await page.goto(url);
     });
   } catch {
-    await _sleep(30 * 1000);
+    await _sleep(5 * 1000);
     console.log('Failed to update DS, trying again...');
     return await _updateDS();
   }
@@ -677,6 +723,8 @@ mongoose.connection.once('open', async () => {
   blockedIndices = new Array(TOKENS.length).fill(false);
 
   await _updateDS();
+  dateStart = new Date();
+  dateUpdate = getNextMonday(dateStart);
 
   switch (process.env.npm_config_abyss) {
     case 'prev':
@@ -708,6 +756,7 @@ mongoose.connection.once('open', async () => {
       case 'existing':
         console.log('Updating existing UIDs...');
         // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
+        delayMs = 60 * 1000;
         const players = await PlayerModel.find().sort({ updatedAt: -1 });
         const uids = _.map(players, (player) => player.uid);
         aggregateAllCharacterData(0, uids);
