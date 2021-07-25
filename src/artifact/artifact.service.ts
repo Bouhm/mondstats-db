@@ -35,6 +35,6 @@ export class ArtifactService {
       delete artifact.createdAt;
       delete artifact.updatedAt;
     });
-    fs.writeFileSync('src/data/artifacts.json', JSON.stringify(artifacts));
+    fs.writeFileSync('data/artifacts/artifacts.json', JSON.stringify(artifacts));
   }
 }

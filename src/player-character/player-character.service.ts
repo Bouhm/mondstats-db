@@ -8,10 +8,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { AbyssBattle, AbyssBattleDocument } from '../abyss-battle/abyss-battle.model';
 import { Affix } from '../artifact-set/artifact-set.model';
 // import abyssBattles from '../data/abyssBattles.json';
-import artifactSets from '../data/artifactSets.json';
 import { WeaponDocument } from '../weapon/weapon.model';
 import { ListPlayerCharacterInput } from './player-character.inputs';
 import { CharacterBuildStats, PlayerCharacter, PlayerCharacterDocument } from './player-character.model';
+import { getShortName } from '../util';
+import { Character, CharacterDocument } from '../character/character.model';
 
 const BP_WEAPONS = [
   'The Black Sword',
@@ -20,6 +21,7 @@ const BP_WEAPONS = [
   'The Viridescent Hunt',
   'Deathmatch',
 ];
+
 
 function _getActivationNumber(count: number, affixes: Affix[]) {
   const activations = _.map(affixes, (effect) => effect.activation_number);
@@ -39,6 +41,9 @@ export class PlayerCharacterService {
   constructor(
     @InjectModel(PlayerCharacter.name)
     private playerCharacterModel: Model<PlayerCharacterDocument>,
+
+    @InjectModel(Character.name)
+    private characterModel: Model<CharacterDocument>,
 
     @InjectModel(AbyssBattle.name)
     private abyssBattleModel: Model<AbyssBattleDocument>,
@@ -521,9 +526,19 @@ export class PlayerCharacterService {
   async save() {
     // await this.aggregateAll();
     const { weaponStats, artifactSetStats, characterStats, characterBuilds } = await this.aggregateAll();
-    fs.writeFileSync('src/data/weaponStats.json', JSON.stringify(weaponStats));
-    fs.writeFileSync('src/data/artifactSetStats.json', JSON.stringify(artifactSetStats));
-    fs.writeFileSync('src/data/characterBuilds.json', JSON.stringify(characterBuilds));
-    fs.writeFileSync('src/data/characterStats.json', JSON.stringify(characterStats));
+    const characterDb = await this.characterModel.find().lean();
+
+    fs.writeFileSync('data/weapons/weaponStats.json', JSON.stringify(weaponStats));
+    fs.writeFileSync('data/artifacts/artifactSetStats.json', JSON.stringify(artifactSetStats));
+
+    _.forEach(characterBuilds, charBuild => {
+      const character = _.find(characterDb, { _id: charBuild.char_id })
+      let fileName = getShortName(character.name);
+      if (character.name === 'Traveler') {
+        fileName += '-' + character.element.toLowerCase();
+      }
+
+      fs.writeFileSync(`data/characters/${fileName}.json`, JSON.stringify(charBuild));
+    })
   }
 }

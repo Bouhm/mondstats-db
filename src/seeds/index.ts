@@ -23,7 +23,7 @@ import WeaponModel from '../weapon/weapon.model';
 import { WeaponService } from '../weapon/weapon.service';
 import { IAbyssResponse, IArtifactSet, ICharacterResponse } from './interfaces';
 
-const playerCharacterService = new PlayerCharacterService(PlayerCharacterModel, AbyssBattleModel);
+const playerCharacterService = new PlayerCharacterService(PlayerCharacterModel, CharacterModel, AbyssBattleModel);
 const characterService = new CharacterService(CharacterModel);
 const abyssBattleService = new AbyssBattleService(AbyssBattleModel);
 const artifactService = new ArtifactService(ArtifactModel);
@@ -128,26 +128,25 @@ const _incrementTokenIdx = async () => {
       proxyIdx += TOKENS.length;
     }
 
-    if (dateStart > dateUpdate) {
-      dateStart = new Date();
-      dateUpdate = getNextMonday(dateStart);
+    // if (dateStart > dateUpdate) {
+    //   dateStart = new Date();
+    //   dateUpdate = getNextMonday(dateStart);
 
-      await abyssBattleService.save();
+    //   await Promise.all([
+    //     characterService.save(),
+    //     abyssBattleService.save(),
+    //     artifactService.save(),
+    //     artifactSetService.save(),
+    //     weaponService.save(),
+    //     playerCharacterService.save(),
+    //   ]);
 
-      await Promise.all([
-        characterService.save(),
-        artifactService.save(),
-        artifactSetService.save(),
-        weaponService.save(),
-        playerCharacterService.save(),
-      ]);
-
-      // Update repo
-      console.log('pushing up database updates...');
-      await git.add(['data']);
-      await git.commit('AUTOUPDATE', ['data']);
-      await git.push();
-    }
+    //   // Update repo
+    //   console.log('pushing up database updates...');
+    //   await git.add(['data']);
+    //   await git.commit('AUTOUPDATE', ['data']);
+    //   await git.push();
+    // }
 
     const restMs = _.clamp(maxRest - (Date.now() - iterationStart), 0, maxRest) + delayMs;
     iterationStart = Date.now();

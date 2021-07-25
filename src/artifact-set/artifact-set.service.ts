@@ -43,6 +43,6 @@ export class ArtifactSetService {
         return set;
       }),
     );
-    fs.writeFileSync('src/data/artifactSets.json', JSON.stringify(artifactSets));
+    fs.writeFileSync('data/artifacts/artifactSets.json', JSON.stringify(artifactSets));
   }
 }

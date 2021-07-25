@@ -35,6 +35,6 @@ export class WeaponService {
       delete weapon.createdAt;
       delete weapon.updatedAt;
     });
-    fs.writeFileSync('src/data/weapons.json', JSON.stringify(weapons));
+    fs.writeFileSync('data/weapons/weapons.json', JSON.stringify(weapons));
   }
 }

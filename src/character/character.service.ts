@@ -39,6 +39,6 @@ export class CharacterService {
       delete character.createdAt;
       delete character.updatedAt;
     });
-    fs.writeFileSync('src/data/characters.json', JSON.stringify(characters));
+    fs.writeFileSync('data/characters/characters.json', JSON.stringify(characters));
   }
 }

@@ -205,6 +205,11 @@ export class AbyssBattleService {
 
   async save() {
     const abyssData = await this.aggregateBattles();
-    fs.writeFileSync('src/data/abyssData.json', JSON.stringify(abyssData));
+
+    fs.writeFileSync('data/abysstopTeams.json', JSON.stringify(abyssData));
+
+    _.forEach(abyssData.abyss, floorData => {
+      fs.writeFileSync(`data/abyss/${floorData.floor_level}.json`, JSON.stringify(floorData));
+    })
   }
 }

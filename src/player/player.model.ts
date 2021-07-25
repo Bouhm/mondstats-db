@@ -18,11 +18,7 @@ export class Player {
 
   @Field(() => Number)
   total_wins: number;
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> ae545d83283b9e19104d1857440f902d41913d17
   @Field(() => Number)
   schedule_id: number;
 
