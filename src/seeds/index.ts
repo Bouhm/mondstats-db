@@ -173,46 +173,51 @@ async function _sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// Grab DS
-const _updateDS = async () => {
+async function _retry(promiseFactory, retryCount) {
   try {
-    // const cookieTokens = TOKENS[tokenIdx].split(' ');
-    // const ltoken = cookieTokens[0].split('=')[1].slice(0, -1);
-    // const ltuid = cookieTokens[1].split('=')[1];
-
-    const browser = await firefox.launch();
-    const context = await browser.newContext({
-      extraHTTPHeaders: {
-        Cookie: TOKENS[tokenIdx],
-        'x-rpc-client_type': '4',
-        'x-rpc-app_version': '1.5.0',
-      },
-    });
-
-    // context.addCookies([
-    //   { name: 'ltoken', value: ltoken, domain: '.hoyolab.com', path: '/' },
-    //   { name: 'ltuid', value: ltuid, domain: '.hoyolab.com', path: '/'  },
-    // ]);
-
-    const page = await context.newPage();
-
-    return new Promise<void>(async (resolve) => {
-      page.on('request', (req) => {
-        if (req.headers().ds) {
-          DS = req.headers().ds;
-          resolve();
-          browser.close();
-        }
-      });
-
-      const url = 'https://www.hoyolab.com/genshin/accountCenter/gameRecord?id=63548220';
-      await page.goto(url);
-    });
-  } catch {
-    await _sleep(5 * 1000);
-    console.log('Failed to update DS, trying again...');
-    return await _updateDS();
+    return await promiseFactory();
+  } catch (error) {
+    if (retryCount <= 0) {
+      throw error;
+    }
+    return await _retry(promiseFactory, retryCount - 1);
   }
+}
+
+// Grab DS
+const updateDS = async () => {
+  // const cookieTokens = TOKENS[tokenIdx].split(' ');
+  // const ltoken = cookieTokens[0].split('=')[1].slice(0, -1);
+  // const ltuid = cookieTokens[1].split('=')[1];
+
+  const browser = await firefox.launch();
+  const context = await browser.newContext({
+    extraHTTPHeaders: {
+      Cookie: TOKENS[tokenIdx],
+      'x-rpc-client_type': '4',
+      'x-rpc-app_version': '1.5.0',
+    },
+  });
+
+  // context.addCookies([
+  //   { name: 'ltoken', value: ltoken, domain: '.hoyolab.com', path: '/' },
+  //   { name: 'ltuid', value: ltuid, domain: '.hoyolab.com', path: '/'  },
+  // ]);
+
+  const page = await context.newPage();
+
+  return new Promise<void>(async (resolve) => {
+    page.on('request', (req) => {
+      if (req.headers().ds) {
+        DS = req.headers().ds;
+        resolve();
+        browser.close();
+      }
+    });
+
+    const url = 'https://www.hoyolab.com/genshin/accountCenter/gameRecord?id=63548220';
+    await _retry(() => Promise.all([page.goto(url)]), 3);
+  });
 };
 
 const getHeaders = () => {
@@ -623,7 +628,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
         await handleBlock(currTokenIdx);
         continue;
       } else if (shouldCollectData === undefined) {
-        await _updateDS();
+        await updateDS();
         continue;
       }
       areAllStillBlocked = false;
@@ -668,7 +673,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
             await handleBlock(currTokenIdx);
             continue;
           } else if (characterIds === undefined) {
-            await _updateDS();
+            await updateDS();
             continue;
           } else {
             areAllStillBlocked = false;
@@ -681,7 +686,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
                 await handleBlock(currTokenIdx);
                 continue;
               } else if (result === undefined) {
-                await _updateDS();
+                await updateDS();
                 continue;
               } else {
                 areAllStillBlocked = false;
@@ -725,7 +730,7 @@ mongoose.connection.once('open', async () => {
   loadFromJson();
   blockedIndices = new Array(TOKENS.length).fill(false);
 
-  await _updateDS();
+  await updateDS();
   dateStart = new Date();
   dateUpdate = getNextMonday(dateStart);
 
