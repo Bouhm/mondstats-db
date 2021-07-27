@@ -46,7 +46,7 @@ const axios = Axios.create({
   }),
 });
 
-const git = simpleGit();
+// const git = simpleGit();
 
 const tokensPath = './src/keys/tokens.json';
 const proxiesPath = './src/keys/proxies.json';
