@@ -1,4 +1,3 @@
-import fs from 'fs';
 import _ from 'lodash';
 import { Model } from 'mongoose';
 
@@ -32,13 +31,15 @@ export class CharacterService {
     return this.characterModel.find(queryFilter).lean().exec();
   }
 
-  async save() {
+  async aggregate() {
     const characters = await this.characterModel.find().lean().exec();
+
     _.forEach(characters, (character: any) => {
       delete character.__v;
       delete character.createdAt;
       delete character.updatedAt;
     });
-    fs.writeFileSync('data/characters/characters.json', JSON.stringify(characters));
+
+    return characters;
   }
 }

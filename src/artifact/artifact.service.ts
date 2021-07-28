@@ -1,4 +1,3 @@
-import fs from 'fs';
 import _ from 'lodash';
 import { Model } from 'mongoose';
 
@@ -28,13 +27,14 @@ export class ArtifactService {
     return this.artifactModel.find(queryFilter).lean().exec();
   }
 
-  async save() {
+  async aggregate() {
     const artifacts = await this.artifactModel.find().lean().exec();
     _.forEach(artifacts, (artifact: any) => {
       delete artifact.__v;
       delete artifact.createdAt;
       delete artifact.updatedAt;
     });
-    fs.writeFileSync('data/artifacts/artifacts.json', JSON.stringify(artifacts));
+
+    return artifacts;
   }
 }

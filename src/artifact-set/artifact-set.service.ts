@@ -1,4 +1,3 @@
-import fs from 'fs';
 import _ from 'lodash';
 import { Model } from 'mongoose';
 import { ArtifactDocument } from 'src/artifact/artifact.model';
@@ -30,7 +29,7 @@ export class ArtifactSetService {
     return this.artifactSetModel.find(queryFilter).lean().exec();
   }
 
-  async save() {
+  async aggregate() {
     let artifactSets = await this.artifactSetModel.find().lean().exec();
     artifactSets = await Promise.all(
       _.map(artifactSets, async (set: any) => {
@@ -43,6 +42,7 @@ export class ArtifactSetService {
         return set;
       }),
     );
-    fs.writeFileSync('data/artifacts/artifactSets.json', JSON.stringify(artifactSets));
+
+    return artifactSets;
   }
 }

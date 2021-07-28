@@ -1,5 +1,7 @@
-import mongoose from 'mongoose';
 import fs from 'fs';
+import { find, forEach } from 'lodash';
+import mongoose from 'mongoose';
+
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
 import { AbyssBattleService } from '../abyss-battle/abyss-battle.service';
 import artifactSetModel from '../artifact-set/artifact-set.model';
@@ -10,11 +12,12 @@ import characterModel from '../character/character.model';
 import { CharacterService } from '../character/character.service';
 import playerCharacterModel from '../player-character/player-character.model';
 import { PlayerCharacterService } from '../player-character/player-character.service';
+import { getShortName } from '../util';
 import connectDb from '../util/connection';
 import weaponModel from '../weapon/weapon.model';
 import { WeaponService } from '../weapon/weapon.service';
 
-const playerCharacterService = new PlayerCharacterService(playerCharacterModel, characterModel, abyssBattleModel);
+const playerCharacterService = new PlayerCharacterService(playerCharacterModel, abyssBattleModel);
 const characterService = new CharacterService(characterModel);
 const abyssBattleService = new AbyssBattleService(abyssBattleModel);
 const artifactService = new ArtifactService(artifactModel);
@@ -24,14 +27,35 @@ const weaponService = new WeaponService(weaponModel);
 (async () => {
   connectDb();
 
-  await Promise.all([
-    abyssBattleService.save(),
-    characterService.save(),
-    artifactService.save(),
-    artifactSetService.save(),
-    weaponService.save(),
-    playerCharacterService.save(),
-  ]);
+  const artifactData = await artifactService.aggregate();
+  const artifactSetData = await artifactSetService.aggregate();
+  const characterData = await characterService.aggregate();
+  const weaponData = await weaponService.aggregate();
+  const abyssData = await abyssBattleService.aggregate();
+  const { weaponStats, artifactSetStats, characterStats, characterBuilds } =
+    await playerCharacterService.aggregate();
+
+  fs.writeFileSync(
+    'data/db.json',
+    JSON.stringify({
+      characters: characterData,
+      weapons: weaponData,
+      artifacts: artifactData,
+      artifactSets: artifactSetData,
+    }),
+  );
+
+  fs.writeFileSync('data/abyss/top-teams.json', JSON.stringify(abyssData.teams));
+
+  forEach(abyssData.abyss, (floorData) => {
+    fs.writeFileSync(`data/abyss/${floorData.floor_level}.json`, JSON.stringify(floorData));
+  });
+
+  forEach(characterBuilds, (charBuild) => {
+    const character = find(characterData, { _id: charBuild.char_id });
+    let fileName = getShortName(character);
+    fs.writeFileSync(`data/characters/${fileName}.json`, JSON.stringify(charBuild));
+  });
 
   mongoose.connection.close();
 })();

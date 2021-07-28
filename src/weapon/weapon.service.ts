@@ -1,4 +1,3 @@
-import fs from 'fs';
 import _ from 'lodash';
 import { Model } from 'mongoose';
 
@@ -28,13 +27,14 @@ export class WeaponService {
     return this.weaponModel.find(queryFilter).lean().exec();
   }
 
-  async save() {
+  async aggregate() {
     const weapons = await this.weaponModel.find().lean().exec();
     _.forEach(weapons, (weapon: any) => {
       delete weapon.__v;
       delete weapon.createdAt;
       delete weapon.updatedAt;
     });
-    fs.writeFileSync('data/weapons/weapons.json', JSON.stringify(weapons));
+
+    return weapons;
   }
 }

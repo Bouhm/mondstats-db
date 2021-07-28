@@ -1,4 +1,3 @@
-import fs from 'fs';
 import _ from 'lodash';
 import { Model } from 'mongoose';
 
@@ -9,17 +8,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { PlayerCharacter } from '../player-character/player-character.model';
 import { ListAbyssBattleInput } from './abyss-battle.inputs';
 import { AbyssBattle, AbyssBattleDocument, AbyssStats } from './abyss-battle.model';
-
-const _compareFloor = (f1: AbyssStats, f2: AbyssStats) => {
-  const f1Strs = f1.floor_level.split('-');
-  const f2Strs = f2.floor_level.split('-');
-
-  if (parseInt(f1Strs[0]) === parseInt(f2Strs[0])) {
-    return parseInt(f1Strs[1]) - parseInt(f2Strs[1]);
-  } else {
-    return parseInt(f1Strs[0]) - parseInt(f2Strs[0]);
-  }
-};
 
 @Injectable()
 export class AbyssBattleService {
@@ -203,13 +191,7 @@ export class AbyssBattleService {
     return { teams: abyssTeams, abyss: abyssBattles };
   }
 
-  async save() {
-    const abyssData = await this.aggregateBattles();
-
-    fs.writeFileSync('data/abyss/top-teams.json', JSON.stringify(abyssData));
-
-    _.forEach(abyssData.abyss, floorData => {
-      fs.writeFileSync(`data/abyss/${floorData.floor_level}.json`, JSON.stringify(floorData));
-    })
+  aggregate() {
+    return this.aggregateBattles();
   }
 }
