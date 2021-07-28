@@ -46,6 +46,9 @@ const weaponService = new WeaponService(weaponModel);
   );
 
   fs.writeFileSync('data/abyss/top-teams.json', JSON.stringify(abyssData.teams));
+  fs.writeFileSync('data/weapons/top-weapons.json', JSON.stringify(weaponStats));
+  fs.writeFileSync('data/artifacts/top-artifactsets.json', JSON.stringify(artifactSetStats));
+  fs.writeFileSync('data/characters/top-characters.json', JSON.stringify(characterStats));
 
   forEach(abyssData.abyss, (floorData) => {
     fs.writeFileSync(`data/abyss/${floorData.floor_level}.json`, JSON.stringify(floorData));
@@ -53,7 +56,7 @@ const weaponService = new WeaponService(weaponModel);
 
   forEach(characterBuilds, (charBuild) => {
     const character = find(characterData, { _id: charBuild.char_id });
-    let fileName = getShortName(character);
+    const fileName = getShortName(character);
     fs.writeFileSync(`data/characters/${fileName}.json`, JSON.stringify(charBuild));
   });
 
