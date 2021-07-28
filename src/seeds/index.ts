@@ -23,11 +23,7 @@ import WeaponModel from '../weapon/weapon.model';
 import { WeaponService } from '../weapon/weapon.service';
 import { IAbyssResponse, IArtifactSet, ICharacterResponse } from './interfaces';
 
-const playerCharacterService = new PlayerCharacterService(
-  PlayerCharacterModel,
-  CharacterModel,
-  AbyssBattleModel,
-);
+const playerCharacterService = new PlayerCharacterService(PlayerCharacterModel, AbyssBattleModel);
 const characterService = new CharacterService(CharacterModel);
 const abyssBattleService = new AbyssBattleService(AbyssBattleModel);
 const artifactService = new ArtifactService(ArtifactModel);
@@ -764,7 +760,7 @@ mongoose.connection.once('open', async () => {
       case 'existing':
         console.log('Updating existing UIDs...');
         // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
-        delayMs = 2 * 60 * 1000;
+        delayMs = 3 * 60 * 1000;
         const players = await PlayerModel.find().sort({ updatedAt: -1 });
         const uids = _.map(players, (player) => player.uid);
         aggregateAllCharacterData(0, uids);
