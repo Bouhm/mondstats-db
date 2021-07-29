@@ -741,7 +741,7 @@ const loadFromJson = () => {
 connectDb();
 mongoose.connection.once('open', async () => {
   try {
-    await purgeOld();
+    // await purgeOld();
 
     loadFromJson();
     blockedIndices = new Array(TOKENS.length).fill(false);
