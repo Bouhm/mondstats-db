@@ -29,6 +29,18 @@ const artifactSetService = new ArtifactSetService(artifactSetModel, artifactMode
 const weaponService = new WeaponService(weaponModel);
 const playerService = new PlayerService(playerModel);
 
+const cleanup = (dirPath, removeSelf = false) => {
+  const files = fs.readdirSync(dirPath);
+
+  if (files.length > 0)
+    for (let i = 0; i < files.length; i++) {
+      const filePath = dirPath + '/' + files[i];
+      if (fs.statSync(filePath).isFile()) fs.unlinkSync(filePath);
+      else cleanup(filePath);
+    }
+  if (removeSelf) fs.rmdirSync(dirPath);
+};
+
 (async () => {
   connectDb();
 
@@ -92,15 +104,7 @@ const playerService = new PlayerService(playerModel);
   await updateDb();
 
   // Delete files to save space
-  fs.readdir('data', (err, files) => {
-    if (err) throw err;
-
-    for (const file of files) {
-      fs.unlink(path.join('data', file), (err) => {
-        if (err) throw err;
-      });
-    }
-  });
+  cleanup('data');
 
   mongoose.connection.close();
 })();
