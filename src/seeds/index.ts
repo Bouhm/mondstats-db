@@ -2,10 +2,9 @@
 import Axios from 'axios';
 import fs from 'fs';
 import https from 'https';
-import _ from 'lodash';
+import _, { forEach, map } from 'lodash';
 import mongoose, { Schema } from 'mongoose';
 import { firefox } from 'playwright-firefox';
-import simpleGit from 'simple-git';
 
 import AbyssBattleModel from '../abyss-battle/abyss-battle.model';
 import { AbyssBattleService } from '../abyss-battle/abyss-battle.service';
@@ -17,7 +16,7 @@ import CharacterModel from '../character/character.model';
 import { CharacterService } from '../character/character.service';
 import PlayerCharacterModel from '../player-character/player-character.model';
 import { PlayerCharacterService } from '../player-character/player-character.service';
-import PlayerModel, { PlayerDocument } from '../player/player.model';
+import PlayerModel, { Player, PlayerDocument } from '../player/player.model';
 import connectDb from '../util/connection';
 import WeaponModel from '../weapon/weapon.model';
 import { WeaponService } from '../weapon/weapon.service';
@@ -289,6 +288,26 @@ const handleBlock = async (tokenIdx: number) => {
   }
 };
 
+const purgeOld = async () => {
+  const sixWeeksAgo = new Date(Date.now() - 6 * 7 * dayMs);
+  const oldPlayers = await PlayerModel.find({ updatedAt: { $lt: sixWeeksAgo } }).lean();
+
+  await Promise.all(
+    map(oldPlayers, (player) => {
+      return Promise.all([
+        PlayerModel.deleteOne({ _id: player._id }),
+        AbyssBattleModel.deleteMany({ player: player._id }),
+        PlayerCharacterModel.deleteMany({ player: player._id }),
+      ]);
+    }),
+  );
+
+  await PlayerCharacterModel.deleteMany({
+    updatedAt: { $lt: sixWeeksAgo },
+  });
+  await AbyssBattleModel.deleteMany({ updatedAt: { $lt: sixWeeksAgo } });
+};
+
 // Aggregate spiral abyss data
 const getSpiralAbyssData = async (
   server: string,
@@ -315,6 +334,10 @@ const getSpiralAbyssData = async (
       // console.log('Abyss data: ', resp.data.message);
       return undefined;
     }
+    // if (resp.data && resp.data.message && resp.data.message.startsWith('Data is not public')) {
+    //   await purgePlayer(uid)
+    //   return false;
+    // }
     if (!resp.data || !resp.data.data) {
       return false;
     }
@@ -717,56 +740,53 @@ const loadFromJson = () => {
 // Run functions
 connectDb();
 mongoose.connection.once('open', async () => {
-  // await PlayerCharacterModel.deleteMany({
-  //   createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-  // });
-  // await PlayerModel.deleteMany({ createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } });
-  // await AbyssBattleModel.deleteMany({ createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } });
+  try {
+    await purgeOld();
 
-  loadFromJson();
-  blockedIndices = new Array(TOKENS.length).fill(false);
-
-  await updateDS();
-  dateStart = new Date();
-  dateUpdate = getNextMonday(dateStart);
-
-  switch (process.env.npm_config_abyss) {
-    case 'prev':
-      console.log('Using last abyss data...');
-      abyssSchedule = 2;
-      break;
-    default:
-    case 'current':
-      console.log('Using current abyss data...');
-      abyssSchedule = 1;
-      break;
-  }
-
-  if (parseInt(process.env.npm_config_uid)) {
-    console.log('Starting from ' + process.env.npm_config_uid);
-    aggregateAllCharacterData(parseInt(process.env.npm_config_uid));
-  } else {
-    switch (process.env.npm_config_uid) {
+    loadFromJson();
+    blockedIndices = new Array(TOKENS.length).fill(false);
+    await updateDS();
+    dateStart = new Date();
+    dateUpdate = getNextMonday(dateStart);
+  
+    switch (process.env.npm_config_abyss) {
+      case 'prev':
+        console.log('Using last abyss data...');
+        abyssSchedule = 2;
+        break;
       default:
-      case 'last':
-        console.log('Starting after last UID...');
-        const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid');
-        aggregateAllCharacterData(lastPlayer.uid + 1);
-        break;
-      case 'all':
-        console.log('Starting from base UID...');
-        aggregateAllCharacterData();
-        break;
-      case 'existing':
-        console.log('Updating existing UIDs...');
-        // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
-        delayMs = 3 * 60 * 1000;
-        const players = await PlayerModel.find().sort({ updatedAt: -1 });
-        const uids = _.map(players, (player) => player.uid);
-        aggregateAllCharacterData(0, uids);
+      case 'current':
+        console.log('Using current abyss data...');
+        abyssSchedule = 1;
         break;
     }
+  
+    if (parseInt(process.env.npm_config_uid)) {
+      console.log('Starting from ' + process.env.npm_config_uid);
+      await aggregateAllCharacterData(parseInt(process.env.npm_config_uid));
+    } else {
+      switch (process.env.npm_config_uid) {
+        default:
+        case 'last':
+          console.log('Starting after last UID...');
+          const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid');
+          await aggregateAllCharacterData(lastPlayer.uid + 1);
+          break;
+        case 'all':
+          console.log('Starting from base UID...');
+          await aggregateAllCharacterData();
+          break;
+        case 'existing':
+          console.log('Updating existing UIDs...');
+          // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
+          delayMs = 4 * 60 * 1000;
+          const players = await PlayerModel.find().sort({ updatedAt: -1 });
+          const uids = _.map(players, (player) => player.uid);
+          await aggregateAllCharacterData(0, uids);
+          break;
+      }
+    }
+  } finally {
+    mongoose.connection.close();
   }
-
-  return () => mongoose.connection.close();
 });

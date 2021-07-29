@@ -520,4 +520,8 @@ export class PlayerCharacterService {
     // await this.aggregateAll();
     return this.aggregateAll();
   }
+
+  getStats() {
+    return this.playerCharacterModel.find().lean().count();
+  }
 }

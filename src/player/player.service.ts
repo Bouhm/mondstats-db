@@ -25,4 +25,8 @@ export class PlayerService {
 
     return this.playerModel.find(queryFilter).lean().exec();
   }
+
+  getStats() {
+    return this.playerModel.find().lean().count();
+  }
 }
