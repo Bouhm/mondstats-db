@@ -16,6 +16,7 @@ import { getShortName } from '../util';
 import connectDb from '../util/connection';
 import weaponModel from '../weapon/weapon.model';
 import { WeaponService } from '../weapon/weapon.service';
+import { updateDb } from './githubApi';
 
 const playerCharacterService = new PlayerCharacterService(playerCharacterModel, abyssBattleModel);
 const characterService = new CharacterService(characterModel);
@@ -59,6 +60,8 @@ const weaponService = new WeaponService(weaponModel);
     const fileName = getShortName(character);
     fs.writeFileSync(`data/characters/${fileName}.json`, JSON.stringify(charBuild));
   });
+
+  await updateDb();
 
   mongoose.connection.close();
 })();
