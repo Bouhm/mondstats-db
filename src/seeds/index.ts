@@ -211,7 +211,7 @@ const updateDS = async () => {
     });
 
     const url = 'https://www.hoyolab.com/genshin/accountCenter/gameRecord?id=63548220';
-    await _retry(() => Promise.all([page.goto(url)]), 3);
+    await _retry(() => page.goto(url), 3);
   });
 };
 
@@ -313,8 +313,7 @@ const getSpiralAbyssData = async (
   server: string,
   uid: number,
   scheduleType = 1,
-  threshold = 9,
-  secondTry = false,
+  threshold = 9
 ) => {
   const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${uid}&schedule_type=${scheduleType}`;
 
@@ -334,10 +333,6 @@ const getSpiralAbyssData = async (
       // console.log('Abyss data: ', resp.data.message);
       return undefined;
     }
-    // if (resp.data && resp.data.message && resp.data.message.startsWith('Data is not public')) {
-    //   await purgePlayer(uid)
-    //   return false;
-    // }
     if (!resp.data || !resp.data.data) {
       return false;
     }
@@ -347,12 +342,8 @@ const getSpiralAbyssData = async (
     if (maxFloor.split('-')[0] >= threshold) {
       playerAbyssData = resp.data.data;
       return true;
-    } else if (secondTry) {
-      return false;
     } else {
-      // Try again with other abyss schedule
-      const newSchedule = scheduleType === 1 ? 2 : 1;
-      return await getSpiralAbyssData(server, uid, newSchedule, threshold, true);
+      return false;
     }
   } catch (error) {
     console.log(error);
