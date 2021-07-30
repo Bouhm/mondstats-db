@@ -2,7 +2,7 @@
 import Axios from 'axios';
 import fs from 'fs';
 import https from 'https';
-import _, { forEach, map } from 'lodash';
+import _, { forEach, includes, map } from 'lodash';
 import mongoose, { Schema } from 'mongoose';
 import { firefox } from 'playwright-firefox';
 
@@ -64,7 +64,6 @@ const count = 0;
 let dateStart;
 let dateUpdate;
 let collectedTotal = 0;
-
 let playerRef: PlayerDocument;
 let playerCharRefMap: { [oid: string]: any } = {};
 let playerAbyssData: IAbyssResponse;
@@ -667,18 +666,31 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
           );
 
           let characterIds = [];
-          const playerCharacters = await PlayerCharacterModel.find({ player: playerRef._id })
+
+          // Every week we check for new characters
+          if (dateStart > dateUpdate) {
+            dateStart = new Date();
+            dateUpdate = getNextMonday(dateStart);
+
+            characterIds = await getPlayerCharacters(server, uid);            
+            currTokenIdx = tokenIdx;
+            await _incrementTokenIdx();
+
+          // Otherwise we skip the API call
+          } else {
+            const playerCharacters = await PlayerCharacterModel.find({ player: playerRef._id })
             .lean()
             .populate({ path: 'character', select: 'oid -_id' });
 
-          if (playerCharacters && playerCharacters.length > 0) {
-            characterIds = _.map(playerCharacters, (pc: any) => pc.oid);
-          } else {
-            characterIds = await getPlayerCharacters(server, uid);
-            currTokenIdx = tokenIdx;
-            await _incrementTokenIdx();
+            if (playerCharacters && playerCharacters.length > 0 && !includes(playerCharacters, undefined)) {
+              characterIds = _.map(playerCharacters, ({ character }: any) => character.oid);
+            } else {
+              characterIds = await getPlayerCharacters(server, uid);
+              currTokenIdx = tokenIdx;
+              await _incrementTokenIdx();
+            }
           }
-
+    
           if (characterIds === null) {
             await handleBlock(currTokenIdx);
             continue;
