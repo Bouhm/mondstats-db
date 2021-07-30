@@ -308,12 +308,7 @@ const purgeOld = async () => {
 };
 
 // Aggregate spiral abyss data
-const getSpiralAbyssData = async (
-  server: string,
-  uid: number,
-  scheduleType = 1,
-  threshold = 9
-) => {
+const getSpiralAbyssData = async (server: string, uid: number, scheduleType = 1, threshold = 9) => {
   const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${uid}&schedule_type=${scheduleType}`;
 
   try {
@@ -672,17 +667,21 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
             dateStart = new Date();
             dateUpdate = getNextMonday(dateStart);
 
-            characterIds = await getPlayerCharacters(server, uid);            
+            characterIds = await getPlayerCharacters(server, uid);
             currTokenIdx = tokenIdx;
             await _incrementTokenIdx();
 
-          // Otherwise we skip the API call
+            // Otherwise we skip the API call
           } else {
             const playerCharacters = await PlayerCharacterModel.find({ player: playerRef._id })
-            .lean()
-            .populate({ path: 'character', select: 'oid -_id' });
+              .lean()
+              .populate({ path: 'character', select: 'oid -_id' });
 
-            if (playerCharacters && playerCharacters.length > 0 && !includes(playerCharacters, undefined)) {
+            if (
+              playerCharacters &&
+              playerCharacters.length > 0 &&
+              !includes(playerCharacters, undefined)
+            ) {
               characterIds = _.map(playerCharacters, ({ character }: any) => character.oid);
             } else {
               characterIds = await getPlayerCharacters(server, uid);
@@ -690,7 +689,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
               await _incrementTokenIdx();
             }
           }
-    
+
           if (characterIds === null) {
             await handleBlock(currTokenIdx);
             continue;
@@ -751,7 +750,7 @@ mongoose.connection.once('open', async () => {
     await updateDS();
     dateStart = new Date();
     dateUpdate = getNextMonday(dateStart);
-  
+
     switch (process.env.npm_config_abyss) {
       case 'prev':
         console.log('Using last abyss data...');
@@ -763,7 +762,7 @@ mongoose.connection.once('open', async () => {
         abyssSchedule = 1;
         break;
     }
-  
+
     if (parseInt(process.env.npm_config_uid)) {
       console.log('Starting from ' + process.env.npm_config_uid);
       await aggregateAllCharacterData(parseInt(process.env.npm_config_uid));
@@ -772,8 +771,13 @@ mongoose.connection.once('open', async () => {
         default:
         case 'last':
           console.log('Starting after last UID...');
-          const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid');
+          const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid').lean();
           await aggregateAllCharacterData(lastPlayer.uid + 1);
+          break;
+        case 'resume':
+          console.log('Starting after last upated UID...');
+          const lastUpdatedPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 }).lean();
+          await aggregateAllCharacterData(lastUpdatedPlayer.uid + 1);
           break;
         case 'all':
           console.log('Starting from base UID...');
@@ -783,7 +787,7 @@ mongoose.connection.once('open', async () => {
           console.log('Updating existing UIDs...');
           // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
           delayMs = 4 * 60 * 1000;
-          const players = await PlayerModel.find().sort({ updatedAt: -1 });
+          const players = await PlayerModel.find().sort({ updatedAt: -1 }).lean();
           const uids = _.map(players, (player) => player.uid);
           await aggregateAllCharacterData(0, uids);
           break;
