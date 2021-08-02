@@ -19,7 +19,7 @@ import { getShortName } from '../util';
 import connectDb from '../util/connection';
 import weaponModel from '../weapon/weapon.model';
 import { WeaponService } from '../weapon/weapon.service';
-import { updateDb } from './githubApi';
+import { updateRepo } from './githubApi';
 
 const playerCharacterService = new PlayerCharacterService(playerCharacterModel, abyssBattleModel);
 const characterService = new CharacterService(characterModel);
@@ -41,8 +41,8 @@ const cleanup = (dirPath, removeSelf = false) => {
   if (removeSelf) fs.rmdirSync(dirPath);
 };
 
-(async () => {
-  connectDb();
+export const updateDb = async () => {
+  // connectDb();
 
   const artifactData = await artifactService.aggregate();
   const artifactSetData = await artifactSetService.aggregate();
@@ -101,10 +101,10 @@ const cleanup = (dirPath, removeSelf = false) => {
     }),
   ]);
 
-  await updateDb();
+  await updateRepo();
 
   // Delete files to save space
   cleanup('data');
 
-  mongoose.connection.close();
-})();
+  // mongoose.connection.close();
+};

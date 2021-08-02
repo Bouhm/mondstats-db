@@ -111,7 +111,7 @@ const setBranchToCommit = (octo: Octokit, org: string, repo: string, branch = `m
     sha: commitSha,
   });
 
-export const updateDb = async () => {
+export const updateRepo = async () => {
   dotenv.config();
   const octo = new Octokit({
     auth: process.env.GH_PAT,

@@ -2,32 +2,20 @@
 import Axios from 'axios';
 import fs from 'fs';
 import https from 'https';
-import _, { forEach, includes, map } from 'lodash';
+import { clamp, filter, find, forEach, forIn, includes, map, pick, shuffle, some } from 'lodash';
 import mongoose, { Schema } from 'mongoose';
 import { firefox } from 'playwright-firefox';
 
 import AbyssBattleModel from '../abyss-battle/abyss-battle.model';
-import { AbyssBattleService } from '../abyss-battle/abyss-battle.service';
 import ArtifactSetModel from '../artifact-set/artifact-set.model';
-import { ArtifactSetService } from '../artifact-set/artifact-set.service';
 import ArtifactModel from '../artifact/artifact.model';
-import { ArtifactService } from '../artifact/artifact.service';
 import CharacterModel from '../character/character.model';
-import { CharacterService } from '../character/character.service';
 import PlayerCharacterModel from '../player-character/player-character.model';
-import { PlayerCharacterService } from '../player-character/player-character.service';
-import PlayerModel, { Player, PlayerDocument } from '../player/player.model';
+import PlayerModel, { PlayerDocument } from '../player/player.model';
 import connectDb from '../util/connection';
 import WeaponModel from '../weapon/weapon.model';
-import { WeaponService } from '../weapon/weapon.service';
+import { updateDb } from './dbUtils';
 import { IAbyssResponse, IArtifactSet, ICharacterResponse } from './interfaces';
-
-const playerCharacterService = new PlayerCharacterService(PlayerCharacterModel, AbyssBattleModel);
-const characterService = new CharacterService(CharacterModel);
-const abyssBattleService = new AbyssBattleService(AbyssBattleModel);
-const artifactService = new ArtifactService(ArtifactModel);
-const artifactSetService = new ArtifactSetService(ArtifactSetModel, ArtifactModel);
-const weaponService = new WeaponService(WeaponModel);
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -40,8 +28,6 @@ const axios = Axios.create({
     rejectUnauthorized: false,
   }),
 });
-
-// const git = simpleGit();
 
 const tokensPath = './src/keys/tokens.json';
 const proxiesPath = './src/keys/proxies.json';
@@ -62,7 +48,8 @@ const maxRest = dayMs / 30;
 let delayMs = 200;
 const count = 0;
 let dateStart;
-let dateUpdate;
+let dailyUpdate;
+let weeklyUpdate;
 let collectedTotal = 0;
 let playerRef: PlayerDocument;
 let playerCharRefMap: { [oid: string]: any } = {};
@@ -81,6 +68,11 @@ function getNextMonday(date: Date) {
   return new Date(date).setUTCHours(23, 59, 59, 999);
 }
 
+function getNextDay(date: Date) {
+  date.setHours(24);
+  return new Date(date).setUTCHours(23, 59, 59, 999);
+}
+
 const assignTravelerOid = (charData: ICharacterResponse) => {
   let oid = 100;
 
@@ -94,7 +86,7 @@ const assignTravelerOid = (charData: ICharacterResponse) => {
     case 'Electro':
       oid = 102;
       break;
-    case 'Cryo':
+    case 'Cr2o':
       oid = 103;
       break;
     case 'Hydro':
@@ -126,27 +118,14 @@ const _incrementTokenIdx = async () => {
       proxyIdx += TOKENS.length;
     }
 
-    // if (dateStart > dateUpdate) {
-    //   dateStart = new Date();
-    //   dateUpdate = getNextMonday(dateStart);
+    if (dateStart > dailyUpdate) {
+      dateStart = new Date();
+      dailyUpdate = getNextDay(dateStart);
 
-    //   await Promise.all([
-    //     characterService.save(),
-    //     abyssBattleService.save(),
-    //     artifactService.save(),
-    //     artifactSetService.save(),
-    //     weaponService.save(),
-    //     playerCharacterService.save(),
-    //   ]);
+      updateDb();
+    }
 
-    //   // Update repo
-    //   console.log('pushing up database updates...');
-    //   await git.add(['data']);
-    //   await git.commit('AUTOUPDATE', ['data']);
-    //   await git.push();
-    // }
-
-    const restMs = _.clamp(maxRest - (Date.now() - iterationStart), 0, maxRest) + delayMs;
+    const restMs = clamp(maxRest - (Date.now() - iterationStart), 0, maxRest) + delayMs;
     iterationStart = Date.now();
     await _sleep(restMs);
   }
@@ -215,8 +194,8 @@ const updateDS = async () => {
 };
 
 const getHeaders = () => {
-  proxyIdx = _.clamp(proxyIdx, 0, PROXIES.length - 1);
-  tokenIdx = _.clamp(tokenIdx, 0, TOKENS.length - 1);
+  proxyIdx = clamp(proxyIdx, 0, PROXIES.length - 1);
+  tokenIdx = clamp(tokenIdx, 0, TOKENS.length - 1);
 
   return {
     Host: 'api-os-takumi.mihoyo.com',
@@ -267,9 +246,9 @@ function _getBaseUid(server: string, start = 0) {
 
 const handleBlock = async (tokenIdx: number) => {
   blockedIndices[tokenIdx] = true;
-  console.log(`${_.filter(blockedIndices, (blocked) => blocked).length}/${blockedIndices.length}`);
+  console.log(`${filter(blockedIndices, (blocked) => blocked).length}/${blockedIndices.length}`);
 
-  if (_.filter(blockedIndices, (blocked) => blocked).length >= TOKENS.length) {
+  if (filter(blockedIndices, (blocked) => blocked).length >= TOKENS.length) {
     console.log('--- ALL BLOCKED ---');
     // if (areAllStillBlocked) {
     //   blockedLevel++;
@@ -365,8 +344,8 @@ const getPlayerCharacters = async (server: string, uid: number, threshold = 40) 
         return [];
       }
 
-      return _.map(
-        _.filter(resp.data.data.avatars, (char) => char.level >= threshold),
+      return map(
+        filter(resp.data.data.avatars, (char) => char.level >= threshold),
         (char) => char.id,
       );
     })
@@ -380,7 +359,7 @@ function _getActivationNumber(count: number, affixes: any[]) {
   const activations: number[] = affixes.map((effect) => effect.activation_number);
 
   let activation = 0;
-  _.forEach(activations, (activation_num) => {
+  forEach(activations, (activation_num) => {
     if (count >= activation_num) {
       activation = activation_num;
     }
@@ -391,7 +370,7 @@ function _getActivationNumber(count: number, affixes: any[]) {
 
 const aggregateCharacterData = async (char: ICharacterResponse) => {
   const artifactSets: IArtifactSet = {};
-  _.forEach(char.reliquaries, (relic) => {
+  forEach(char.reliquaries, (relic) => {
     if (artifactSets.hasOwnProperty(relic.set.id)) {
       artifactSets[relic.set.id].count++;
     } else {
@@ -404,7 +383,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
 
   const artifactSetCombinations: { id: number; activation_number: number }[] = [];
 
-  _.forIn(artifactSets, (setData, id) => {
+  forIn(artifactSets, (setData, id) => {
     const activationNum = _getActivationNumber(setData.count, setData.affixes);
     if (activationNum > 0) {
       artifactSetCombinations.push({
@@ -425,16 +404,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   // Weapons
   const charWeapon = {
     oid: char.weapon.id,
-    ..._.pick(char.weapon, [
-      'desc',
-      'name',
-      'rarity',
-      'level',
-      'affix_level',
-      'type',
-      'type_name',
-      'icon',
-    ]),
+    ...pick(char.weapon, ['desc', 'name', 'rarity', 'level', 'affix_level', 'type', 'type_name', 'icon']),
   };
 
   const weaponRef = await WeaponModel.findOneAndUpdate(
@@ -448,7 +418,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   for (const artifact of char.reliquaries) {
     const charArtifact = {
       oid: artifact.id,
-      ..._.pick(artifact, ['name', 'rarity', 'icon', 'pos', 'pos_name']),
+      ...pick(artifact, ['name', 'rarity', 'icon', 'pos', 'pos_name']),
       set: {
         oid: artifact.set.id,
         affixes: artifact.set.affixes,
@@ -474,8 +444,8 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
   // Characters
   const character = {
     oid: char.id,
-    ..._.pick(char, ['element', 'name', 'rarity', 'icon', 'image']),
-    constellations: _.map(char.constellations, (constellation) => {
+    ...pick(char, ['element', 'name', 'rarity', 'icon', 'image']),
+    constellations: map(char.constellations, (constellation) => {
       return {
         oid: constellation.id,
         icon: constellation.icon,
@@ -490,7 +460,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
     character.oid = assignTravelerOid(char);
   }
 
-  // _.map(character.constellations, constellation => {
+  // map(character.constellations, constellation => {
   //   delete constellation.is_actived
   // })
 
@@ -533,21 +503,21 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
 };
 
 const aggregateAbyssData = (abyssData: IAbyssResponse) => {
-  _.map(
-    _.filter(abyssData.floors, (floor) => floor.index > 8),
+  map(
+    filter(abyssData.floors, (floor) => floor.index > 8),
     (floor) => {
-      _.map(
-        _.filter(floor.levels, (level) => level.star > 2),
+      map(
+        filter(floor.levels, (level) => level.star > 2),
         (level) => {
-          _.forEach(level.battles, async (battle) => {
+          forEach(level.battles, async (battle) => {
             const abyssBattle = {
               floor_level: `${floor.index}-${level.index}`,
               battle_index: battle.index,
               player: playerRef._id,
-              party: _.map(battle.avatars, (char) => playerCharRefMap[char.id]),
+              party: map(battle.avatars, (char) => playerCharRefMap[char.id]),
             };
 
-            if (_.some(abyssBattle.party, (char) => char === null || char === undefined)) return;
+            if (some(abyssBattle.party, (char) => char === null || char === undefined)) return;
 
             await AbyssBattleModel.findOneAndUpdate(
               {
@@ -587,11 +557,11 @@ const aggregatePlayerData = async (server: string, uid: number, characterIds: nu
       if (!resp.data || !resp.data.data) return false;
 
       await Promise.all(
-        _.map(resp.data.data.avatars, async (char) => {
+        map(resp.data.data.avatars, async (char) => {
           if (
             char.weapon.rarity >= 3 &&
             char.reliquaries.length === 5 &&
-            !_.find(char.reliquaries, (relic) => relic.rarity <= 3)
+            !find(char.reliquaries, (relic) => relic.rarity <= 3)
           ) {
             return aggregateCharacterData(char);
           }
@@ -663,9 +633,9 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
           let characterIds = [];
 
           // Every week we check for new characters
-          if (dateStart > dateUpdate) {
+          if (dateStart > weeklyUpdate) {
             dateStart = new Date();
-            dateUpdate = getNextMonday(dateStart);
+            weeklyUpdate = getNextMonday(dateStart);
 
             characterIds = await getPlayerCharacters(server, uid);
             currTokenIdx = tokenIdx;
@@ -682,7 +652,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
               playerCharacters.length > 0 &&
               !includes(playerCharacters, undefined)
             ) {
-              characterIds = _.map(playerCharacters, ({ character }: any) => character.oid);
+              characterIds = map(playerCharacters, ({ character }: any) => character.oid);
             } else {
               characterIds = await getPlayerCharacters(server, uid);
               currTokenIdx = tokenIdx;
@@ -732,9 +702,9 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
 // let sampleAbyss: { data: IAbyssResponse };
 
 const loadFromJson = () => {
-  TOKENS = _.shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
-  PROXIES = _.shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
-  // DS = _.shuffle(JSON.parse(fs.readFileSync(dsPath, 'utf-8')));
+  TOKENS = shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
+  PROXIES = shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
+  // DS = shuffle(JSON.parse(fs.readFileSync(dsPath, 'utf-8')));
   // sampleChars = JSON.parse(fs.readFileSync('./src/db/sampleChars.json', 'utf-8'));
   // sampleAbyss = JSON.parse(fs.readFileSync('./src/db/sampleAbyss.json', 'utf-8'));
 };
@@ -749,7 +719,8 @@ mongoose.connection.once('open', async () => {
     blockedIndices = new Array(TOKENS.length).fill(false);
     await updateDS();
     dateStart = new Date();
-    dateUpdate = getNextMonday(dateStart);
+    dailyUpdate = getNextDay(dateStart);
+    weeklyUpdate = getNextMonday(dateStart);
 
     switch (process.env.npm_config_abyss) {
       case 'prev':
@@ -788,7 +759,7 @@ mongoose.connection.once('open', async () => {
           // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
           delayMs = 4 * 60 * 1000;
           const players = await PlayerModel.find().sort({ updatedAt: -1 }).lean();
-          const uids = _.map(players, (player) => player.uid);
+          const uids = map(players, (player) => player.uid);
           await aggregateAllCharacterData(0, uids);
           break;
       }

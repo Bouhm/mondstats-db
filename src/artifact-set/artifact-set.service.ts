@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { map, maxBy } from 'lodash';
 import { Model } from 'mongoose';
 import { ArtifactDocument } from 'src/artifact/artifact.model';
 
@@ -32,9 +32,9 @@ export class ArtifactSetService {
   async aggregate() {
     let artifactSets = await this.artifactSetModel.find().lean().exec();
     artifactSets = await Promise.all(
-      _.map(artifactSets, async (set: any) => {
+      map(artifactSets, async (set: any) => {
         const artifacts = await this.artifactModel.find({ set: set._id, pos: 5 }).lean().exec();
-        const max = _.maxBy(artifacts, 'rarity') as unknown as any;
+        const max = maxBy(artifacts, 'rarity') as unknown as any;
         set.rarity = max.rarity;
         delete set.__v;
         delete set.createdAt;
