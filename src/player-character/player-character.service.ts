@@ -245,7 +245,7 @@ export class PlayerCharacterService {
     _.forEach(playerCharacters, ({ _id, character, weapon, artifacts, constellation, level }: any) => {
       const charWeapon = <WeaponDocument>weapon;
       const playerSets: any = {};
-      let parties = _.filter(teams, ({ party }) => _.includes(party, character._id.toString()));
+      const parties = _.filter(teams, ({ party }) => _.includes(party, character._id.toString()));
 
       // ===== PLAYER BUILDS =====
 
@@ -316,9 +316,6 @@ export class PlayerCharacterService {
         const constellations = new Array(7).fill(0);
         constellations[constellation] = 1;
 
-        const threshold = 2;
-        parties = _.filter(parties, ({ count }) => count > threshold);
-
         characterBuilds.push({
           char_id: character._id,
           constellations,
@@ -330,7 +327,7 @@ export class PlayerCharacterService {
               count: 1,
             },
           ],
-          teams: _.orderBy(parties, 'count', 'desc'),
+          teams: parties,
           total: 1,
         });
       }
@@ -397,16 +394,6 @@ export class PlayerCharacterService {
           // abyssCount,
         });
       }
-    });
-
-    const threshold = 3;
-
-    _.forEach(characterBuilds, ({ total, builds }, i) => {
-      characterBuilds[i].builds = _.orderBy(
-        _.filter(builds, ({ count }) => count >= threshold),
-        'count',
-        'desc',
-      );
     });
 
     return { weaponStats, artifactSetStats, characterStats, characterBuilds };
@@ -503,16 +490,6 @@ export class PlayerCharacterService {
       }
     });
 
-    const threshold = 3;
-
-    _.forEach(characterData, ({ total, builds }, i) => {
-      characterData[i].builds = _.orderBy(
-        _.filter(builds, ({ count }) => count >= threshold),
-        'count',
-        'desc',
-      );
-    });
-
     return characterData;
   }
 
@@ -522,6 +499,6 @@ export class PlayerCharacterService {
   }
 
   getStats() {
-    return this.playerCharacterModel.find().lean().count();
+    return this.playerCharacterModel.find().lean().countDocuments();
   }
 }

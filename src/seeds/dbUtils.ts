@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { find, forEach, map } from 'lodash';
+import { filter, find, forEach, map, orderBy, reduce, values } from 'lodash';
 import mongoose from 'mongoose';
 import path from 'path';
 
@@ -49,7 +49,8 @@ export const updateDb = async () => {
   const characterData = await characterService.aggregate();
   const weaponData = await weaponService.aggregate();
   const abyssData = await abyssBattleService.aggregate();
-  const { weaponStats, artifactSetStats, characterStats, characterBuilds } =
+  // eslint-disable-next-line prefer-const
+  let { weaponStats, artifactSetStats, characterStats, characterBuilds } =
     await playerCharacterService.aggregate();
   const playerCount = await playerService.getStats();
   const playerCharacterCount = await playerCharacterService.getStats();
@@ -70,6 +71,75 @@ export const updateDb = async () => {
       }
     }),
   );
+
+  const threshold = 0.05;
+
+  const abyssTeamTotal = reduce(abyssData.teams, (sum, curr) => sum + curr.count, 0);
+  abyssData.teams = orderBy(
+    filter(abyssData.teams, (team) => team.count / abyssTeamTotal >= threshold),
+    'count',
+    'desc',
+  );
+
+  const weaponStatsTotal = reduce(weaponStats, (sum, curr) => sum + curr.count, 0);
+  weaponStats = filter(weaponStats, (stat) => stat.count / weaponStatsTotal >= threshold);
+  weaponStats.forEach((stat) => {
+    const charCountsTotal = reduce(values(stat.characters), (sum, curr) => sum + curr, 0);
+    stat.characters = orderBy(
+      filter(stat.characters, (charCount) => charCount / charCountsTotal >= threshold),
+      'count',
+      'desc',
+    );
+  });
+
+  const artifactSetStatsTotal = reduce(weaponStats, (sum, curr) => sum + curr.count, 0);
+  artifactSetStats = filter(artifactSetStats, (stat) => stat.count / artifactSetStatsTotal >= threshold);
+  artifactSetStats.forEach((stat) => {
+    const charCountsTotal = reduce(values(stat.characters), (sum, curr) => sum + curr, 0);
+    stat.characters = orderBy(
+      filter(stat.characters, (charCount) => charCount / charCountsTotal >= threshold),
+      'count',
+      'desc',
+    );
+  });
+
+  characterStats = orderBy(characterStats, 'total', 'desc');
+
+  abyssData.abyss.forEach((floorData) => {
+    floorData.battle_parties.forEach((parties) => {
+      const partyTotal = reduce(parties, (sum, curr) => sum + curr.count, 0);
+      parties = orderBy(
+        filter(parties, (stat) => stat.count / partyTotal >= threshold),
+        'count',
+        'desc',
+      );
+    });
+  });
+
+  characterBuilds.forEach((charBuildStats) => {
+    const buildsTotal = reduce(charBuildStats.builds, (sum, curr) => sum + curr.count, 0);
+    charBuildStats.builds = orderBy(
+      filter(charBuildStats.builds, (build) => build.count / buildsTotal >= threshold),
+      'count',
+      'desc',
+    );
+
+    charBuildStats.builds.forEach((build) => {
+      const weaponsTotal = reduce(build.weapons, (sum, curr) => sum + curr.count, 0);
+      build.weapons = orderBy(
+        filter(build.weapons, (weapon) => weapon.count / weaponsTotal >= threshold),
+        'count',
+        'desc',
+      );
+    });
+
+    const teamsTotal = reduce(charBuildStats.teams, (sum, curr) => sum + curr.count, 0);
+    charBuildStats.teams = orderBy(
+      filter(charBuildStats.teams, (team) => team.count / teamsTotal >= threshold),
+      'count',
+      'desc',
+    );
+  });
 
   await Promise.all([
     fs.writeFile(
@@ -106,5 +176,6 @@ export const updateDb = async () => {
   // Delete files to save space
   cleanup('data');
 
+  console.log('DB UPDATE END');
   // mongoose.connection.close();
 };

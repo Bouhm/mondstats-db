@@ -119,6 +119,7 @@ const _incrementTokenIdx = async () => {
     }
 
     if (dateStart > dailyUpdate) {
+      console.log('DB UPDATE START');
       dateStart = new Date();
       dailyUpdate = getNextDay(dateStart);
 
@@ -714,6 +715,7 @@ connectDb();
 mongoose.connection.once('open', async () => {
   try {
     // await purgeOld();
+    // await updateDb();
 
     loadFromJson();
     blockedIndices = new Array(TOKENS.length).fill(false);
