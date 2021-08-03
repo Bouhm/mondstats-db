@@ -42,8 +42,6 @@ const cleanup = (dirPath, removeSelf = false) => {
 };
 
 export const updateDb = async () => {
-  // connectDb();
-
   const artifactData = await artifactService.aggregate();
   const artifactSetData = await artifactSetService.aggregate();
   const characterData = await characterService.aggregate();
@@ -72,7 +70,7 @@ export const updateDb = async () => {
     }),
   );
 
-  const threshold = 0.05;
+  const threshold = 0.005;
 
   const abyssTeamTotal = reduce(abyssData.teams, (sum, curr) => sum + curr.count, 0);
   abyssData.teams = orderBy(
@@ -177,5 +175,4 @@ export const updateDb = async () => {
   cleanup('data');
 
   console.log('DB UPDATE END');
-  // mongoose.connection.close();
 };

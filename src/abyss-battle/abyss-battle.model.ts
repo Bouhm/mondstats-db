@@ -19,7 +19,7 @@ export class PartyStats {
 export class AbyssStats {
   @Field(() => [[PartyStats]])
   battle_parties: PartyStats[][];
-  
+
   @Field(() => String)
   floor_level: string;
 }

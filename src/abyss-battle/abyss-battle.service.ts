@@ -96,7 +96,7 @@ export class AbyssBattleService {
   async aggregateBattles() {
     const battleIndices = 2;
     const abyssBattles: AbyssStats[] = [];
-    let abyssTeams = [];
+    const abyssTeams = [];
     const battles = await this.abyssBattleModel
       .find()
       .lean()
