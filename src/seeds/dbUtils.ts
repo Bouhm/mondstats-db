@@ -1,7 +1,5 @@
 import fs from 'fs';
-import { filter, find, forEach, map, orderBy, reduce, values } from 'lodash';
-import mongoose from 'mongoose';
-import path from 'path';
+import { filter, find, map, orderBy, pickBy, reduce, values } from 'lodash';
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
 import { AbyssBattleService } from '../abyss-battle/abyss-battle.service';
@@ -16,7 +14,6 @@ import { PlayerCharacterService } from '../player-character/player-character.ser
 import playerModel from '../player/player.model';
 import { PlayerService } from '../player/player.service';
 import { getShortName } from '../util';
-import connectDb from '../util/connection';
 import weaponModel from '../weapon/weapon.model';
 import { WeaponService } from '../weapon/weapon.service';
 import { updateRepo } from './githubApi';
@@ -48,7 +45,7 @@ export const updateDb = async () => {
   const weaponData = await weaponService.aggregate();
   const abyssData = await abyssBattleService.aggregate();
   // eslint-disable-next-line prefer-const
-  let { weaponStats, artifactSetStats, characterStats, characterBuilds } =
+  let { weaponStats, artifactSetStats, characterBuilds, characterStats } =
     await playerCharacterService.aggregate();
   const playerCount = await playerService.getStats();
   const playerCharacterCount = await playerCharacterService.getStats();
@@ -84,7 +81,7 @@ export const updateDb = async () => {
   weaponStats.forEach((stat) => {
     const charCountsTotal = reduce(values(stat.characters), (sum, curr) => sum + curr, 0);
     stat.characters = orderBy(
-      filter(stat.characters, (charCount) => charCount / charCountsTotal >= threshold),
+      pickBy(stat.characters, (charCount) => charCount / charCountsTotal >= threshold),
       'count',
       'desc',
     );
@@ -95,7 +92,7 @@ export const updateDb = async () => {
   artifactSetStats.forEach((stat) => {
     const charCountsTotal = reduce(values(stat.characters), (sum, curr) => sum + curr, 0);
     stat.characters = orderBy(
-      filter(stat.characters, (charCount) => charCount / charCountsTotal >= threshold),
+      pickBy(stat.characters, (charCount) => charCount / charCountsTotal >= threshold),
       'count',
       'desc',
     );

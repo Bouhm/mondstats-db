@@ -27,6 +27,6 @@ export class PlayerService {
   }
 
   getStats() {
-    return this.playerModel.find().lean().count();
+    return this.playerModel.find().lean().countDocuments();
   }
 }
