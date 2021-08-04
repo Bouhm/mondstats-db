@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { filter, findIndex, forEach, forIn, includes, isEqual, keys, map, omit, sortBy } from 'lodash';
 import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
@@ -20,10 +20,10 @@ const BP_WEAPONS = [
 ];
 
 function _getActivationNumber(count: number, affixes: Affix[]) {
-  const activations = _.map(affixes, (effect) => effect.activation_number);
+  const activations = map(affixes, (effect) => effect.activation_number);
 
   let activation = 0;
-  _.forEach(activations, (activation_num) => {
+  forEach(activations, (activation_num) => {
     if (count >= activation_num) {
       activation = activation_num;
     }
@@ -71,7 +71,7 @@ export class PlayerCharacterService {
       .exec();
 
     const filteredCharacters = [];
-    _.forEach(playerCharacters, (character) => {
+    forEach(playerCharacters, (character) => {
       const _character = character as unknown as any;
 
       if (filter.charIds) {
@@ -133,8 +133,8 @@ export class PlayerCharacterService {
     //   ])
     //   .exec();
 
-    // _.forEach(abyssBattles, ({ party }) => {
-    //   _.forEach(party, ({ character, artifacts, weapon }: any) => {
+    // forEach(abyssBattles, ({ party }) => {
+    //   forEach(party, ({ character, artifacts, weapon }: any) => {
     //     if (abyssUsageCounts.characters[character._id]) {
     //       abyssUsageCounts.characters[character._id]++;
     //     } else {
@@ -148,7 +148,7 @@ export class PlayerCharacterService {
     //     }
 
     //     const artifactSetCombinations = [];
-    //     _.forEach(_.countBy(artifacts, 'set'), (count, _id) => {
+    //     forEach(countBy(artifacts, 'set'), (count, _id) => {
     //       if (count > 1) {
     //         let activation_number = count;
     //         if (count % 2 !== 0) {
@@ -161,8 +161,8 @@ export class PlayerCharacterService {
     //       }
     //     });
 
-    //     const buildIdx = _.findIndex(abyssUsageCounts.artifactSets, (build: any) =>
-    //       _.isEqual(build.artifacts, artifactSetCombinations),
+    //     const buildIdx = findIndex(abyssUsageCounts.artifactSets, (build: any) =>
+    //       isEqual(build.artifacts, artifactSetCombinations),
     //     );
 
     //     if (buildIdx > 0) {
@@ -196,9 +196,9 @@ export class PlayerCharacterService {
       ])
       .exec();
 
-    _.forEach(abyssBattles, ({ party }) => {
-      const charIds = _.map(party, ({ character }: any) => character._id.toString()).sort();
-      const teamIndex = _.findIndex(teams, { party: charIds });
+    forEach(abyssBattles, ({ party }) => {
+      const charIds = map(party, ({ character }: any) => character._id.toString()).sort();
+      const teamIndex = findIndex(teams, { party: charIds });
 
       if (teamIndex > -1) {
         teams[teamIndex].count++;
@@ -242,30 +242,30 @@ export class PlayerCharacterService {
     const artifactSetStats = [];
     const characterStats = [];
 
-    _.forEach(playerCharacters, ({ _id, character, weapon, artifacts, constellation, level }: any) => {
+    forEach(playerCharacters, ({ _id, character, weapon, artifacts, constellation, level }: any) => {
       const charWeapon = <WeaponDocument>weapon;
       const playerSets: any = {};
-      const parties = _.filter(teams, ({ party }) => _.includes(party, character._id.toString()));
+      const parties = filter(teams, ({ party }) => includes(party, character._id.toString()));
 
       // ===== PLAYER BUILDS =====
 
       // Get artifact set combinations
-      _.forEach(artifacts, (relic: any) => {
+      forEach(artifacts, (relic: any) => {
         if (playerSets.hasOwnProperty(relic['set']._id)) {
           playerSets[relic['set']._id].count++;
         } else {
           playerSets[relic['set']._id] = {
             count: 1,
-            affixes: relic['set'].affixes,
+            affixes: map(relic['set'].affixes, (affix) => omit(affix, ['_id'])),
           };
         }
       });
 
-      if (_.keys(playerSets).length > 2) return;
+      if (keys(playerSets).length > 2) return;
 
       let artifactSetCombinations: { _id: string; activation_number: number }[] = [];
 
-      _.forIn(playerSets, (set, _id) => {
+      forIn(playerSets, (set, _id) => {
         const activationNum = _getActivationNumber(set.count, set.affixes);
 
         if (activationNum > 1) {
@@ -276,19 +276,19 @@ export class PlayerCharacterService {
         }
       });
 
-      artifactSetCombinations = _.sortBy(artifactSetCombinations, (set) => set._id);
+      artifactSetCombinations = sortBy(artifactSetCombinations, (set) => set._id);
 
-      const charIdx = _.findIndex(characterBuilds, { char_id: character._id });
+      const charIdx = findIndex(characterBuilds, { char_id: character._id });
 
       if (charIdx > -1) {
         characterBuilds[charIdx].constellations[constellation]++;
 
-        const buildIdx = _.findIndex(characterBuilds[charIdx].builds, (build) =>
-          _.isEqual(build.artifacts, artifactSetCombinations),
+        const buildIdx = findIndex(characterBuilds[charIdx].builds, (build) =>
+          isEqual(build.artifacts, artifactSetCombinations),
         );
         if (buildIdx > -1) {
           // Update weapons
-          const weaponIdx = _.findIndex(characterBuilds[charIdx].builds[buildIdx].weapons, {
+          const weaponIdx = findIndex(characterBuilds[charIdx].builds[buildIdx].weapons, {
             _id: charWeapon._id,
           });
           if (weaponIdx < 0) {
@@ -333,7 +333,7 @@ export class PlayerCharacterService {
       }
 
       // ===== CHARACTER STATS ====
-      const charStatIdx = _.findIndex(characterStats, { _id: character._id });
+      const charStatIdx = findIndex(characterStats, { _id: character._id });
       if (charStatIdx > -1) {
         characterStats[charStatIdx].total++;
       } else {
@@ -345,7 +345,7 @@ export class PlayerCharacterService {
       }
 
       // ===== WEAPON STATS =====
-      const weaponStatIdx = _.findIndex(weaponStats, { _id: charWeapon._id });
+      const weaponStatIdx = findIndex(weaponStats, { _id: charWeapon._id });
       if (weaponStatIdx > -1) {
         if (weaponStats[weaponStatIdx].characters[character._id]) {
           weaponStats[weaponStatIdx].characters[character._id]++;
@@ -368,8 +368,8 @@ export class PlayerCharacterService {
       }
 
       // ===== ARTIFACT SET STATS =====
-      const artifactStatIdx = _.findIndex(artifactSetStats, ({ artifacts }) =>
-        _.isEqual(artifacts, artifactSetCombinations),
+      const artifactStatIdx = findIndex(artifactSetStats, ({ artifacts }) =>
+        isEqual(artifacts, artifactSetCombinations),
       );
       if (artifactStatIdx > -1) {
         if (artifactSetStats[artifactStatIdx].characters[character._id]) {
@@ -380,8 +380,8 @@ export class PlayerCharacterService {
 
         artifactSetStats[artifactStatIdx].count++;
       } else {
-        // const abyssSetIdx = _.findIndex(abyssUsageCounts.artifactSets, ({ artifacts }) =>
-        //   _.isEqual(artifacts, artifactSetCombinations),
+        // const abyssSetIdx = findIndex(abyssUsageCounts.artifactSets, ({ artifacts }) =>
+        //   isEqual(artifacts, artifactSetCombinations),
         // );
 
         // const abyssCount = abyssSetIdx > -1 ? abyssUsageCounts.artifactSets[abyssSetIdx].count : 0;
@@ -403,27 +403,27 @@ export class PlayerCharacterService {
     const playerCharacters = await this.list(filter);
     const characterData: CharacterBuildStats[] = [];
 
-    _.forEach(playerCharacters, ({ character, weapon, artifacts, constellation, level }: any) => {
+    forEach(playerCharacters, ({ character, weapon, artifacts, constellation, level }: any) => {
       const charWeapon = <WeaponDocument>weapon;
       const playerSets: any = {};
 
       // Get artifact set combinations
-      _.forEach(artifacts, (relic: any) => {
+      forEach(artifacts, (relic: any) => {
         if (playerSets.hasOwnProperty(relic['set']._id)) {
           playerSets[relic['set']._id].count++;
         } else {
           playerSets[relic['set']._id] = {
             count: 1,
-            affixes: relic['set'].affixes,
+            affixes: map(relic['set'].affixes, (affix) => omit(affix, ['_id'])),
           };
         }
       });
 
-      if (_.keys(playerSets).length > 2) return;
+      if (keys(playerSets).length > 2) return;
 
       let artifactSetCombinations: { _id: string; activation_number: number }[] = [];
 
-      _.forIn(playerSets, (set, _id) => {
+      forIn(playerSets, (set, _id) => {
         const activationNum = _getActivationNumber(set.count, set.affixes);
 
         if (activationNum > 1) {
@@ -434,15 +434,15 @@ export class PlayerCharacterService {
         }
       });
 
-      artifactSetCombinations = _.sortBy(artifactSetCombinations, (set) => set._id);
+      artifactSetCombinations = sortBy(artifactSetCombinations, (set) => set._id);
 
-      const charIdx = _.findIndex(characterData, { char_id: character._id });
+      const charIdx = findIndex(characterData, { char_id: character._id });
 
       if (charIdx > -1) {
         characterData[charIdx].constellations[constellation]++;
 
-        const buildIdx = _.findIndex(characterData[charIdx].builds, (build) =>
-          _.isEqual(build.artifacts, artifactSetCombinations),
+        const buildIdx = findIndex(characterData[charIdx].builds, (build) =>
+          isEqual(build.artifacts, artifactSetCombinations),
         );
         if (buildIdx < 0) {
           characterData[charIdx].builds.push({
@@ -452,7 +452,7 @@ export class PlayerCharacterService {
           });
         } else {
           // Update weapons
-          const weaponIdx = _.findIndex(characterData[charIdx].builds[buildIdx].weapons, {
+          const weaponIdx = findIndex(characterData[charIdx].builds[buildIdx].weapons, {
             _id: charWeapon._id,
           });
           if (weaponIdx < 0) {

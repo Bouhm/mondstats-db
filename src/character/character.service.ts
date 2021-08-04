@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { forEach } from 'lodash';
 import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
@@ -34,10 +34,12 @@ export class CharacterService {
   async aggregate() {
     const characters = await this.characterModel.find().lean().exec();
 
-    _.forEach(characters, (character: any) => {
+    forEach(characters, (character: any) => {
       delete character.__v;
       delete character.createdAt;
       delete character.updatedAt;
+
+      forEach(character.constellation, (c) => delete c._id);
     });
 
     return characters;

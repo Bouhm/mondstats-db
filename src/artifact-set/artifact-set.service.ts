@@ -1,4 +1,4 @@
-import { map, maxBy } from 'lodash';
+import { forEach, map, maxBy } from 'lodash';
 import { Model } from 'mongoose';
 import { ArtifactDocument } from 'src/artifact/artifact.model';
 
@@ -39,6 +39,8 @@ export class ArtifactSetService {
         delete set.__v;
         delete set.createdAt;
         delete set.updatedAt;
+
+        forEach(set, (o) => delete o._id);
         return set;
       }),
     );
