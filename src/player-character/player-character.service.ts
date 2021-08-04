@@ -252,9 +252,9 @@ export class PlayerCharacterService {
       // Get artifact set combinations
       forEach(artifacts, (relic: any) => {
         if (playerSets.hasOwnProperty(relic['set']._id)) {
-          playerSets[relic['set']._id].count++;
+          playerSets[relic['set']._id.toString()].count++;
         } else {
-          playerSets[relic['set']._id] = {
+          playerSets[relic['set']._id.toString()] = {
             count: 1,
             affixes: map(relic['set'].affixes, (affix) => omit(affix, ['_id'])),
           };
@@ -276,7 +276,7 @@ export class PlayerCharacterService {
         }
       });
 
-      artifactSetCombinations = sortBy(artifactSetCombinations, (set) => set._id);
+      artifactSetCombinations = sortBy(artifactSetCombinations, (set) => set._id.toString());
 
       const charIdx = findIndex(characterBuilds, { char_id: character._id });
 
@@ -347,19 +347,26 @@ export class PlayerCharacterService {
       // ===== WEAPON STATS =====
       const weaponStatIdx = findIndex(weaponStats, { _id: charWeapon._id });
       if (weaponStatIdx > -1) {
-        if (weaponStats[weaponStatIdx].characters[character._id]) {
-          weaponStats[weaponStatIdx].characters[character._id]++;
+        const charIdx = findIndex(weaponStats[weaponStatIdx].characters, {
+          _id: character._id.toString(),
+        });
+
+        if (charIdx > -1) {
+          weaponStats[weaponStatIdx].characters[charIdx].count++;
         } else {
-          weaponStats[weaponStatIdx].characters[character._id] = 1;
+          weaponStats[weaponStatIdx].characters.push({ _id: character._id.toString(), count: 1 });
         }
 
         weaponStats[weaponStatIdx].count++;
       } else {
         weaponStats.push({
           _id: charWeapon._id,
-          characters: {
-            [character._id]: 1,
-          },
+          characters: [
+            {
+              _id: character._id.toString(),
+              count: 1,
+            },
+          ],
           type_name: charWeapon.type_name,
           rarity: charWeapon.rarity,
           count: 1,
@@ -372,10 +379,14 @@ export class PlayerCharacterService {
         isEqual(artifacts, artifactSetCombinations),
       );
       if (artifactStatIdx > -1) {
-        if (artifactSetStats[artifactStatIdx].characters[character._id]) {
-          artifactSetStats[artifactStatIdx].characters[character._id]++;
+        const charIdx = findIndex(artifactSetStats[artifactStatIdx].characters, {
+          _id: character._id.toString(),
+        });
+
+        if (charIdx > -1) {
+          artifactSetStats[artifactStatIdx].characters[charIdx].count++;
         } else {
-          artifactSetStats[artifactStatIdx].characters[character._id] = 1;
+          artifactSetStats[artifactStatIdx].characters.push({ _id: character._id.toString(), count: 1 });
         }
 
         artifactSetStats[artifactStatIdx].count++;
@@ -387,16 +398,19 @@ export class PlayerCharacterService {
         // const abyssCount = abyssSetIdx > -1 ? abyssUsageCounts.artifactSets[abyssSetIdx].count : 0;
         artifactSetStats.push({
           artifacts: artifactSetCombinations,
-          characters: {
-            [character._id]: 1,
-          },
+          characters: [
+            {
+              _id: character._id.toString(),
+              count: 1,
+            },
+          ],
           count: 1,
           // abyssCount,
         });
       }
     });
 
-    return { weaponStats, artifactSetStats, characterStats, characterBuilds };
+    return { weaponStats, artifactSetStats, characterBuilds, characterStats };
   }
 
   async aggregateBuilds(filter: ListPlayerCharacterInput = {}) {
@@ -409,10 +423,10 @@ export class PlayerCharacterService {
 
       // Get artifact set combinations
       forEach(artifacts, (relic: any) => {
-        if (playerSets.hasOwnProperty(relic['set']._id)) {
-          playerSets[relic['set']._id].count++;
+        if (playerSets.hasOwnProperty(relic['set']._id.toString())) {
+          playerSets[relic['set']._id.toString()].count++;
         } else {
-          playerSets[relic['set']._id] = {
+          playerSets[relic['set'].toString()] = {
             count: 1,
             affixes: map(relic['set'].affixes, (affix) => omit(affix, ['_id'])),
           };
@@ -434,9 +448,9 @@ export class PlayerCharacterService {
         }
       });
 
-      artifactSetCombinations = sortBy(artifactSetCombinations, (set) => set._id);
+      artifactSetCombinations = sortBy(artifactSetCombinations, (set) => set._id.toString());
 
-      const charIdx = findIndex(characterData, { char_id: character._id });
+      const charIdx = findIndex(characterData, { char_id: character._id.toString() });
 
       if (charIdx > -1) {
         characterData[charIdx].constellations[constellation]++;
@@ -446,17 +460,20 @@ export class PlayerCharacterService {
         );
         if (buildIdx < 0) {
           characterData[charIdx].builds.push({
-            weapons: [{ _id: charWeapon._id, count: 1 }],
+            weapons: [{ _id: charWeapon._id.toString(), count: 1 }],
             artifacts: artifactSetCombinations,
             count: 1,
           });
         } else {
           // Update weapons
           const weaponIdx = findIndex(characterData[charIdx].builds[buildIdx].weapons, {
-            _id: charWeapon._id,
+            _id: charWeapon._id.toString(),
           });
           if (weaponIdx < 0) {
-            characterData[charIdx].builds[buildIdx].weapons.push({ _id: charWeapon._id, count: 1 });
+            characterData[charIdx].builds[buildIdx].weapons.push({
+              _id: charWeapon._id.toString(),
+              count: 1,
+            });
           } else {
             characterData[charIdx].builds[buildIdx].weapons[weaponIdx].count++;
           }

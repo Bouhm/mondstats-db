@@ -33,7 +33,7 @@ export class ArtifactSetService {
     let artifactSets = await this.artifactSetModel.find().lean().exec();
     artifactSets = await Promise.all(
       map(artifactSets, async (set: any) => {
-        const artifacts = await this.artifactModel.find({ set: set._id, pos: 5 }).lean().exec();
+        const artifacts = await this.artifactModel.find({ set: set._id.toString(), pos: 5 }).lean().exec();
         const max = maxBy(artifacts, 'rarity') as unknown as any;
         set.rarity = max.rarity;
         delete set.__v;
