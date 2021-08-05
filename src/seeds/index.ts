@@ -47,7 +47,6 @@ const dayMs = 24 * 60 * 60 * 1000;
 const maxRest = dayMs / 30;
 let delayMs = 200;
 const count = 0;
-let dateStart;
 let dailyUpdate;
 let weeklyUpdate;
 let collectedTotal = 0;
@@ -116,14 +115,6 @@ const _incrementTokenIdx = async () => {
       proxyIdx = 0;
     } else {
       proxyIdx += TOKENS.length;
-    }
-
-    if (dateStart > dailyUpdate) {
-      console.log('DB UPDATE START');
-      dateStart = new Date();
-      dailyUpdate = getNextDay(dateStart);
-
-      updateDb();
     }
 
     const restMs = clamp(maxRest - (Date.now() - iterationStart), 0, maxRest) + delayMs;
@@ -592,6 +583,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
 
     playerCharRefMap = {};
     areAllStillBlocked = true;
+    const now = new Date();
 
     try {
       const shouldCollectData = await getSpiralAbyssData(server, uid, abyssSchedule);
@@ -634,9 +626,8 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
           let characterIds = [];
 
           // Every week we check for new characters
-          if (dateStart > weeklyUpdate) {
-            dateStart = new Date();
-            weeklyUpdate = getNextMonday(dateStart);
+          if (now > weeklyUpdate) {
+            weeklyUpdate = getNextMonday(now);
 
             characterIds = await getPlayerCharacters(server, uid);
             currTokenIdx = tokenIdx;
@@ -690,6 +681,13 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
           }
         } catch (err) {
           console.log(err);
+        } finally {
+          if (now > dailyUpdate) {
+            console.log('DB UPDATE START');
+            dailyUpdate = getNextDay(now);
+
+            updateDb();
+          }
         }
       }
     } catch (err) {
@@ -720,9 +718,9 @@ mongoose.connection.once('open', async () => {
     loadFromJson();
     blockedIndices = new Array(TOKENS.length).fill(false);
     await updateDS();
-    dateStart = new Date();
-    dailyUpdate = getNextDay(dateStart);
-    weeklyUpdate = getNextMonday(dateStart);
+    const now = new Date();
+    dailyUpdate = getNextDay(now);
+    weeklyUpdate = getNextMonday(now);
 
     switch (process.env.npm_config_abyss) {
       case 'prev':
