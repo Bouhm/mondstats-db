@@ -77,22 +77,30 @@ export const updateDb = async () => {
   );
 
   const weaponStatsTotal = reduce(weaponStats, (sum, curr) => sum + curr.count, 0);
-  weaponStats = filter(weaponStats, (stat) => stat.count / weaponStatsTotal >= threshold);
+  weaponStats = orderBy(
+    filter(weaponStats, (stat) => stat.count / weaponStatsTotal >= threshold),
+    'count',
+    'desc',
+  );
   weaponStats.forEach((stat) => {
     const charCountsTotal = reduce(values(stat.characters), (sum, curr) => sum + curr.count, 0);
     stat.characters = orderBy(
-      filter(stat.characters, (char) => char.count / charCountsTotal >= threshold * 2),
+      filter(stat.characters, (char) => char.count / charCountsTotal >= threshold * 3),
       'count',
       'desc',
     );
   });
 
   const artifactSetStatsTotal = reduce(weaponStats, (sum, curr) => sum + curr.count, 0);
-  artifactSetStats = filter(artifactSetStats, (stat) => stat.count / artifactSetStatsTotal >= threshold);
+  artifactSetStats = orderBy(
+    filter(artifactSetStats, (stat) => stat.count / artifactSetStatsTotal >= threshold / 3),
+    'count',
+    'desc',
+  );
   artifactSetStats.forEach((stat) => {
     const charCountsTotal = reduce(values(stat.characters), (sum, curr) => sum + curr.count, 0);
     stat.characters = orderBy(
-      filter(stat.characters, (char) => char.count / charCountsTotal >= threshold * 2),
+      filter(stat.characters, (char) => char.count / charCountsTotal >= threshold * 3),
       'count',
       'desc',
     );
