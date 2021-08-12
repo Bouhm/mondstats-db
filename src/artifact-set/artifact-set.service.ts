@@ -40,7 +40,6 @@ export class ArtifactSetService {
         delete set.createdAt;
         delete set.updatedAt;
 
-        forEach(set, (o) => delete o._id);
         return set;
       }),
     );
