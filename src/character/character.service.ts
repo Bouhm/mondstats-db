@@ -38,8 +38,6 @@ export class CharacterService {
       delete character.__v;
       delete character.createdAt;
       delete character.updatedAt;
-
-      forEach(character.constellation, (c) => delete c._id);
     });
 
     return characters;
