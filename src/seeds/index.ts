@@ -677,17 +677,18 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
                 console.log('Total: ', collectedTotal);
               }
             }
+
+            if (now > dailyUpdate) {
+              console.log('DB UPDATE START');
+              dailyUpdate = getNextDay(now);
+
+              await updateDb();
+            }
+
             if (!uids.length) uid++;
           }
         } catch (err) {
           console.log(err);
-        } finally {
-          if (now > dailyUpdate) {
-            console.log('DB UPDATE START');
-            dailyUpdate = getNextDay(now);
-
-            await updateDb();
-          }
         }
       }
     } catch (err) {
