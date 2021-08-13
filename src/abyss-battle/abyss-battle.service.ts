@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { difference, find, findIndex, forEach, includes, isEqual, map } from 'lodash';
 import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
@@ -47,11 +47,11 @@ export class AbyssBattleService {
       .exec();
 
     const filteredBattles = [];
-    _.forEach(abyssBattles, (battle) => {
+    forEach(abyssBattles, (battle) => {
       const _battle = battle as unknown as any;
 
       const battleStats = {
-        party: _.map(_battle.party, ({ character }) => character._id.toString()),
+        party: map(_battle.party, ({ character }) => character._id.toString()),
         floor_level: _battle.floor_level,
         battle_index: _battle.battle_index,
       };
@@ -59,7 +59,7 @@ export class AbyssBattleService {
       if (battleStats.party.length < 4) return;
 
       if (filter.charIds) {
-        if (_.difference(filter.charIds, battleStats.party).length !== 0) {
+        if (difference(filter.charIds, battleStats.party).length !== 0) {
           return;
         }
       }
@@ -67,16 +67,16 @@ export class AbyssBattleService {
       if (filter.f2p) {
         if (filter.charIds) {
           if (
-            _.find(
+            find(
               _battle.party,
               ({ character }) =>
-                character.rarity > 4 && !_.includes(filter.charIds, character._id.toString()),
+                character.rarity > 4 && !includes(filter.charIds, character._id.toString()),
             )
           ) {
             return;
           }
         } else {
-          if (_.find(_battle.party, ({ character }) => character.rarity > 4)) {
+          if (find(_battle.party, ({ character }) => character.rarity > 4)) {
             return;
           }
         }
@@ -114,14 +114,14 @@ export class AbyssBattleService {
       .exec();
     // const battle_indexes = { 1: 0, 2: 0 };
 
-    _.forEach(battles, ({ floor_level, battle_index, party }) => {
+    forEach(battles, ({ floor_level, battle_index, party }) => {
       // battle_indexes[battle_index]++;
 
-      const battleParty = _.map(party, ({ character }: any) => character._id.toString());
+      const battleParty = map(party, ({ character }: any) => character._id.toString());
       battleParty.sort();
 
       // Aggregate teams
-      const teamIdx = _.findIndex(abyssTeams, { party: battleParty });
+      const teamIdx = findIndex(abyssTeams, { party: battleParty });
       if (teamIdx > -1) {
         abyssTeams[teamIdx].count++;
       } else {
@@ -132,13 +132,13 @@ export class AbyssBattleService {
       }
 
       // Aggregate abyss battles
-      const floorIdx = _.findIndex(abyssBattles, { floor_level });
+      const floorIdx = findIndex(abyssBattles, { floor_level });
 
       if (floorIdx > -1) {
         const partyData = abyssBattles[floorIdx]['battle_parties'];
 
-        const partyIdx = _.findIndex(partyData[battle_index - 1], (battle: any) =>
-          _.isEqual(battle.party, battleParty),
+        const partyIdx = findIndex(partyData[battle_index - 1], (battle: any) =>
+          isEqual(battle.party, battleParty),
         );
 
         if (partyIdx > -1) {
@@ -160,7 +160,7 @@ export class AbyssBattleService {
         }
       } else {
         const battle_parties = new Array(battleIndices).fill([]);
-        battle_parties[battle_index - 1][0] = { party, count: 1 };
+        battle_parties[battle_index - 1][0] = { party: battleParty, count: 1 };
 
         abyssBattles.push({
           battle_parties,
