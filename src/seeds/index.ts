@@ -626,7 +626,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
           let characterIds = [];
 
           // Every week we check for new characters
-          if (now > weeklyUpdate) {
+          if (now.getTime() > weeklyUpdate) {
             weeklyUpdate = getNextMonday(now);
 
             characterIds = await getPlayerCharacters(server, uid);
@@ -677,18 +677,17 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
                 console.log('Total: ', collectedTotal);
               }
             }
-
-            if (now > dailyUpdate) {
-              console.log('DB UPDATE START');
-              dailyUpdate = getNextDay(now);
-
-              await updateDb();
-            }
-
             if (!uids.length) uid++;
           }
         } catch (err) {
           console.log(err);
+        } finally {
+          if (now.getTime() > dailyUpdate) {
+            console.log('DB UPDATE START');
+            dailyUpdate = getNextDay(now);
+
+            await updateDb();
+          }
         }
       }
     } catch (err) {
