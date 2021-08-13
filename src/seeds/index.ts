@@ -686,7 +686,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
             console.log('DB UPDATE START');
             dailyUpdate = getNextDay(now);
 
-            await updateDb();
+            updateDb();
           }
         }
       }
