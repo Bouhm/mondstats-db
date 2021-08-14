@@ -139,7 +139,8 @@ const _incrementTokenIdx = async () => {
 };
 
 const _nextToken = async () => {
-  const tokenDoc = await TokenModel.findOne().limit(1).sort({ $natural: -1 }).lean();
+  await TokenModel.findOneAndUpdate({ value: TOKENS[tokenIdx] }, { used: new Date() });
+  const tokenDoc = await TokenModel.findOne().limit(1).sort('used').lean();
   tokenIdx = findIndex(TOKENS, (token) => token === tokenDoc.value);
   _incrementProxyIdx();
 };
@@ -703,7 +704,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
             // if (!uids.length) uid++;
             if (!uids.length) {
               const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid').lean();
-              uid = lastPlayer.uid = 1;
+              uid = lastPlayer.uid + 1;
             }
           }
         } catch (err) {
@@ -745,6 +746,8 @@ mongoose.connection.once('open', async () => {
     loadFromJson();
     const TOKEN_DOCS = await TokenModel.find().lean();
     TOKENS = map(TOKEN_DOCS, (token) => token.value);
+    const tokenDoc = await TokenModel.findOne().limit(1).sort('used').lean();
+    tokenIdx = findIndex(TOKENS, (token) => token === tokenDoc.value);
     blockedIndices = new Array(TOKENS.length).fill(false);
     await updateDS();
     const now = new Date();
