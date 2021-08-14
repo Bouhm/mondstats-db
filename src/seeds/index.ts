@@ -601,7 +601,11 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
       areAllStillBlocked = false;
 
       if (!shouldCollectData) {
-        if (!uids.length) uid++;
+        // if (!uids.length) uid++;
+        if (!uids.length) {
+          const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid').lean();
+          uid = lastPlayer.uid = 1;
+        }
         continue;
       }
 
@@ -677,7 +681,11 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
                 console.log('Total: ', collectedTotal);
               }
             }
-            if (!uids.length) uid++;
+            // if (!uids.length) uid++;
+            if (!uids.length) {
+              const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid').lean();
+              uid = lastPlayer.uid = 1;
+            }
           }
         } catch (err) {
           console.log(err);
