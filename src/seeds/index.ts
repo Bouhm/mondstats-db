@@ -2,7 +2,19 @@
 import Axios from 'axios';
 import fs from 'fs';
 import https from 'https';
-import { clamp, filter, find, forEach, forIn, includes, map, pick, shuffle, some } from 'lodash';
+import {
+  clamp,
+  filter,
+  find,
+  findIndex,
+  forEach,
+  forIn,
+  includes,
+  map,
+  pick,
+  shuffle,
+  some,
+} from 'lodash';
 import mongoose, { Schema } from 'mongoose';
 import { firefox } from 'playwright-firefox';
 
@@ -12,6 +24,7 @@ import ArtifactModel from '../artifact/artifact.model';
 import CharacterModel from '../character/character.model';
 import PlayerCharacterModel from '../player-character/player-character.model';
 import PlayerModel, { PlayerDocument } from '../player/player.model';
+import TokenModel from '../token/token.model';
 import connectDb from '../util/connection';
 import WeaponModel from '../weapon/weapon.model';
 import { updateDb } from './dbUtils';
@@ -29,7 +42,7 @@ const axios = Axios.create({
   }),
 });
 
-const tokensPath = './src/keys/tokens.json';
+// const tokensPath = './src/keys/tokens.json';
 const proxiesPath = './src/keys/proxies.json';
 // const dsPath = './src/keys/DS.json';
 
@@ -123,6 +136,12 @@ const _incrementTokenIdx = async () => {
   }
 
   // if (DEVELOPMENT) console.log("using next token... " + tokenIdx);
+};
+
+const _nextToken = async () => {
+  const tokenDoc = await TokenModel.findOne().limit(1).sort({ $natural: -1 }).lean();
+  tokenIdx = findIndex(TOKENS, (token) => token === tokenDoc.value);
+  _incrementProxyIdx();
 };
 
 const _incrementProxyIdx = () => {
@@ -591,7 +610,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
       // Blocked
       if (shouldCollectData === null) {
         currTokenIdx = tokenIdx;
-        await _incrementTokenIdx();
+        await _nextToken();
         await handleBlock(currTokenIdx);
         continue;
       } else if (shouldCollectData === undefined) {
@@ -612,7 +631,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
       if (shouldCollectData) {
         console.log(`Collecting data for player ${uid}...`);
         currTokenIdx = tokenIdx;
-        await _incrementTokenIdx();
+        await _nextToken();
 
         try {
           playerRef = await PlayerModel.findOneAndUpdate(
@@ -635,7 +654,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
 
             characterIds = await getPlayerCharacters(server, uid);
             currTokenIdx = tokenIdx;
-            await _incrementTokenIdx();
+            await _nextToken();
 
             // Otherwise we skip the API call
           } else {
@@ -652,7 +671,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
             } else {
               characterIds = await getPlayerCharacters(server, uid);
               currTokenIdx = tokenIdx;
-              await _incrementTokenIdx();
+              await _nextToken();
             }
           }
 
@@ -667,7 +686,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
             if (characterIds.length > 0) {
               const result = await aggregatePlayerData(server, uid, characterIds);
               currTokenIdx = tokenIdx;
-              await _incrementTokenIdx();
+              await _nextToken();
 
               if (result === null) {
                 await handleBlock(currTokenIdx);
@@ -709,7 +728,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
 // let sampleAbyss: { data: IAbyssResponse };
 
 const loadFromJson = () => {
-  TOKENS = shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
+  // TOKENS = shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
   PROXIES = shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
   // DS = shuffle(JSON.parse(fs.readFileSync(dsPath, 'utf-8')));
   // sampleChars = JSON.parse(fs.readFileSync('./src/db/sampleChars.json', 'utf-8'));
@@ -724,6 +743,8 @@ mongoose.connection.once('open', async () => {
     // await updateDb();
 
     loadFromJson();
+    const TOKEN_DOCS = await TokenModel.find().lean();
+    TOKENS = map(TOKEN_DOCS, (token) => token.value);
     blockedIndices = new Array(TOKENS.length).fill(false);
     await updateDS();
     const now = new Date();
