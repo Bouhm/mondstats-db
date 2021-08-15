@@ -592,7 +592,7 @@ const aggregatePlayerData = async (server: string, curruid: number, characterIds
     });
 };
 
-const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
+const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uids = []) => {
   const baseUid = _getBaseUid(server);
   const end = baseUid + 99999999;
   let currTokenIdx = 0;
@@ -605,7 +605,6 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
     }
     currUid = uid;
 
-    console.log(currUid);
     playerCharRefMap = {};
     areAllStillBlocked = true;
     const now = new Date();
@@ -651,31 +650,27 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
           let characterIds = [];
 
           // Every week we check for new characters
-          if (now.getTime() > weeklyUpdate) {
-            weeklyUpdate = getNextMonday(now);
+          // if (now.getTime() > weeklyUpdate) {
+          //   weeklyUpdate = getNextMonday(now);
 
+          //   characterIds = await getPlayerCharacters(server, currUid);
+          //   currTokenIdx = tokenIdx;
+          //   await _incrementTokenIdx();
+
+          //   // Otherwise we skip the API call
+          // } else {
+          const playerCharacters = await PlayerCharacterModel.find({ player: playerRef._id })
+            .lean()
+            .populate({ path: 'character', select: 'oid -_id' });
+
+          if (playerCharacters && playerCharacters.length > 0 && !includes(playerCharacters, undefined)) {
+            characterIds = map(playerCharacters, ({ character }: any) => character.oid);
+          } else {
             characterIds = await getPlayerCharacters(server, currUid);
             currTokenIdx = tokenIdx;
             await _incrementTokenIdx();
-
-            // Otherwise we skip the API call
-          } else {
-            const playerCharacters = await PlayerCharacterModel.find({ player: playerRef._id })
-              .lean()
-              .populate({ path: 'character', select: 'oid -_id' });
-
-            if (
-              playerCharacters &&
-              playerCharacters.length > 0 &&
-              !includes(playerCharacters, undefined)
-            ) {
-              characterIds = map(playerCharacters, ({ character }: any) => character.oid);
-            } else {
-              characterIds = await getPlayerCharacters(server, currUid);
-              currTokenIdx = tokenIdx;
-              await _incrementTokenIdx();
-            }
           }
+          // }
 
           if (characterIds === null) {
             await handleBlock(currTokenIdx);
@@ -707,7 +702,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
         } catch (err) {
           console.log(err);
         } finally {
-          if (now.getTime() > dailyUpdate) {
+          if (isMainProcess && now.getTime() > dailyUpdate) {
             console.log('DB UPDATE START');
             dailyUpdate = getNextDay(now);
 
@@ -733,16 +728,15 @@ const loadFromJson = () => {
   // sampleAbyss = JSON.parse(fs.readFileSync('./src/db/sampleAbyss.json', 'utf-8'));
 };
 
-const runParallel = async (func: () => void) => {
-  let promiseResolve;
+const runParallel = async (func: (iMP: boolean) => void) => {
   const funcs = Array(concurrent).fill(func);
-  await new Promise(function (resolve, reject) {
-    parallel(funcs, function () {
-      promiseResolve = resolve;
-    });
-  });
 
-  promiseResolve();
+  // First process is main process
+  funcs[0] = () => func(true);
+
+  await new Promise(() => {
+    parallel(funcs);
+  });
 };
 
 // Run functions
@@ -775,23 +769,34 @@ mongoose.connection.once('open', async () => {
 
     if (parseInt(process.env.npm_config_uid)) {
       console.log('Starting from ' + process.env.npm_config_uid);
-      await runParallel(async () => await aggregateAllCharacterData(parseInt(process.env.npm_config_uid)));
+      await runParallel(
+        async (isMainProcess: boolean) =>
+          await aggregateAllCharacterData(isMainProcess, parseInt(process.env.npm_config_uid)),
+      );
     } else {
       switch (process.env.npm_config_uid) {
         default:
         case 'last':
           console.log('Starting after last UID...');
           const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid').lean();
-          await runParallel(async () => await aggregateAllCharacterData(lastPlayer.uid + 1));
+          await runParallel(
+            async (isMainProcess = false) =>
+              await aggregateAllCharacterData(isMainProcess, lastPlayer.uid + 1),
+          );
           break;
         case 'resume':
           console.log('Starting after last upated UID...');
           const lastUpdatedPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 }).lean();
-          await runParallel(async () => await aggregateAllCharacterData(lastUpdatedPlayer.uid + 1));
+          await runParallel(
+            async (isMainProcess = false) =>
+              await aggregateAllCharacterData(isMainProcess, lastUpdatedPlayer.uid + 1),
+          );
           break;
         case 'all':
           console.log('Starting from base UID...');
-          await runParallel(async () => await aggregateAllCharacterData());
+          await runParallel(
+            async (isMainProcess = false) => await aggregateAllCharacterData(isMainProcess),
+          );
           break;
         case 'existing':
           existingUids = true;
@@ -800,7 +805,9 @@ mongoose.connection.once('open', async () => {
           delayMs = 4 * 60 * 1000;
           const players = await PlayerModel.find().sort({ updatedAt: -1 }).lean();
           const uids = map(players, (player) => player.uid);
-          await runParallel(() => aggregateAllCharacterData(0, uids));
+          await runParallel(
+            async (isMainProcess = false) => await aggregateAllCharacterData(isMainProcess, 0, uids),
+          );
           break;
       }
     }
