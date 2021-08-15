@@ -43,7 +43,7 @@ const axios = Axios.create({
   }),
 });
 
-// const tokensPath = './src/keys/tokens.json';
+const tokensPath = './src/keys/tokens.json';
 const proxiesPath = './src/keys/proxies.json';
 // const dsPath = './src/keys/DS.json';
 
@@ -53,14 +53,15 @@ let DS = '';
 let blockedIndices: boolean[] = [];
 let proxyIdx = 0;
 let tokenIdx = 0;
+let uid = 0;
 let iterationStart = Date.now();
 let areAllStillBlocked = true;
 let abyssSchedule = 1;
 const blockedLevel = 0;
 const dayMs = 24 * 60 * 60 * 1000;
 const maxRest = dayMs / 30;
+const lastPatchCycle = new Date(Date.now() - 6 * 7 * dayMs);
 let delayMs = 200;
-const count = 0;
 let dailyUpdate;
 let weeklyUpdate;
 let collectedTotal = 0;
@@ -68,6 +69,7 @@ let playerRef: PlayerDocument;
 let playerCharRefMap: { [oid: string]: any } = {};
 let playerAbyssData: IAbyssResponse;
 let concurrent = 1;
+let existingUids = false;
 
 const options = {
   upsert: true,
@@ -138,13 +140,6 @@ const _incrementTokenIdx = async () => {
   }
 
   // if (DEVELOPMENT) console.log("using next token... " + tokenIdx);
-};
-
-const _nextToken = async () => {
-  await TokenModel.findOneAndUpdate({ value: TOKENS[tokenIdx] }, { used: new Date() });
-  const tokenDoc = await TokenModel.findOne().limit(1).sort('used').lean();
-  tokenIdx = findIndex(TOKENS, (token) => token === tokenDoc.value);
-  _incrementProxyIdx();
 };
 
 const _incrementProxyIdx = () => {
@@ -280,9 +275,8 @@ const handleBlock = async (tokenIdx: number) => {
   }
 };
 
-const purgeOld = async () => {
-  const sixWeeksAgo = new Date(Date.now() - 6 * 7 * dayMs);
-  const oldPlayers = await PlayerModel.find({ updatedAt: { $lt: sixWeeksAgo } }).lean();
+const purgePlayer = async (uid: number) => {
+  const oldPlayers = await PlayerModel.findOne({ uid }).lean();
 
   await Promise.all(
     map(oldPlayers, (player) => {
@@ -293,16 +287,18 @@ const purgeOld = async () => {
       ]);
     }),
   );
+};
 
+const purgeOld = async () => {
   await PlayerCharacterModel.deleteMany({
-    updatedAt: { $lt: sixWeeksAgo },
+    updatedAt: { $lt: lastPatchCycle },
   });
-  await AbyssBattleModel.deleteMany({ updatedAt: { $lt: sixWeeksAgo } });
+  await AbyssBattleModel.deleteMany({ updatedAt: { $lt: lastPatchCycle } });
 };
 
 // Aggregate spiral abyss data
-const getSpiralAbyssData = async (server: string, uid: number, scheduleType = 1, threshold = 9) => {
-  const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${uid}&schedule_type=${scheduleType}`;
+const getSpiralAbyssData = async (server: string, currUid: number, scheduleType = 1, threshold = 9) => {
+  const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${currUid}&schedule_type=${scheduleType}`;
 
   try {
     const resp = await axios.get(apiUrl, {
@@ -319,6 +315,10 @@ const getSpiralAbyssData = async (server: string, uid: number, scheduleType = 1,
     if (resp.data && resp.data.message && resp.data.message.startsWith('invalid')) {
       // console.log('Abyss data: ', resp.data.message);
       return undefined;
+    }
+    if (resp.data && resp.data.message && resp.data.message.startsWith('Data')) {
+      if (existingUids) purgePlayer(currUid);
+      return false;
     }
     if (!resp.data || !resp.data.data) {
       return false;
@@ -339,8 +339,8 @@ const getSpiralAbyssData = async (server: string, uid: number, scheduleType = 1,
 };
 
 // Get player's owned character ids
-const getPlayerCharacters = async (server: string, uid: number, threshold = 40) => {
-  const apiUrl = `${userApiUrl}?server=os_${server}&role_id=${uid}`;
+const getPlayerCharacters = async (server: string, currUid: number, threshold = 40) => {
+  const apiUrl = `${userApiUrl}?server=os_${server}&role_id=${currUid}`;
 
   return axios
     .get(apiUrl, { headers: getHeaders(), withCredentials: true })
@@ -549,11 +549,11 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
   );
 };
 
-const aggregatePlayerData = async (server: string, uid: number, characterIds: number[]) => {
+const aggregatePlayerData = async (server: string, curruid: number, characterIds: number[]) => {
   const reqBody = {
     character_ids: characterIds,
     server: `os_${server}`,
-    role_id: uid,
+    role_id: curruid,
   };
 
   return axios
@@ -596,24 +596,27 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
   const baseUid = _getBaseUid(server);
   const end = baseUid + 99999999;
   let currTokenIdx = 0;
-  let uid = !!initUid ? initUid : baseUid;
+  uid = !!initUid ? initUid : baseUid;
+  let currUid = uid;
 
   while (uid < end) {
     if (uids.length) {
       uid = uids.pop();
     }
+    currUid = uid;
 
+    console.log(currUid);
     playerCharRefMap = {};
     areAllStillBlocked = true;
     const now = new Date();
 
     try {
-      const shouldCollectData = await getSpiralAbyssData(server, uid, abyssSchedule);
+      const shouldCollectData = await getSpiralAbyssData(server, currUid, abyssSchedule);
 
       // Blocked
       if (shouldCollectData === null) {
         currTokenIdx = tokenIdx;
-        await _nextToken();
+        await _incrementTokenIdx();
         await handleBlock(currTokenIdx);
         continue;
       } else if (shouldCollectData === undefined) {
@@ -623,24 +626,20 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
       areAllStillBlocked = false;
 
       if (!shouldCollectData) {
-        // if (!uids.length) uid++;
-        if (!uids.length) {
-          const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid').lean();
-          uid = lastPlayer.uid = 1;
-        }
+        if (!uids.length) uid++;
         continue;
       }
 
       if (shouldCollectData) {
-        console.log(`Collecting data for player ${uid}...`);
+        console.log(`Collecting data for player ${currUid}...`);
         currTokenIdx = tokenIdx;
-        await _nextToken();
+        await _incrementTokenIdx();
 
         try {
           playerRef = await PlayerModel.findOneAndUpdate(
-            { uid },
+            { uid: currUid },
             {
-              uid,
+              uid: currUid,
               total_star: playerAbyssData.total_star,
               total_battles: playerAbyssData.total_battle_times,
               total_wins: playerAbyssData.total_win_times,
@@ -655,9 +654,9 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
           if (now.getTime() > weeklyUpdate) {
             weeklyUpdate = getNextMonday(now);
 
-            characterIds = await getPlayerCharacters(server, uid);
+            characterIds = await getPlayerCharacters(server, currUid);
             currTokenIdx = tokenIdx;
-            await _nextToken();
+            await _incrementTokenIdx();
 
             // Otherwise we skip the API call
           } else {
@@ -672,9 +671,9 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
             ) {
               characterIds = map(playerCharacters, ({ character }: any) => character.oid);
             } else {
-              characterIds = await getPlayerCharacters(server, uid);
+              characterIds = await getPlayerCharacters(server, currUid);
               currTokenIdx = tokenIdx;
-              await _nextToken();
+              await _incrementTokenIdx();
             }
           }
 
@@ -687,9 +686,9 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
           } else {
             areAllStillBlocked = false;
             if (characterIds.length > 0) {
-              const result = await aggregatePlayerData(server, uid, characterIds);
+              const result = await aggregatePlayerData(server, currUid, characterIds);
               currTokenIdx = tokenIdx;
-              await _nextToken();
+              await _incrementTokenIdx();
 
               if (result === null) {
                 await handleBlock(currTokenIdx);
@@ -703,11 +702,7 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
                 console.log('Total: ', collectedTotal);
               }
             }
-            // if (!uids.length) uid++;
-            if (!uids.length) {
-              const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid').lean();
-              uid = lastPlayer.uid + 1;
-            }
+            if (!uids.length) uid++;
           }
         } catch (err) {
           console.log(err);
@@ -731,16 +726,23 @@ const aggregateAllCharacterData = async (initUid = 0, uids = []) => {
 // let sampleAbyss: { data: IAbyssResponse };
 
 const loadFromJson = () => {
-  // TOKENS = shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
+  TOKENS = shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
   PROXIES = shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
   // DS = shuffle(JSON.parse(fs.readFileSync(dsPath, 'utf-8')));
   // sampleChars = JSON.parse(fs.readFileSync('./src/db/sampleChars.json', 'utf-8'));
   // sampleAbyss = JSON.parse(fs.readFileSync('./src/db/sampleAbyss.json', 'utf-8'));
 };
 
-const runParallel = (func: () => void) => {
+const runParallel = async (func: () => void) => {
+  let promiseResolve;
   const funcs = Array(concurrent).fill(func);
-  parallel(funcs);
+  await new Promise(function (resolve, reject) {
+    parallel(funcs, function () {
+      promiseResolve = resolve;
+    });
+  });
+
+  promiseResolve();
 };
 
 // Run functions
@@ -751,17 +753,13 @@ mongoose.connection.once('open', async () => {
     // await updateDb();
 
     loadFromJson();
-    const TOKEN_DOCS = await TokenModel.find().lean();
-    TOKENS = map(TOKEN_DOCS, (token) => token.value);
-    const tokenDoc = await TokenModel.findOne().limit(1).sort('used').lean();
-    tokenIdx = findIndex(TOKENS, (token) => token === tokenDoc.value);
     blockedIndices = new Array(TOKENS.length).fill(false);
     await updateDS();
     const now = new Date();
     dailyUpdate = getNextDay(now);
     weeklyUpdate = getNextMonday(now);
 
-    concurrent = parseInt(process.env.npm_config_threads);
+    concurrent = parseInt(process.env.npm_config_concurrent);
 
     switch (process.env.npm_config_abyss) {
       case 'prev':
@@ -777,31 +775,32 @@ mongoose.connection.once('open', async () => {
 
     if (parseInt(process.env.npm_config_uid)) {
       console.log('Starting from ' + process.env.npm_config_uid);
-      await aggregateAllCharacterData(parseInt(process.env.npm_config_uid));
+      await runParallel(async () => await aggregateAllCharacterData(parseInt(process.env.npm_config_uid)));
     } else {
       switch (process.env.npm_config_uid) {
         default:
         case 'last':
           console.log('Starting after last UID...');
           const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid').lean();
-          runParallel(async () => await aggregateAllCharacterData(lastPlayer.uid + 1));
+          await runParallel(async () => await aggregateAllCharacterData(lastPlayer.uid + 1));
           break;
         case 'resume':
           console.log('Starting after last upated UID...');
           const lastUpdatedPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 }).lean();
-          runParallel(async () => await aggregateAllCharacterData(lastUpdatedPlayer.uid + 1));
+          await runParallel(async () => await aggregateAllCharacterData(lastUpdatedPlayer.uid + 1));
           break;
         case 'all':
           console.log('Starting from base UID...');
-          await aggregateAllCharacterData();
+          await runParallel(async () => await aggregateAllCharacterData());
           break;
         case 'existing':
+          existingUids = true;
           console.log('Updating existing UIDs...');
           // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
           delayMs = 4 * 60 * 1000;
           const players = await PlayerModel.find().sort({ updatedAt: -1 }).lean();
           const uids = map(players, (player) => player.uid);
-          runParallel(async () => await aggregateAllCharacterData(0, uids));
+          await runParallel(() => aggregateAllCharacterData(0, uids));
           break;
       }
     }
