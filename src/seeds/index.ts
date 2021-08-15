@@ -17,6 +17,7 @@ import {
 } from 'lodash';
 import mongoose, { Schema } from 'mongoose';
 import { firefox } from 'playwright-firefox';
+import parallel from 'run-parallel';
 
 import AbyssBattleModel from '../abyss-battle/abyss-battle.model';
 import ArtifactSetModel from '../artifact-set/artifact-set.model';
@@ -66,6 +67,7 @@ let collectedTotal = 0;
 let playerRef: PlayerDocument;
 let playerCharRefMap: { [oid: string]: any } = {};
 let playerAbyssData: IAbyssResponse;
+let concurrent = 1;
 
 const options = {
   upsert: true,
@@ -736,6 +738,11 @@ const loadFromJson = () => {
   // sampleAbyss = JSON.parse(fs.readFileSync('./src/db/sampleAbyss.json', 'utf-8'));
 };
 
+const runParallel = (func: () => void) => {
+  const funcs = Array(concurrent).fill(func);
+  parallel(funcs);
+};
+
 // Run functions
 connectDb();
 mongoose.connection.once('open', async () => {
@@ -753,6 +760,8 @@ mongoose.connection.once('open', async () => {
     const now = new Date();
     dailyUpdate = getNextDay(now);
     weeklyUpdate = getNextMonday(now);
+
+    concurrent = parseInt(process.env.npm_config_threads);
 
     switch (process.env.npm_config_abyss) {
       case 'prev':
@@ -775,12 +784,12 @@ mongoose.connection.once('open', async () => {
         case 'last':
           console.log('Starting after last UID...');
           const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid').lean();
-          await aggregateAllCharacterData(lastPlayer.uid + 1);
+          runParallel(async () => await aggregateAllCharacterData(lastPlayer.uid + 1));
           break;
         case 'resume':
           console.log('Starting after last upated UID...');
           const lastUpdatedPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 }).lean();
-          await aggregateAllCharacterData(lastUpdatedPlayer.uid + 1);
+          runParallel(async () => await aggregateAllCharacterData(lastUpdatedPlayer.uid + 1));
           break;
         case 'all':
           console.log('Starting from base UID...');
@@ -792,7 +801,7 @@ mongoose.connection.once('open', async () => {
           delayMs = 4 * 60 * 1000;
           const players = await PlayerModel.find().sort({ updatedAt: -1 }).lean();
           const uids = map(players, (player) => player.uid);
-          await aggregateAllCharacterData(0, uids);
+          runParallel(async () => await aggregateAllCharacterData(0, uids));
           break;
       }
     }
