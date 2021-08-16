@@ -802,7 +802,7 @@ mongoose.connection.once('open', async () => {
           existingUids = true;
           console.log('Updating existing UIDs...');
           // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
-          delayMs = 4 * 60 * 1000;
+          delayMs = 5 * 60 * 1000;
           const players = await PlayerModel.find().sort({ updatedAt: -1 }).lean();
           const uids = map(players, (player) => player.uid);
           await runParallel(
