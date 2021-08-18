@@ -137,7 +137,7 @@ const _incrementTokenIdx = async () => {
     const restMs = clamp(maxRest - (Date.now() - iterationStart), 0, maxRest) + delayMs;
     iterationStart = Date.now();
     // await _sleep(restMs);
-    await _sleep(maxRest);
+    await _sleep(maxRest + 200);
   }
 
   // if (DEVELOPMENT) console.log("using next token... " + tokenIdx);
