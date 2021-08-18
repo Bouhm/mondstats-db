@@ -185,7 +185,7 @@ export const updateDb = async () => {
     fs.writeFile('data/characters/top-characters.json', JSON.stringify(characterStats), cb),
     fs.writeFile(
       'data/featured.json',
-      JSON.stringify({ player_total: playerCount, character_total: playerCharacterCount }),
+      JSON.stringify({ player_total: playerCount, character_total: playerCharacterCount, abyss_total: abyssTeamTotal }),
       cb,
     ),
     ...map(abyssData.abyss, (floorData) => {

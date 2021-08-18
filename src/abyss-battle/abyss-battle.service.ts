@@ -116,6 +116,7 @@ export class AbyssBattleService {
 
     forEach(battles, ({ floor_level, battle_index, party }) => {
       // battle_indexes[battle_index]++;
+      if (party.length < 4) return;
 
       const battleParty = map(party, ({ character }: any) => character._id.toString());
       battleParty.sort();

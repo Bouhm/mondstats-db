@@ -534,7 +534,9 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
 
             if (some(abyssBattle.party, (char) => char === null || char === undefined)) return;
 
-            await AbyssBattleModel.findOneAndUpdate(
+            console.log(`${floor.index}-${level.index}-${battle.index}`, abyssBattle.party)
+
+            const a = await AbyssBattleModel.findOneAndUpdate(
               {
                 floor_level: `${floor.index}-${level.index}`,
                 battle_index: battle.index,
@@ -543,6 +545,8 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
               { $setOnInsert: abyssBattle },
               options,
             );
+
+            console.log("db", a)
           });
         },
       );

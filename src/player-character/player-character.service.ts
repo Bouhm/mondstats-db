@@ -131,6 +131,8 @@ export class PlayerCharacterService {
 
     forEach(abyssBattles, ({ party }) => {
       forEach(party, ({ character }: any) => {
+        if (party.length < 4) return;
+
         if (abyssUsageCounts.characters[character._id]) {
           abyssUsageCounts.characters[character._id]++;
         } else {
