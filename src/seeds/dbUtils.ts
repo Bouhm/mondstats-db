@@ -117,6 +117,7 @@ export const updateDb = async () => {
   artifactSetStats = filter(artifactSetStats, (stat) => stat.characters.length);
 
   characterStats = orderBy(characterStats, 'total', 'desc');
+
   abyssData.abyss.forEach((floorData) => {
     floorData.battle_parties.forEach((parties) => {
       const partyTotal = getTotal(parties, min);
