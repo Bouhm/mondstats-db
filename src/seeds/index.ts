@@ -2,22 +2,11 @@
 import Axios from 'axios';
 import fs from 'fs';
 import https from 'https';
-import {
-  clamp,
-  filter,
-  find,
-  findIndex,
-  forEach,
-  forIn,
-  includes,
-  map,
-  pick,
-  shuffle,
-  some,
-} from 'lodash';
+import { clamp, filter, find, forEach, forIn, includes, map, pick, shuffle, some } from 'lodash';
 import mongoose, { Schema } from 'mongoose';
 import { firefox } from 'playwright-firefox';
 import parallel from 'run-parallel';
+import { async } from 'rxjs';
 
 import AbyssBattleModel from '../abyss-battle/abyss-battle.model';
 import ArtifactSetModel from '../artifact-set/artifact-set.model';
@@ -25,7 +14,6 @@ import ArtifactModel from '../artifact/artifact.model';
 import CharacterModel from '../character/character.model';
 import PlayerCharacterModel from '../player-character/player-character.model';
 import PlayerModel, { PlayerDocument } from '../player/player.model';
-import TokenModel from '../token/token.model';
 import connectDb from '../util/connection';
 import WeaponModel from '../weapon/weapon.model';
 import { updateDb } from './dbUtils';
@@ -518,13 +506,13 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
 };
 
 const aggregateAbyssData = (abyssData: IAbyssResponse) => {
-  map(
+  forEach(
     filter(abyssData.floors, (floor) => floor.index > 8),
     (floor) => {
-      map(
+      forEach(
         filter(floor.levels, (level) => level.star > 2),
         (level) => {
-          forEach(level.battles, async (battle) => {
+          forEach(level.battles, (battle) => {
             const abyssBattle = {
               floor_level: `${floor.index}-${level.index}`,
               battle_index: battle.index,
@@ -532,11 +520,15 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
               party: map(battle.avatars, (char) => playerCharRefMap[char.id]),
             };
 
-            if (some(abyssBattle.party, (char) => char === null || char === undefined)) return;
+            if (
+              some(abyssBattle.party, (char) => char === null || char === undefined) ||
+              abyssBattle.party.length < 4
+            )
+              return;
 
-            console.log(`${floor.index}-${level.index}-${battle.index}`, abyssBattle.party)
+            console.log(`${floor.index}-${level.index}-${battle.index}`, abyssBattle.party);
 
-            const a = await AbyssBattleModel.findOneAndUpdate(
+            AbyssBattleModel.findOneAndUpdate(
               {
                 floor_level: `${floor.index}-${level.index}`,
                 battle_index: battle.index,
@@ -544,9 +536,6 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
               },
               { $setOnInsert: abyssBattle },
               options,
-            );
-
-            console.log("db", a)
           });
         },
       );
