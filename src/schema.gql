@@ -10,12 +10,6 @@ type AbyssBattle {
   player: String!
 }
 
-type AbyssStats {
-  floor_level: String!
-  parties: [[PartyStats!]!]!
-  totals: [Float!]!
-}
-
 type Affix {
   activation_number: Float!
   effect: String!
@@ -28,7 +22,6 @@ type Artifact {
   oid: Float!
   pos: Float!
   pos_name: String!
-  rarity: Float!
   set: String!
 }
 
@@ -37,6 +30,7 @@ type ArtifactSet {
   affixes: [Affix!]!
   name: String!
   oid: Float!
+  rarity: Float!
 }
 
 type BuildSet {
@@ -67,10 +61,10 @@ type Character {
 }
 
 type CharacterBuildStats {
-  avg_level: Float!
   builds: [BuildStats!]!
   char_id: String!
   constellations: [Float!]!
+  teams: [TeamStats!]!
   total: Float!
 }
 
@@ -86,6 +80,7 @@ input ListAbyssBattleInput {
   charIds: [String!]
   f2p: Boolean
   floorLevels: [String!]
+  players: [String!]
   totalStars: Float
 }
 
@@ -125,7 +120,10 @@ type PartyStats {
 
 type Player {
   _id: String!
+  schedule_id: Float!
+  total_battles: Float!
   total_star: Float!
+  total_wins: Float!
   uid: Float!
 }
 
@@ -136,14 +134,13 @@ type PlayerCharacter {
   constellation: Float!
   fetter: Float!
   level: Float!
-  oid: Float!
   player: String!
+  strongest_strike: Float!
   weapon: String!
 }
 
 type Query {
   abyssBattles(filter: ListAbyssBattleInput): [AbyssBattle!]!
-  abyssStats(filter: ListAbyssBattleInput): [AbyssStats!]!
   artifactSets(filter: ListArtifactSetInput): [ArtifactSet!]!
   artifacts(filter: ListArtifactInput): [Artifact!]!
   character(id: String): Character!
@@ -154,10 +151,17 @@ type Query {
   weapons(filter: ListWeaponInput): [Weapon!]!
 }
 
+type TeamStats {
+  count: Float!
+  party: [PlayerCharacter!]!
+}
+
 type Weapon {
   _id: String!
+  affix_level: Float!
   desc: String!
   icon: String!
+  level: Float!
   name: String!
   oid: Float!
   rarity: Float!

@@ -6,6 +6,9 @@ export class ListAbyssBattleInput {
   f2p?: boolean;
 
   @Field(() => [String], { nullable: true })
+  players?: string[];
+
+  @Field(() => [String], { nullable: true })
   floorLevels?: string[];
 
   @Field(() => [String], { nullable: true })

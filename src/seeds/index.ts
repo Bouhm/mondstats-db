@@ -536,6 +536,7 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
               },
               { $setOnInsert: abyssBattle },
               options,
+            );
           });
         },
       );

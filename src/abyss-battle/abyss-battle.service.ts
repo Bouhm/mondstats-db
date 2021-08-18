@@ -20,9 +20,13 @@ export class AbyssBattleService {
     const queryFilter = {};
 
     if (filter) {
-      const { floorLevels } = filter;
+      const { floorLevels, players } = filter;
       if (floorLevels && floorLevels.length > 0) {
         queryFilter['floor_level'] = { $in: floorLevels };
+      }
+
+      if (players && players.length > 0) {
+        queryFilter['player'] = { $in: players };
       }
     }
 

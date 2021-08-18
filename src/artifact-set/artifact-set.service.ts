@@ -1,10 +1,10 @@
 import { forEach, map, maxBy } from 'lodash';
 import { Model } from 'mongoose';
-import { ArtifactDocument } from 'src/artifact/artifact.model';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
+import { Artifact, ArtifactDocument } from '../artifact/artifact.model';
 import { ListArtifactSetInput } from './artifact-set.inputs';
 import { ArtifactSet, ArtifactSetDocument } from './artifact-set.model';
 
@@ -13,6 +13,8 @@ export class ArtifactSetService {
   constructor(
     @InjectModel(ArtifactSet.name)
     private artifactSetModel: Model<ArtifactSetDocument>,
+
+    @InjectModel(Artifact.name)
     private artifactModel: Model<ArtifactDocument>,
   ) {}
 
