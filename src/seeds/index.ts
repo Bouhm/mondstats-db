@@ -526,8 +526,6 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
             )
               return;
 
-            console.log(`${floor.index}-${level.index}-${battle.index}`, abyssBattle.party);
-
             AbyssBattleModel.findOneAndUpdate(
               {
                 floor_level: `${floor.index}-${level.index}`,
@@ -700,7 +698,6 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
           if (isMainProcess && now.getTime() > dailyUpdate) {
             console.log('DB UPDATE START');
             dailyUpdate = getNextDay(now);
-
             updateDb();
           }
         }
