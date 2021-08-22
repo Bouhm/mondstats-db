@@ -111,7 +111,7 @@ const setBranchToCommit = (octo: Octokit, org: string, repo: string, branch = `m
     sha: commitSha,
   });
 
-export const updateRepo = async () => {
+export const updateRepo = async (branch: string) => {
   dotenv.config();
   const octo = new Octokit({
     auth: process.env.GH_PAT,
@@ -120,5 +120,5 @@ export const updateRepo = async () => {
   const ORGANIZATION = 'bouhm';
   const REPO = 'favonius-data';
 
-  await uploadToRepo(octo, `./data`, ORGANIZATION, REPO);
+  await uploadToRepo(octo, `./data`, ORGANIZATION, REPO, branch);
 };

@@ -16,7 +16,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "save": "NODE_PATH=./src ts-node ./src/seeds/writeDb.ts",
+    "save": "NODE_PATH=./src ts-node ./src/seeds/writeDb.ts -- $branch",
     "seed": "ts-node ./src/seeds/index.ts -- $uid $abyss $concurrent"
   },
   "dependencies": {

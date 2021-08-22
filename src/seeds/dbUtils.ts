@@ -1,7 +1,5 @@
 import fs from 'fs';
-import { filter, find, map, orderBy, reduce, values } from 'lodash';
-
-import { mixin } from '@nestjs/common';
+import { filter, forEach, find, map, orderBy, reduce, values } from 'lodash';
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
 import { AbyssBattleService } from '../abyss-battle/abyss-battle.service';
@@ -127,10 +125,10 @@ export const updateDb = async () => {
 
   characterStats = orderBy(characterStats, 'total', 'desc');
 
-  abyssData.abyss.forEach((floorData) => {
+  forEach(abyssData.abyss, (floorData, floor_level) => {
     floorData.battle_parties.forEach((parties, i) => {
       const partyTotal = getTotal(parties, min2);
-      parties = orderBy(
+      abyssData.abyss[floor_level].battle_parties[i] = orderBy(
         filter(parties, (stat) => stat.count / partyTotal >= threshold2 && stat.count > min2),
         'count',
         'desc',
@@ -204,7 +202,7 @@ export const updateDb = async () => {
     }),
   ]);
 
-  await updateRepo();
+  await updateRepo(process.env.npm_config_branch);
 
   // Delete files to save space
   cleanup('data');
