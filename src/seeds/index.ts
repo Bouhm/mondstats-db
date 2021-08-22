@@ -696,11 +696,11 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
         } catch (err) {
           console.log(err);
         } finally {
-          if (isMainProcess && now.getTime() > dailyUpdate) {
-            console.log('DB UPDATE START');
-            dailyUpdate = getNextDay(now);
-            updateDb();
-          }
+          // if (isMainProcess && now.getTime() > dailyUpdate) {
+          //   console.log('DB UPDATE START');
+          //   dailyUpdate = getNextDay(now);
+          //   updateDb();
+          // }
         }
       }
     } catch (err) {
