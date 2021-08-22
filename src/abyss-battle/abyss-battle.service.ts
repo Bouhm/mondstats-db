@@ -142,20 +142,20 @@ export class AbyssBattleService {
       if (floorIdx > -1) {
         const partyData = abyssBattles[floorIdx]['battle_parties'];
 
-        const partyIdx = findIndex(partyData[battle_index - 1], (battle: any) =>
+        const partyIdx = findIndex(partyData[0], (battle: any) =>
           isEqual(battle.party, battleParty),
         );
 
         if (partyIdx > -1) {
-          partyData[battle_index - 1][partyIdx].count++;
+          partyData[0][partyIdx].count++;
         } else {
           if (partyData.length) {
-            partyData[battle_index - 1].push({
+            partyData[0].push({
               party: battleParty,
               count: 1,
             });
           } else {
-            partyData[battle_index - 1] = [
+            partyData[0] = [
               {
                 party: battleParty,
                 count: 1,
@@ -164,8 +164,9 @@ export class AbyssBattleService {
           }
         }
       } else {
-        const battle_parties = new Array(battleIndices).fill([]);
-        battle_parties[battle_index - 1][0] = { party: battleParty, count: 1 };
+        // const battle_parties = new Array(battleIndices).fill([]);
+        const battle_parties = new Array(1).fill([]);
+        battle_parties[0][0] = { party: battleParty, count: 1 };
 
         abyssBattles.push({
           battle_parties,
@@ -179,5 +180,9 @@ export class AbyssBattleService {
 
   aggregate() {
     return this.aggregateBattles();
+  }
+
+  getStats() {
+    return this.abyssBattleModel.find().lean().countDocuments();
   }
 }

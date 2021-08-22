@@ -49,12 +49,13 @@ export const updateDb = async () => {
   const artifactSetData = await artifactSetService.aggregate();
   const characterData = await characterService.aggregate();
   const weaponData = await weaponService.aggregate();
-  const abyssData = await abyssBattleService.aggregate();
+  let abyssData = await abyssBattleService.aggregate();
   // eslint-disable-next-line prefer-const
   let { weaponStats, artifactSetStats, characterBuilds, characterStats } =
     await playerCharacterService.aggregate();
   const playerCount = await playerService.getStats();
   const playerCharacterCount = await playerCharacterService.getStats();
+  const abyssBattleCount = await abyssBattleService.getStats();
 
   const dirs = ['characters', 'artifacts', 'weapons', 'abyss'];
   const cb = (e) => e;
@@ -74,7 +75,7 @@ export const updateDb = async () => {
   const threshold1 = 0.005;
   const min1 = 2;
   const threshold2 = 0.01;
-  const min2 = 5;
+  const min2 = 4;
 
   const abyssTeamTotal = getTotal(abyssData.teams, min2);
   abyssData.teams = orderBy(
@@ -127,7 +128,7 @@ export const updateDb = async () => {
   characterStats = orderBy(characterStats, 'total', 'desc');
 
   abyssData.abyss.forEach((floorData) => {
-    floorData.battle_parties.forEach((parties) => {
+    floorData.battle_parties.forEach((parties, i) => {
       const partyTotal = getTotal(parties, min2);
       parties = orderBy(
         filter(parties, (stat) => stat.count / partyTotal >= threshold2 && stat.count > min2),
@@ -185,7 +186,7 @@ export const updateDb = async () => {
     fs.writeFile('data/characters/top-characters.json', JSON.stringify(characterStats), cb),
     fs.writeFile(
       'data/featured.json',
-      JSON.stringify({ player_total: playerCount, character_total: playerCharacterCount, abyss_total: abyssTeamTotal }),
+      JSON.stringify({ player_total: playerCount, character_total: playerCharacterCount, abyss_total: abyssBattleCount }),
       cb,
     ),
     ...map(abyssData.abyss, (floorData) => {

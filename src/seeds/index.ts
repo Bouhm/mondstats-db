@@ -455,6 +455,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
         name: constellation.name,
         effect: constellation.effect,
         pos: constellation.pos,
+        weapon_type: char.weapon.type
       };
     }),
   };

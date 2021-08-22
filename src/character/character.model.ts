@@ -51,6 +51,10 @@ export class Character {
   @Prop({ required: true })
   icon: string;
 
+  @Field(() => Number)
+  @Prop({ required: true })
+  weapon_type: number;
+
   @Field(() => String)
   @Prop({ required: true })
   image: string;
