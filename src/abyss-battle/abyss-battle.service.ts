@@ -147,7 +147,7 @@ export class AbyssBattleService {
         if (partyIdx > -1) {
           partyData[battle_index][partyIdx].count++;
         } else {
-          if (partyData.length) {
+          if (partyData[battle_index]) {
             partyData[battle_index].push({
               party: battleParty,
               count: 1,

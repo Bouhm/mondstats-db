@@ -57,7 +57,7 @@ export class CharacterBuildStats {
   teams: TeamStats[];
 
   @Field(() => Number)
-  total: number;
+  total?: number;
 }
 
 @ObjectType()

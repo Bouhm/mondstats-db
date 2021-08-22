@@ -32,6 +32,67 @@ function _getActivationNumber(count: number, affixes: Affix[]) {
   return activation;
 }
 
+function addCharacterBuild(
+  data: any, 
+  character: any, 
+  constellation: any,
+  artifactSetCombinations: any,
+  charWeapon: any,
+  parties: any
+) {
+  const charIdx = findIndex(data, { char_id: character._id });
+
+  if (charIdx > -1) {
+    data[charIdx].constellations[constellation]++;
+
+    const buildIdx = findIndex(data[charIdx].builds, (build: any) =>
+      isEqual(build.artifacts, artifactSetCombinations),
+    );
+    if (buildIdx > -1) {
+      // Update weapons
+      const weaponIdx = findIndex(data[charIdx].builds[buildIdx].weapons, {
+        _id: charWeapon._id,
+      });
+      if (weaponIdx < 0) {
+        data[charIdx].builds[buildIdx].weapons.push({ _id: charWeapon._id, count: 1 });
+      } else {
+        data[charIdx].builds[buildIdx].weapons[weaponIdx].count++;
+      }
+
+      // Update artifact set count
+      data[charIdx].builds[buildIdx].count++;
+    } else {
+      data[charIdx].builds.push({
+        weapons: [{ _id: charWeapon._id, count: 1 }],
+        artifacts: artifactSetCombinations,
+        count: 1,
+      });
+    }
+
+    // data[charIdx].avg_level = Math.floor(
+    //   data[charIdx].avg_level +
+    //     (level - data[charIdx].avg_level) / data[charIdx].total,
+    // );
+  } else {
+    const constellations = new Array(7).fill(0);
+    constellations[constellation] = 1;
+
+    data.push({
+      char_id: character._id,
+      constellations,
+      // avg_level: level,
+      builds: [
+        {
+          weapons: [{ _id: charWeapon._id, count: 1 }],
+          artifacts: artifactSetCombinations,
+          count: 1,
+        },
+      ],
+      teams: parties
+    });
+  }
+}
+
 @Injectable()
 export class PlayerCharacterService {
   constructor(
@@ -178,7 +239,7 @@ export class PlayerCharacterService {
 
     forEach(abyssBattles, ({ party }) => {
       const charIds = map(party, ({ character }: any) => character._id.toString()).sort();
-      const teamIndex = findIndex(teams, { party: charIds });
+      const teamIndex = findIndex(teams, team => isEqual(team.party, charIds));
 
       if (teamIndex > -1) {
         teams[teamIndex].count++;
@@ -218,6 +279,7 @@ export class PlayerCharacterService {
       .exec();
 
     const characterBuilds: CharacterBuildStats[] = [];
+    const mainCharacterBuilds: CharacterBuildStats[] = [];
     const weaponStats = [];
     const artifactSetStats = [];
     const characterStats = [];
@@ -257,59 +319,24 @@ export class PlayerCharacterService {
       });
 
       artifactSetCombinations = sortBy(artifactSetCombinations, (set) => set._id.toString());
+      addCharacterBuild(
+        characterBuilds, 
+        character, 
+        constellation, 
+        artifactSetCombinations, 
+        charWeapon, 
+        parties
+      );
 
-      const charIdx = findIndex(characterBuilds, { char_id: character._id });
-
-      if (charIdx > -1) {
-        characterBuilds[charIdx].constellations[constellation]++;
-
-        const buildIdx = findIndex(characterBuilds[charIdx].builds, (build) =>
-          isEqual(build.artifacts, artifactSetCombinations),
+      if (level >= 80) {
+        addCharacterBuild(
+          mainCharacterBuilds, 
+          character, 
+          constellation, 
+          artifactSetCombinations, 
+          charWeapon, 
+          parties
         );
-        if (buildIdx > -1) {
-          // Update weapons
-          const weaponIdx = findIndex(characterBuilds[charIdx].builds[buildIdx].weapons, {
-            _id: charWeapon._id,
-          });
-          if (weaponIdx < 0) {
-            characterBuilds[charIdx].builds[buildIdx].weapons.push({ _id: charWeapon._id, count: 1 });
-          } else {
-            characterBuilds[charIdx].builds[buildIdx].weapons[weaponIdx].count++;
-          }
-
-          // Update artifact set count
-          characterBuilds[charIdx].builds[buildIdx].count++;
-        } else {
-          characterBuilds[charIdx].builds.push({
-            weapons: [{ _id: charWeapon._id, count: 1 }],
-            artifacts: artifactSetCombinations,
-            count: 1,
-          });
-        }
-
-        characterBuilds[charIdx].total++;
-        // characterBuilds[charIdx].avg_level = Math.floor(
-        //   characterBuilds[charIdx].avg_level +
-        //     (level - characterBuilds[charIdx].avg_level) / characterBuilds[charIdx].total,
-        // );
-      } else {
-        const constellations = new Array(7).fill(0);
-        constellations[constellation] = 1;
-
-        characterBuilds.push({
-          char_id: character._id,
-          constellations,
-          // avg_level: level,
-          builds: [
-            {
-              weapons: [{ _id: charWeapon._id, count: 1 }],
-              artifacts: artifactSetCombinations,
-              count: 1,
-            },
-          ],
-          teams: parties,
-          total: 1,
-        });
       }
 
       // ===== CHARACTER STATS ====
@@ -390,7 +417,7 @@ export class PlayerCharacterService {
       }
     });
 
-    return { weaponStats, artifactSetStats, characterBuilds, characterStats };
+    return { weaponStats, artifactSetStats, characterBuilds, mainCharacterBuilds, characterStats };
   }
 
   async aggregateBuilds(filter: ListPlayerCharacterInput = {}) {
@@ -462,7 +489,6 @@ export class PlayerCharacterService {
           characterData[charIdx].builds[buildIdx].count++;
         }
 
-        characterData[charIdx].total++;
         // characterData[charIdx].avg_level = Math.floor(
         //   characterData[charIdx].avg_level +
         //     (level - characterData[charIdx].avg_level) / characterData[charIdx].total,

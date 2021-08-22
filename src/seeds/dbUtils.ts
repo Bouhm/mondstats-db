@@ -38,8 +38,8 @@ const cleanup = (dirPath, removeSelf = false) => {
   if (removeSelf) fs.rmdirSync(dirPath);
 };
 
-const getTotal = (stats: any, min: number) => {
-  return reduce(stats, (sum, curr) => (sum + curr.count > min ? curr.count : 0), 0);
+const getTotal = (stats: any, min = 0) => {
+  return reduce(stats, (sum, curr) => sum + (curr.count > min ? curr.count : 0), 0);
 };
 
 export const updateDb = async () => {
@@ -73,7 +73,7 @@ export const updateDb = async () => {
   const threshold1 = 0.005;
   const min1 = 2;
   const threshold2 = 0.01;
-  const min2 = 4;
+  const min2 = 3;
 
   const abyssTeamTotal = getTotal(abyssData.teams, min2);
   abyssData.teams = orderBy(
@@ -146,6 +146,7 @@ export const updateDb = async () => {
       'count',
       'desc',
     );
+    charBuildStats.total = getTotal(charBuildStats.builds);
 
     charBuildStats.builds.forEach((build) => {
       const weaponsTotal = getTotal(build.weapons, min1);
@@ -159,9 +160,9 @@ export const updateDb = async () => {
       );
     });
 
-    const teamsTotal = getTotal(charBuildStats.teams, min1);
+    const teamsTotal = getTotal(charBuildStats.teams, min2);
     charBuildStats.teams = orderBy(
-      filter(charBuildStats.teams, (team) => team.count / teamsTotal >= threshold1 && team.count > min1),
+      filter(charBuildStats.teams, (team) => team.count / teamsTotal >= threshold2 && team.count > min2),
       'count',
       'desc',
     );
