@@ -216,7 +216,7 @@ const getHeaders = () => {
   };
 };
 
-const server = 'asia';
+const server = 'usa';
 
 function _getBaseUid(server: string, start = 0) {
   let uidBase = 100000000;
@@ -455,7 +455,7 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
         name: constellation.name,
         effect: constellation.effect,
         pos: constellation.pos,
-        weapon_type: char.weapon.type
+        weapon_type: char.weapon.type,
       };
     }),
   };

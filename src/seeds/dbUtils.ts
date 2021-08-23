@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { filter, forEach, find, map, orderBy, reduce, values } from 'lodash';
+import { filter, find, forEach, map, orderBy, reduce, values } from 'lodash';
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
 import { AbyssBattleService } from '../abyss-battle/abyss-battle.service';
@@ -47,9 +47,9 @@ export const updateDb = async () => {
   const artifactSetData = await artifactSetService.aggregate();
   const characterData = await characterService.aggregate();
   const weaponData = await weaponService.aggregate();
-  let abyssData = await abyssBattleService.aggregate();
+  const abyssData = await abyssBattleService.aggregate();
   // eslint-disable-next-line prefer-const
-  let { weaponStats, artifactSetStats, characterBuilds, characterStats } =
+  let { weaponStats, artifactSetStats, characterBuilds, mainCharacterBuilds, characterStats } =
     await playerCharacterService.aggregate();
   const playerCount = await playerService.getStats();
   const playerCharacterCount = await playerCharacterService.getStats();
@@ -70,53 +70,49 @@ export const updateDb = async () => {
     }),
   );
 
-  const threshold1 = 0.005;
-  const min1 = 2;
-  const threshold2 = 0.01;
-  const min2 = 3;
+  if (!fs.existsSync(`data/characters/mains`)) {
+    await fs.mkdir(`data/characters/mains`, { recursive: true }, cb);
+  }
 
-  const abyssTeamTotal = getTotal(abyssData.teams, min2);
+  const threshold = 0.005;
+  const min = 2;
+
+  const abyssTeamTotal = getTotal(abyssData.teams, min);
   abyssData.teams = orderBy(
-    filter(abyssData.teams, (team) => team.count / abyssTeamTotal >= threshold2 && team.count > min2),
+    filter(abyssData.teams, (team) => team.count / abyssTeamTotal >= threshold && team.count > min),
     'count',
     'desc',
   );
 
-  const weaponStatsTotal = getTotal(weaponStats, min1);
+  const weaponStatsTotal = getTotal(weaponStats, min);
   weaponStats = orderBy(
-    filter(weaponStats, (stat) => stat.count / weaponStatsTotal >= threshold1 && stat.count > min1),
+    filter(weaponStats, (stat) => stat.count / weaponStatsTotal >= threshold && stat.count > min),
     'count',
     'desc',
   );
   weaponStats.forEach((stat, i) => {
-    const charCountsTotal = getTotal(values(stat.characters), min1);
+    const charCountsTotal = getTotal(values(stat.characters), min);
     stat.characters = orderBy(
-      filter(
-        stat.characters,
-        (char) => char.count / charCountsTotal >= threshold1 * 3 && char.count > min1,
-      ),
+      filter(stat.characters, (char) => char.count / charCountsTotal >= threshold * 3 && char.count > min),
       'count',
       'desc',
     );
   });
   weaponStats = filter(weaponStats, (stat) => stat.characters.length);
 
-  const artifactSetStatsTotal = getTotal(weaponStats, min1);
+  const artifactSetStatsTotal = getTotal(weaponStats, min);
   artifactSetStats = orderBy(
     filter(
       artifactSetStats,
-      (stat) => stat.count / artifactSetStatsTotal >= threshold1 / 3 && stat.count > min1,
+      (stat) => stat.count / artifactSetStatsTotal >= threshold / 3 && stat.count > min,
     ),
     'count',
     'desc',
   );
   artifactSetStats.forEach((stat, i) => {
-    const charCountsTotal = getTotal(values(stat.characters), min1);
+    const charCountsTotal = getTotal(values(stat.characters), min);
     stat.characters = orderBy(
-      filter(
-        stat.characters,
-        (char) => char.count / charCountsTotal >= threshold1 * 3 && char.count > min1,
-      ),
+      filter(stat.characters, (char) => char.count / charCountsTotal >= threshold * 3 && char.count > min),
       'count',
       'desc',
     );
@@ -127,46 +123,51 @@ export const updateDb = async () => {
 
   forEach(abyssData.abyss, (floorData, floor_level) => {
     floorData.battle_parties.forEach((parties, i) => {
-      const partyTotal = getTotal(parties, min2);
+      const partyTotal = getTotal(parties, min);
       abyssData.abyss[floor_level].battle_parties[i] = orderBy(
-        filter(parties, (stat) => stat.count / partyTotal >= threshold2 && stat.count > min2),
+        filter(parties, (stat) => stat.count / partyTotal >= threshold && stat.count > min),
         'count',
         'desc',
       );
     });
   });
 
-  characterBuilds.forEach((charBuildStats) => {
-    const buildsTotal = getTotal(charBuildStats.builds, min1);
-    charBuildStats.builds = orderBy(
-      filter(
-        charBuildStats.builds,
-        (build) => build.count / buildsTotal >= threshold1 && build.count > min1,
-      ),
-      'count',
-      'desc',
-    );
-    charBuildStats.total = getTotal(charBuildStats.builds);
-
-    charBuildStats.builds.forEach((build) => {
-      const weaponsTotal = getTotal(build.weapons, min1);
-      build.weapons = orderBy(
+  const filterCharacterBuilds = (builds: any) => {
+    builds.forEach((charBuildStats) => {
+      const buildsTotal = getTotal(charBuildStats.builds, min);
+      charBuildStats.builds = orderBy(
         filter(
-          build.weapons,
-          (weapon) => weapon.count / weaponsTotal >= threshold1 && weapon.count > min1,
+          charBuildStats.builds,
+          (build) => build.count / buildsTotal >= threshold && build.count > min,
         ),
         'count',
         'desc',
       );
-    });
+      charBuildStats.total = getTotal(charBuildStats.builds);
 
-    const teamsTotal = getTotal(charBuildStats.teams, min2);
-    charBuildStats.teams = orderBy(
-      filter(charBuildStats.teams, (team) => team.count / teamsTotal >= threshold2 && team.count > min2),
-      'count',
-      'desc',
-    );
-  });
+      charBuildStats.builds.forEach((build) => {
+        const weaponsTotal = getTotal(build.weapons, min);
+        build.weapons = orderBy(
+          filter(
+            build.weapons,
+            (weapon) => weapon.count / weaponsTotal >= threshold && weapon.count > min,
+          ),
+          'count',
+          'desc',
+        );
+      });
+
+      const teamsTotal = getTotal(charBuildStats.teams, min);
+      charBuildStats.teams = orderBy(
+        filter(charBuildStats.teams, (team) => team.count / teamsTotal >= threshold && team.count > min),
+        'count',
+        'desc',
+      );
+    });
+  };
+
+  filterCharacterBuilds(characterBuilds);
+  filterCharacterBuilds(mainCharacterBuilds);
 
   await Promise.all([
     fs.writeFile(
@@ -185,11 +186,11 @@ export const updateDb = async () => {
     fs.writeFile('data/characters/top-characters.json', JSON.stringify(characterStats), cb),
     fs.writeFile(
       'data/featured.json',
-      JSON.stringify({ 
-        player_total: playerCount, 
-        character_total: playerCharacterCount, 
+      JSON.stringify({
+        player_total: playerCount,
+        character_total: playerCharacterCount,
         abyss_total: abyssBattleCount,
-        banner: ["Yoimiya","Sayu","Xinyan","Diona"]
+        banner: ['Yoimiya', 'Sayu', 'Xinyan', 'Diona'],
       }),
       cb,
     ),
@@ -200,6 +201,11 @@ export const updateDb = async () => {
       const character = find(characterData, { _id: charBuild.char_id });
       const fileName = getShortName(character);
       return fs.writeFile(`data/characters/${fileName}.json`, JSON.stringify(charBuild), cb);
+    }),
+    ...map(mainCharacterBuilds, (charBuild) => {
+      const character = find(characterData, { _id: charBuild.char_id });
+      const fileName = getShortName(character);
+      return fs.writeFile(`data/characters/mains/${fileName}.json`, JSON.stringify(charBuild), cb);
     }),
   ]);
 

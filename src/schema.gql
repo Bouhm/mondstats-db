@@ -58,6 +58,7 @@ type Character {
   name: String!
   oid: Float!
   rarity: Float!
+  weapon_type: Float!
 }
 
 type CharacterBuildStats {
@@ -77,6 +78,7 @@ type Constellation {
 }
 
 input ListAbyssBattleInput {
+  battle_index: [Float!]
   charIds: [String!]
   f2p: Boolean
   floorLevels: [String!]

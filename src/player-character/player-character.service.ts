@@ -33,12 +33,12 @@ function _getActivationNumber(count: number, affixes: Affix[]) {
 }
 
 function addCharacterBuild(
-  data: any, 
-  character: any, 
+  data: any,
+  character: any,
   constellation: any,
   artifactSetCombinations: any,
   charWeapon: any,
-  parties: any
+  parties: any,
 ) {
   const charIdx = findIndex(data, { char_id: character._id });
 
@@ -88,7 +88,7 @@ function addCharacterBuild(
           count: 1,
         },
       ],
-      teams: parties
+      teams: parties,
     });
   }
 }
@@ -239,7 +239,7 @@ export class PlayerCharacterService {
 
     forEach(abyssBattles, ({ party }) => {
       const charIds = map(party, ({ character }: any) => character._id.toString()).sort();
-      const teamIndex = findIndex(teams, team => isEqual(team.party, charIds));
+      const teamIndex = findIndex(teams, (team) => isEqual(team.party, charIds));
 
       if (teamIndex > -1) {
         teams[teamIndex].count++;
@@ -320,22 +320,22 @@ export class PlayerCharacterService {
 
       artifactSetCombinations = sortBy(artifactSetCombinations, (set) => set._id.toString());
       addCharacterBuild(
-        characterBuilds, 
-        character, 
-        constellation, 
-        artifactSetCombinations, 
-        charWeapon, 
-        parties
+        characterBuilds,
+        character,
+        constellation,
+        artifactSetCombinations,
+        charWeapon,
+        parties,
       );
 
       if (level >= 80) {
         addCharacterBuild(
-          mainCharacterBuilds, 
-          character, 
-          constellation, 
-          artifactSetCombinations, 
-          charWeapon, 
-          parties
+          mainCharacterBuilds,
+          character,
+          constellation,
+          artifactSetCombinations,
+          charWeapon,
+          parties,
         );
       }
 
