@@ -4,7 +4,7 @@ import connectDb from '../util/connection';
 import { updateDb } from './dbUtils';
 
 (async () => {
-  connectDb();
+  await connectDb();
   await updateDb();
-  mongoose.connection.close();
+  await mongoose.connection.close();
 })();
