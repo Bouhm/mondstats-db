@@ -3,15 +3,13 @@ import {
   cloneDeep,
   difference,
   filter,
-  find,
   findIndex,
   forEach,
-  includes,
   isEqual,
   map,
   orderBy,
   reduce,
-  values,
+  uniqBy
 } from 'lodash';
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
@@ -64,7 +62,7 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
     [1, 2, 3],
   ];
 
-  const coreTeams: { core_party: string[]; count: number; flex: { charId: string; count: number }[] }[] =
+  let coreTeams: { core_party: string[]; count: number; flex: { charId: string; count: number }[] }[] =
     [];
 
   forEach(parties, ({ party, count }) => {
@@ -92,7 +90,10 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
       }
     });
   });
-
+  
+  coreTeams = uniqBy(coreTeams, ({core_party, flex}) => [...core_party, flex[0].charId].sort())
+  coreTeams = orderBy(coreTeams, 'count', 'desc');
+  coreTeams.forEach(team => team.flex = orderBy(team.flex, 'count', 'desc'))
   return coreTeams;
 };
 
@@ -132,21 +133,13 @@ export const updateDb = async () => {
   const min = 2;
 
   const abyssTeamTotal = getTotal(abyssData.teams, min);
-  abyssData.teams = orderBy(
-    filter(abyssData.teams, (team) => team.count / abyssTeamTotal >= threshold && team.count > min),
-    'count',
-    'desc',
-  );
+  abyssData.teams = filter(abyssData.teams, (team) => team.count / abyssTeamTotal >= threshold && team.count > min)
   const topAbyssTeams = aggregateCoreTeams(abyssData.teams);
 
   forEach(abyssData.abyss, (floorData, floor_level) => {
     floorData.battle_parties.forEach((parties, i) => {
       const partyTotal = getTotal(parties, min);
-      abyssData.abyss[floor_level].battle_parties[i] = orderBy(
-        filter(parties, (stat) => stat.count / partyTotal >= threshold && stat.count > min),
-        'count',
-        'desc',
-      );
+      abyssData.abyss[floor_level].battle_parties[i] = filter(parties, (stat) => stat.count / partyTotal >= threshold && stat.count > min)
     });
   });
 
