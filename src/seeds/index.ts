@@ -805,6 +805,6 @@ mongoose.connection.once('open', async () => {
       }
     }
   } finally {
-    mongoose.connection.close();
+    await mongoose.connection.close();
   }
 });

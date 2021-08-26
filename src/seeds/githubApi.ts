@@ -118,7 +118,7 @@ export const updateRepo = async (branch: string) => {
   });
   // For this, I was working on a organization repos, but it works for common repos also (replace org for owner)
   const ORGANIZATION = 'bouhm';
-  const REPO = 'favonius-data';
+  const REPO = 'mondstats-data';
 
   await uploadToRepo(octo, `./data`, ORGANIZATION, REPO, branch);
 };
