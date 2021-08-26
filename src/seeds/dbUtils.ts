@@ -67,27 +67,27 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
   const coreTeams: { core_party: string[]; count: number; flex: { charId: string; count: number }[] }[] =
     [];
 
-  forEach(parties, ({ party }) => {
+  forEach(parties, ({ party, count }) => {
     forEach(permIndexes, (coreIndexes) => {
       const coreParty = [party[coreIndexes[0]], party[coreIndexes[1]], party[coreIndexes[2]]].sort();
       const partyIdx = findIndex(coreTeams, (team) => isEqual(team.core_party, coreParty));
       const flexIdx = difference(allIndexes, coreIndexes)[0];
 
       if (partyIdx > -1) {
-        coreTeams[partyIdx].count++;
+        coreTeams[partyIdx].count += count;
 
         const charIdx = findIndex(coreTeams[partyIdx].flex, (flex) => flex.charId === party[flexIdx]);
 
         if (charIdx > -1) {
-          coreTeams[partyIdx].flex[charIdx].count++;
+          coreTeams[partyIdx].flex[charIdx].count += count;
         } else {
-          coreTeams[partyIdx].flex.push({ charId: party[flexIdx], count: 1 });
+          coreTeams[partyIdx].flex.push({ charId: party[flexIdx], count });
         }
       } else {
         coreTeams.push({
           core_party: coreParty,
-          count: 1,
-          flex: [{ charId: party[flexIdx], count: 1 }],
+          count,
+          flex: [{ charId: party[flexIdx], count }],
         });
       }
     });
