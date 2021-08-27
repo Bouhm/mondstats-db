@@ -17,6 +17,7 @@ import _, {
   reduce,
   some,
   transform,
+  values,
 } from 'lodash';
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
@@ -105,83 +106,78 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
   coreTeams = orderBy(coreTeams, 'count', 'desc');
   coreTeams.forEach((team, i) => {
     team.flex = orderBy(team.flex, 'count', 'desc');
+    team.party = [...team.core_party, team.flex[0].charId].sort();
   });
 
-  const combinedteams = [];
-  let i = 0;
-  while (i < coreTeams.length) {
-    coreTeams.forEach((team1) => {
-      const coreTeams2 = filter(coreTeams.slice(i), (team2) => {
-        return every([...team2.core_party, team2.flex[0].charId], (char) => {
-          includes([...team1.core_party, ...map(team1.flex, ({ charId }) => charId)], char);
-        });
-      });
+  const combinedTeams = [];
+  for (let i = 0; i < coreTeams.length; i++) {
+    const team1 = coreTeams[i];
+    const coreTeams2 = filter(coreTeams, (team2) => {
+      return (
+        difference(team2.party, [...team1.core_party, ...map(team1.flex, ({ charId }) => charId)])
+          .length === 0
+      );
+    });
 
-      if (coreTeams2.length) {
-        console.log("good")
-      }
+    forEach(coreTeams2, (team2) => {
+      team1.count += team2.count;
 
-      forEach(coreTeams2, (team2) => {
-        team1.count += team2.count;
+      forEach(team2.flex, ({ charId, count }) => {
+        const charIdx = findIndex(team1.flex, (flex) => flex.charId === charId);
 
-        forEach(team2.flex, ({ charId, count }) => {
-          const charIdx = findIndex(team1.flex, (flex) => flex.charId === charId);
-
-          if (charIdx > -1) {
-            team1.flex[charIdx].count += count;
-          } else {
+        if (charIdx > -1) {
+          team1.flex[charIdx].count += count;
+        } else {
+          if (!includes(team1.core_party, charId)) {
             team1.flex.push({ charId, count });
           }
-        });
+        }
       });
-
-      if (coreTeams[i]) combinedteams.push(coreTeams[i]);
-      const newTeams = filter(coreTeams, (_team) => {
-        return !find(coreTeams2, (_team2) => isEqual(_team2.party, _team.party));
-      });
-      // console.log(coreTeams.length, newTeams.length)
-
-      coreTeams = newTeams;
-      i++;
     });
+
+    const newTeams = filter(coreTeams, (_team) => {
+      return !some(coreTeams2, (_team2) => isEqual(_team2.party, _team.party));
+    });
+
+    coreTeams = newTeams;
   }
 
-  return orderBy(coreTeams, 'count', 'desc');
+  return orderBy(combinedTeams, 'count', 'desc');
 };
 
 export const updateDb = async () => {
-  // const artifactData = await artifactService.aggregate();
-  // const artifactSetData = await artifactSetService.aggregate();
-  // const characterData = await characterService.aggregate();
-  // const weaponData = await weaponService.aggregate();
-  // const abyssData = await abyssBattleService.aggregate();
+  const artifactData = await artifactService.aggregate();
+  const artifactSetData = await artifactSetService.aggregate();
+  const characterData = await characterService.aggregate();
+  const weaponData = await weaponService.aggregate();
+  const abyssData = await abyssBattleService.aggregate();
   // eslint-disable-next-line prefer-const
-  // let { weaponStats, artifactSetStats, characterBuilds, mainCharacterBuilds, characterStats } =
-  //   await playerCharacterService.aggregate();
-  // const playerCount = await playerService.getStats();
-  // const playerCharacterCount = await playerCharacterService.getStats();
-  // const abyssBattleCount = await abyssBattleService.getStats();
+  let { weaponStats, artifactSetStats, characterBuilds, mainCharacterBuilds, characterStats } =
+    await playerCharacterService.aggregate();
+  const playerCount = await playerService.getStats();
+  const playerCharacterCount = await playerCharacterService.getStats();
+  const abyssBattleCount = await abyssBattleService.getStats();
 
   const dirs = ['characters', 'artifacts', 'weapons', 'abyss'];
   const cb = (e) => e;
 
   // fs.writeFileSync(`test/abyssData.json`, JSON.stringify(abyssData));
-  const abyssData = JSON.parse(fs.readFileSync(`test/abyssData.json`, 'utf-8'));
-  // if (!fs.existsSync('data')) {
-  //   fs.mkdir('data', { recursive: true }, cb);
-  // }
+  // const abyssData = JSON.parse(fs.readFileSync(`test/abyssData.json`, 'utf-8'));
+  if (!fs.existsSync('data')) {
+    fs.mkdir('data', { recursive: true }, cb);
+  }
 
-  // await Promise.all(
-  //   map(dirs, (dir) => {
-  //     if (!fs.existsSync(`data/${dir}`)) {
-  //       return fs.mkdir(`data/${dir}`, { recursive: true }, cb);
-  //     }
-  //   }),
-  // );
+  await Promise.all(
+    map(dirs, (dir) => {
+      if (!fs.existsSync(`data/${dir}`)) {
+        return fs.mkdir(`data/${dir}`, { recursive: true }, cb);
+      }
+    }),
+  );
 
-  // if (!fs.existsSync(`data/characters/mains`)) {
-  //   fs.mkdir(`data/characters/mains`, { recursive: true }, cb);
-  // }
+  if (!fs.existsSync(`data/characters/mains`)) {
+    fs.mkdir(`data/characters/mains`, { recursive: true }, cb);
+  }
 
   const threshold = 0.004;
   const min = 2;
@@ -210,124 +206,125 @@ export const updateDb = async () => {
     });
   });
 
-  // const weaponStatsTotal = getTotal(weaponStats, min);
-  // weaponStats = orderBy(
-  //   filter(weaponStats, (stat) => stat.count / weaponStatsTotal >= threshold && stat.count > min),
-  //   'count',
-  //   'desc',
-  // );
-  // weaponStats.forEach((stat, i) => {
-  //   const charCountsTotal = getTotal(values(stat.characters), min);
-  //   stat.characters = orderBy(
-  //     filter(stat.characters, (char) => char.count / charCountsTotal >= threshold * 3 && char.count > min),
-  //     'count',
-  //     'desc',
-  //   );
-  // });
-  // weaponStats = filter(weaponStats, (stat) => stat.characters.length);
+  const weaponStatsTotal = getTotal(weaponStats, min);
+  weaponStats = orderBy(
+    filter(weaponStats, (stat) => stat.count / weaponStatsTotal >= threshold && stat.count > min),
+    'count',
+    'desc',
+  );
+  weaponStats.forEach((stat, i) => {
+    const charCountsTotal = getTotal(values(stat.characters), min);
+    stat.characters = orderBy(
+      filter(stat.characters, (char) => char.count / charCountsTotal >= threshold * 3 && char.count > min),
+      'count',
+      'desc',
+    );
+  });
+  weaponStats = filter(weaponStats, (stat) => stat.characters.length);
 
-  // const artifactSetStatsTotal = getTotal(weaponStats, min);
-  // artifactSetStats = orderBy(
-  //   filter(
-  //     artifactSetStats,
-  //     (stat) => stat.count / artifactSetStatsTotal >= threshold / 3 && stat.count > min,
-  //   ),
-  //   'count',
-  //   'desc',
-  // );
-  // artifactSetStats.forEach((stat, i) => {
-  //   const charCountsTotal = getTotal(values(stat.characters), min);
-  //   stat.characters = orderBy(
-  //     filter(stat.characters, (char) => char.count / charCountsTotal >= threshold * 3 && char.count > min),
-  //     'count',
-  //     'desc',
-  //   );
-  // });
-  // artifactSetStats = filter(artifactSetStats, (stat) => stat.characters.length);
+  const artifactSetStatsTotal = getTotal(weaponStats, min);
+  artifactSetStats = orderBy(
+    filter(
+      artifactSetStats,
+      (stat) => stat.count / artifactSetStatsTotal >= threshold / 3 && stat.count > min,
+    ),
+    'count',
+    'desc',
+  );
+  artifactSetStats.forEach((stat, i) => {
+    const charCountsTotal = getTotal(values(stat.characters), min);
+    stat.characters = orderBy(
+      filter(stat.characters, (char) => char.count / charCountsTotal >= threshold * 3 && char.count > min),
+      'count',
+      'desc',
+    );
+  });
+  artifactSetStats = filter(artifactSetStats, (stat) => stat.characters.length);
 
-  // characterStats = orderBy(characterStats, 'total', 'desc');
+  characterStats = orderBy(characterStats, 'total', 'desc');
 
-  // const filterCharacterBuilds = (builds: any) => {
-  //   builds.forEach((charBuildStats) => {
-  //     const buildsTotal = getTotal(charBuildStats.builds, min);
-  //     charBuildStats.builds = orderBy(
-  //       filter(
-  //         charBuildStats.builds,
-  //         (build) => build.count / buildsTotal >= threshold && build.count > min,
-  //       ),
-  //       'count',
-  //       'desc',
-  //     );
-  //     charBuildStats.total = getTotal(charBuildStats.builds);
+  const filterCharacterBuilds = (builds: any) => {
+    builds.forEach((charBuildStats) => {
+      const buildsTotal = getTotal(charBuildStats.builds, min);
+      charBuildStats.builds = orderBy(
+        filter(
+          charBuildStats.builds,
+          (build) => build.count / buildsTotal >= threshold && build.count > min,
+        ),
+        'count',
+        'desc',
+      );
+      charBuildStats.total = getTotal(charBuildStats.builds);
 
-  //     charBuildStats.builds.forEach((build) => {
-  //       const weaponsTotal = getTotal(build.weapons, min);
-  //       build.weapons = orderBy(
-  //         filter(
-  //           build.weapons,
-  //           (weapon) => weapon.count / weaponsTotal >= threshold && weapon.count > min,
-  //         ),
-  //         'count',
-  //         'desc',
-  //       );
-  //     });
+      charBuildStats.builds.forEach((build) => {
+        const weaponsTotal = getTotal(build.weapons, min);
+        build.weapons = orderBy(
+          filter(
+            build.weapons,
+            (weapon) => weapon.count / weaponsTotal >= threshold && weapon.count > min,
+          ),
+          'count',
+          'desc',
+        );
+      });
 
-  //     const teamsTotal = getTotal(charBuildStats.teams, min);
-  //     charBuildStats.teams = orderBy(
-  //       filter(charBuildStats.teams, (team) => team.count / teamsTotal >= threshold && team.count > min),
-  //       'count',
-  //       'desc',
-  //     );
-  //   });
-  // };
+      const teamsTotal = getTotal(charBuildStats.teams, min);
+      charBuildStats.teams = orderBy(
+        filter(charBuildStats.teams, (team) => team.count / teamsTotal >= threshold && team.count > min),
+        'count',
+        'desc',
+      );
+    });
+  };
 
-  // filterCharacterBuilds(characterBuilds);
-  // filterCharacterBuilds(mainCharacterBuilds);
+  filterCharacterBuilds(characterBuilds);
+  filterCharacterBuilds(mainCharacterBuilds);
 
   await Promise.all([
-    // fs.writeFile(
-    //   'data/db.json',
-    //   JSON.stringify({
-    //     characters: characterData,
-    //     weapons: weaponData,
-    //     artifacts: artifactData,
-    //     artifactSets: artifactSetData,
-    //   }),
-    //   cb,
-    // ),
+    fs.writeFile(
+      'data/db.json',
+      JSON.stringify({
+        characters: characterData,
+        weapons: weaponData,
+        artifacts: artifactData,
+        artifactSets: artifactSetData,
+      }),
+      cb,
+    ),
     fs.writeFile('data/abyss/top-teams.json', JSON.stringify(topAbyssTeams), cb),
-    // fs.writeFile('data/weapons/top-weapons.json', JSON.stringify(weaponStats), cb),
-    // fs.writeFile('data/artifacts/top-artifactsets.json', JSON.stringify(artifactSetStats), cb),
-    // fs.writeFile('data/characters/top-characters.json', JSON.stringify(characterStats), cb),
-    // fs.writeFile(
-    //   'data/featured.json',
-    //   JSON.stringify({
-    //     player_total: playerCount,
-    //     character_total: playerCharacterCount,
-    //     abyss_total: abyssBattleCount,
-    //     banner: ['Yoimiya', 'Sayu', 'Xinyan', 'Diona'],
-    //   }),
-    //   cb,
-    // ),
+    // fs.writeFile('test/top-teams.json', JSON.stringify(topAbyssTeams), cb),
+    fs.writeFile('data/weapons/top-weapons.json', JSON.stringify(weaponStats), cb),
+    fs.writeFile('data/artifacts/top-artifactsets.json', JSON.stringify(artifactSetStats), cb),
+    fs.writeFile('data/characters/top-characters.json', JSON.stringify(characterStats), cb),
+    fs.writeFile(
+      'data/featured.json',
+      JSON.stringify({
+        player_total: playerCount,
+        character_total: playerCharacterCount,
+        abyss_total: abyssBattleCount,
+        banner: ['Yoimiya', 'Sayu', 'Xinyan', 'Diona'],
+      }),
+      cb,
+    ),
     ...map(allAbyssTeams, (floorData) => {
       return fs.writeFile(`data/abyss/${floorData.floor_level}.json`, JSON.stringify(floorData), cb);
     }),
-    // ...map(characterBuilds, (charBuild) => {
-    //   const character = find(characterData, { _id: charBuild.char_id });
-    //   const fileName = getShortName(character);
-    //   return fs.writeFile(`data/characters/${fileName}.json`, JSON.stringify(charBuild), cb);
-    // }),
-    // ...map(mainCharacterBuilds, (charBuild) => {
-    //   const character = find(characterData, { _id: charBuild.char_id });
-    //   const fileName = getShortName(character);
-    //   return fs.writeFile(`data/characters/mains/${fileName}.json`, JSON.stringify(charBuild), cb);
-    // }),
+    ...map(characterBuilds, (charBuild) => {
+      const character = find(characterData, { _id: charBuild.char_id });
+      const fileName = getShortName(character);
+      return fs.writeFile(`data/characters/${fileName}.json`, JSON.stringify(charBuild), cb);
+    }),
+    ...map(mainCharacterBuilds, (charBuild) => {
+      const character = find(characterData, { _id: charBuild.char_id });
+      const fileName = getShortName(character);
+      return fs.writeFile(`data/characters/mains/${fileName}.json`, JSON.stringify(charBuild), cb);
+    }),
   ]);
 
-  // await updateRepo(process.env.npm_config_branch);
+  await updateRepo(process.env.npm_config_branch);
 
-  // // Delete files to save space
-  // cleanup('data');
+  // Delete files to save space
+  cleanup('data');
 
   console.log('DB UPDATE END');
 };
