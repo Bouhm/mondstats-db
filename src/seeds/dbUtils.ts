@@ -1,15 +1,20 @@
 import fs from 'fs';
-import {
+import _, {
   cloneDeep,
   difference,
+  differenceBy,
   filter,
   findIndex,
   forEach,
+  includes,
+  intersection,
   isEqual,
+  isObject,
   map,
   orderBy,
   reduce,
-  uniqBy
+  some,
+  transform,
 } from 'lodash';
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
@@ -20,7 +25,7 @@ import artifactModel from '../artifact/artifact.model';
 import { ArtifactService } from '../artifact/artifact.service';
 import characterModel from '../character/character.model';
 import { CharacterService } from '../character/character.service';
-import playerCharacterModel from '../player-character/player-character.model';
+import playerCharacterModel, { TeamStats } from '../player-character/player-character.model';
 import { PlayerCharacterService } from '../player-character/player-character.service';
 import playerModel from '../player/player.model';
 import { PlayerService } from '../player/player.service';
@@ -37,6 +42,7 @@ const artifactSetService = new ArtifactSetService(artifactSetModel, artifactMode
 const weaponService = new WeaponService(weaponModel);
 const playerService = new PlayerService(playerModel);
 
+type Flex = { charId: string; count: number }[];
 const cleanup = (dirPath, removeSelf = false) => {
   const files = fs.readdirSync(dirPath);
 
@@ -62,18 +68,21 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
     [1, 2, 3],
   ];
 
-  let coreTeams: { core_party: string[]; count: number; flex: { charId: string; count: number }[] }[] =
-    [];
+  let coreTeams: { party?: string[]; core_party: string[]; count: number; flex: Flex }[] = [];
 
   forEach(parties, ({ party, count }) => {
     forEach(permIndexes, (coreIndexes) => {
       const coreParty = [party[coreIndexes[0]], party[coreIndexes[1]], party[coreIndexes[2]]].sort();
-      const partyIdx = findIndex(coreTeams, (team) => isEqual(team.core_party, coreParty));
+      const partyIdx = findIndex(coreTeams, (team) => {
+        return (
+          isEqual(team.core_party, coreParty) &&
+          intersection(map(team.flex, (flex) => flex.charId)).length > 0
+        );
+      });
       const flexIdx = difference(allIndexes, coreIndexes)[0];
 
       if (partyIdx > -1) {
         coreTeams[partyIdx].count += count;
-
         const charIdx = findIndex(coreTeams[partyIdx].flex, (flex) => flex.charId === party[flexIdx]);
 
         if (charIdx > -1) {
@@ -90,56 +99,91 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
       }
     });
   });
-  
-  coreTeams = uniqBy(coreTeams, ({core_party, flex}) => [...core_party, flex[0].charId].sort())
+
   coreTeams = orderBy(coreTeams, 'count', 'desc');
-  coreTeams.forEach(team => team.flex = orderBy(team.flex, 'count', 'desc'))
-  return coreTeams;
+  coreTeams.forEach((team, i) => {
+    team.flex = orderBy(team.flex, 'count', 'desc');
+    team.party = [...team.core_party, team.flex[0].charId].sort();
+  });
+
+  const i = 0;
+  while (i < coreTeams.length) {
+    coreTeams.forEach((team1, i) => {
+      const coreTeams2 = filter(coreTeams.slice(i), (team2) => isEqual(team2.party, team1.party));
+      forEach(coreTeams2, (team2) => {
+        team1.count += team2.count;
+
+        forEach(team2.flex, ({ charId, count }) => {
+          const charIdx = findIndex(team1.flex, (flex) => flex.charId === charId);
+
+          if (charIdx > -1) {
+            team1.flex[charIdx].count += count;
+          } else {
+            team1.flex.push({ charId, count });
+          }
+        });
+      });
+
+      console.log(coreTeams.length, differenceBy(coreTeams, coreTeams2, 'party').length);
+      coreTeams = differenceBy(coreTeams, coreTeams2, 'party');
+      i++;
+    });
+  }
+
+  return orderBy(coreTeams, 'count', 'desc');
 };
 
 export const updateDb = async () => {
-  const artifactData = await artifactService.aggregate();
-  const artifactSetData = await artifactSetService.aggregate();
-  const characterData = await characterService.aggregate();
-  const weaponData = await weaponService.aggregate();
-  const abyssData = await abyssBattleService.aggregate();
+  // const artifactData = await artifactService.aggregate();
+  // const artifactSetData = await artifactSetService.aggregate();
+  // const characterData = await characterService.aggregate();
+  // const weaponData = await weaponService.aggregate();
+  // const abyssData = await abyssBattleService.aggregate();
   // eslint-disable-next-line prefer-const
-  let { weaponStats, artifactSetStats, characterBuilds, mainCharacterBuilds, characterStats } =
-    await playerCharacterService.aggregate();
-  const playerCount = await playerService.getStats();
-  const playerCharacterCount = await playerCharacterService.getStats();
-  const abyssBattleCount = await abyssBattleService.getStats();
+  // let { weaponStats, artifactSetStats, characterBuilds, mainCharacterBuilds, characterStats } =
+  //   await playerCharacterService.aggregate();
+  // const playerCount = await playerService.getStats();
+  // const playerCharacterCount = await playerCharacterService.getStats();
+  // const abyssBattleCount = await abyssBattleService.getStats();
 
   const dirs = ['characters', 'artifacts', 'weapons', 'abyss'];
   const cb = (e) => e;
 
-  if (!fs.existsSync('data')) {
-    fs.mkdir('data', { recursive: true }, cb);
-  }
+  // fs.writeFileSync(`test/abyssData.json`, JSON.stringify(abyssData));
+  const abyssData = JSON.parse(fs.readFileSync(`test/abyssData.json`, 'utf-8'));
+  // if (!fs.existsSync('data')) {
+  //   fs.mkdir('data', { recursive: true }, cb);
+  // }
 
-  await Promise.all(
-    map(dirs, (dir) => {
-      if (!fs.existsSync(`data/${dir}`)) {
-        return fs.mkdir(`data/${dir}`, { recursive: true }, cb);
-      }
-    }),
-  );
+  // await Promise.all(
+  //   map(dirs, (dir) => {
+  //     if (!fs.existsSync(`data/${dir}`)) {
+  //       return fs.mkdir(`data/${dir}`, { recursive: true }, cb);
+  //     }
+  //   }),
+  // );
 
-  if (!fs.existsSync(`data/characters/mains`)) {
-    fs.mkdir(`data/characters/mains`, { recursive: true }, cb);
-  }
+  // if (!fs.existsSync(`data/characters/mains`)) {
+  //   fs.mkdir(`data/characters/mains`, { recursive: true }, cb);
+  // }
 
-  const threshold = 0.003;
+  const threshold = 0.004;
   const min = 2;
 
   const abyssTeamTotal = getTotal(abyssData.teams, min);
-  abyssData.teams = filter(abyssData.teams, (team) => team.count / abyssTeamTotal >= threshold && team.count > min)
+  abyssData.teams = filter(
+    abyssData.teams,
+    (team) => team.count / abyssTeamTotal >= threshold && team.count > min,
+  );
   const topAbyssTeams = aggregateCoreTeams(abyssData.teams);
 
   forEach(abyssData.abyss, (floorData, floor_level) => {
     floorData.battle_parties.forEach((parties, i) => {
       const partyTotal = getTotal(parties, min);
-      abyssData.abyss[floor_level].battle_parties[i] = filter(parties, (stat) => stat.count / partyTotal >= threshold && stat.count > min)
+      abyssData.abyss[floor_level].battle_parties[i] = filter(
+        parties,
+        (stat) => stat.count / partyTotal >= threshold && stat.count > min,
+      );
     });
   });
 
@@ -264,10 +308,10 @@ export const updateDb = async () => {
     // }),
   ]);
 
-  await updateRepo(process.env.npm_config_branch);
+  // await updateRepo(process.env.npm_config_branch);
 
-  // Delete files to save space
-  cleanup('data');
+  // // Delete files to save space
+  // cleanup('data');
 
-  console.log('DB UPDATE END');
+  // console.log('DB UPDATE END');
 };
