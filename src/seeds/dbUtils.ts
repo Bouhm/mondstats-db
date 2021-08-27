@@ -3,7 +3,9 @@ import _, {
   cloneDeep,
   difference,
   differenceBy,
+  every,
   filter,
+  find,
   findIndex,
   forEach,
   includes,
@@ -106,10 +108,19 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
     team.party = [...team.core_party, team.flex[0].charId].sort();
   });
 
-  const i = 0;
+  let combinedteams = [];
+  let i = 0;
   while (i < coreTeams.length) {
-    coreTeams.forEach((team1, i) => {
-      const coreTeams2 = filter(coreTeams.slice(i), (team2) => isEqual(team2.party, team1.party));
+    coreTeams.forEach((team1) => {
+      const coreTeams2 = filter(coreTeams.slice(i), (team2) => {
+        return every(team2.party, char => {
+          map([...team1.core_party, ...map(team1.flex, ({charId}) => charId)]).includes(char)
+        })
+      })
+
+      console.log(coreTeams.length, coreTeams2.length)
+
+      
       forEach(coreTeams2, (team2) => {
         team1.count += team2.count;
 
@@ -124,13 +135,18 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
         });
       });
 
-      console.log(coreTeams.length, differenceBy(coreTeams, coreTeams2, 'party').length);
-      coreTeams = differenceBy(coreTeams, coreTeams2, 'party');
+      if (coreTeams[i]) combinedteams.push(coreTeams[i]);
+      const newTeams = filter(coreTeams, _team => {
+        return !find(coreTeams2, _team2 => isEqual(_team2.party, _team.party))
+      });
+      // console.log(coreTeams.length, newTeams.length)
+
+      coreTeams = newTeams;
       i++;
     });
   }
 
-  return orderBy(coreTeams, 'count', 'desc');
+  return orderBy(combinedteams, 'count', 'desc');
 };
 
 export const updateDb = async () => {
@@ -313,5 +329,5 @@ export const updateDb = async () => {
   // // Delete files to save space
   // cleanup('data');
 
-  // console.log('DB UPDATE END');
+  console.log('DB UPDATE END');
 };
