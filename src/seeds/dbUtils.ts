@@ -13,7 +13,9 @@ import _, {
   isEqual,
   isObject,
   map,
+  omit,
   orderBy,
+  pick,
   reduce,
   some,
   transform,
@@ -138,6 +140,7 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
     const newTeams = filter(coreTeams, (_team) => {
       return !some(coreTeams2, (_team2) => isEqual(_team2.party, _team.party));
     });
+    if (team1) combinedTeams.push(omit(team1, 'party'));
 
     coreTeams = newTeams;
   }
@@ -161,7 +164,7 @@ export const updateDb = async () => {
   const dirs = ['characters', 'artifacts', 'weapons', 'abyss'];
   const cb = (e) => e;
 
-  // fs.writeFileSync(`test/abyssData.json`, JSON.stringify(abyssData));
+  fs.writeFileSync(`test/abyssData.json`, JSON.stringify(abyssData));
   // const abyssData = JSON.parse(fs.readFileSync(`test/abyssData.json`, 'utf-8'));
   if (!fs.existsSync('data')) {
     fs.mkdir('data', { recursive: true }, cb);
