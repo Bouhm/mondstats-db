@@ -105,22 +105,22 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
   coreTeams = orderBy(coreTeams, 'count', 'desc');
   coreTeams.forEach((team, i) => {
     team.flex = orderBy(team.flex, 'count', 'desc');
-    team.party = [...team.core_party, team.flex[0].charId].sort();
   });
 
-  let combinedteams = [];
+  const combinedteams = [];
   let i = 0;
   while (i < coreTeams.length) {
     coreTeams.forEach((team1) => {
       const coreTeams2 = filter(coreTeams.slice(i), (team2) => {
-        return every(team2.party, char => {
-          map([...team1.core_party, ...map(team1.flex, ({charId}) => charId)]).includes(char)
-        })
-      })
+        return every([...team2.core_party, team2.flex[0].charId], (char) => {
+          includes([...team1.core_party, ...map(team1.flex, ({ charId }) => charId)], char);
+        });
+      });
 
-      console.log(coreTeams.length, coreTeams2.length)
+      if (coreTeams2.length) {
+        console.log("good")
+      }
 
-      
       forEach(coreTeams2, (team2) => {
         team1.count += team2.count;
 
@@ -136,8 +136,8 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
       });
 
       if (coreTeams[i]) combinedteams.push(coreTeams[i]);
-      const newTeams = filter(coreTeams, _team => {
-        return !find(coreTeams2, _team2 => isEqual(_team2.party, _team.party))
+      const newTeams = filter(coreTeams, (_team) => {
+        return !find(coreTeams2, (_team2) => isEqual(_team2.party, _team.party));
       });
       // console.log(coreTeams.length, newTeams.length)
 
@@ -146,7 +146,7 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
     });
   }
 
-  return orderBy(combinedteams, 'count', 'desc');
+  return orderBy(coreTeams, 'count', 'desc');
 };
 
 export const updateDb = async () => {
