@@ -258,8 +258,8 @@ const handleBlock = async (tokenIdx: number) => {
     //   blockedLevel = 0;
     // }
 
-    console.log('Long rest...', new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-    await _sleep(maxRest);
+    console.log('Long rest...');
+    await _sleep(dayMs);
     blockedIndices = new Array(TOKENS.length).fill(false);
   }
 };
@@ -653,17 +653,17 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
 
           //   // Otherwise we skip the API call
           // } else {
-          const playerCharacters = await PlayerCharacterModel.find({ player: playerRef._id })
-            .lean()
-            .populate({ path: 'character', select: 'oid -_id' });
+          // const playerCharacters = await PlayerCharacterModel.find({ player: playerRef._id })
+          //   .lean()
+          //   .populate({ path: 'character', select: 'oid -_id' });
 
-          if (playerCharacters && playerCharacters.length > 0 && !includes(playerCharacters, undefined)) {
-            characterIds = map(playerCharacters, ({ character }: any) => character.oid);
-          } else {
-            characterIds = await getPlayerCharacters(server, currUid);
-            currTokenIdx = tokenIdx;
-            await _incrementTokenIdx();
-          }
+          // if (playerCharacters && playerCharacters.length > 0 && !includes(playerCharacters, undefined)) {
+          //   characterIds = map(playerCharacters, ({ character }: any) => character.oid);
+          // } else {
+          characterIds = await getPlayerCharacters(server, currUid);
+          currTokenIdx = tokenIdx;
+          await _incrementTokenIdx();
+          // }
           // }
 
           if (characterIds === null) {
