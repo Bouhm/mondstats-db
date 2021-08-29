@@ -42,6 +42,8 @@ const artifactSetService = new ArtifactSetService(artifactSetModel, artifactMode
 const weaponService = new WeaponService(weaponModel);
 const playerService = new PlayerService(playerModel);
 
+const db = JSON.parse(fs.readFileSync(`test/db.json`, 'utf-8'));
+
 type Flex = { charId: string; count: number }[];
 const cleanup = (dirPath, removeSelf = false) => {
   const files = fs.readdirSync(dirPath);
@@ -54,6 +56,8 @@ const cleanup = (dirPath, removeSelf = false) => {
     }
   if (removeSelf) fs.rmdirSync(dirPath);
 };
+
+const getChar = (_id: string) => find(db.characters, { _id });
 
 const getTotal = (stats: any, min = 0) => {
   return reduce(stats, (sum, curr) => sum + (curr.count > min ? curr.count : 0), 0);
@@ -103,23 +107,45 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
   coreTeams = orderBy(coreTeams, 'count', 'desc');
   coreTeams.forEach((team, i) => {
     team.flex = orderBy(team.flex, 'count', 'desc');
-    team.party = [...team.core_party, team.flex[0].charId].sort();
   });
 
   const combinedTeams = [];
-  for (let i = 0; i < coreTeams.length; i++) {
-    const team1 = coreTeams[i];
-    const coreTeams2 = filter(coreTeams, (team2) => {
+  while (coreTeams.length) {
+    const team1 = coreTeams[0];
+    const coreTeams2 = filter(coreTeams.slice(1), (team2) => {
       return (
-        difference(team2.party, [...team1.core_party, ...map(team1.flex, ({ charId }) => charId)])
-          .length === 0
+        difference(
+          [...team2.core_party, team2.flex[0].charId],
+          [...team1.core_party, ...map(team1.flex, ({ charId }) => charId)],
+        ).length === 0
       );
     });
 
-    forEach(coreTeams2, (team2) => {
-      team1.count += team2.count;
+    console.log('===========================');
 
-      forEach(team2.flex, ({ charId, count }) => {
+    console.log(
+      getChar(team1.core_party[0]).name,
+      getChar(team1.core_party[1]).name,
+      getChar(team1.core_party[2]).name,
+      getChar(team1.flex[0].charId).name,
+    );
+
+    console.log('----------------------------');
+    coreTeams2.forEach(({ core_party, flex }) => {
+      let str = `${getChar(core_party[0]).name}, ${getChar(core_party[1]).name}, ${
+        getChar(core_party[2]).name
+      }, `;
+
+      forEach(flex, ({ charId }) => {
+        str += getChar(charId).name + ', ';
+      });
+      console.log(str);
+    });
+
+    forEach(coreTeams2, (team2) => {
+      // team1.count += team2.count;
+
+      forEach([team2.flex[0]], ({ charId, count }) => {
         const charIdx = findIndex(team1.flex, (flex) => flex.charId === charId);
 
         if (charIdx > -1) {
@@ -133,9 +159,16 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
     });
 
     const newTeams = filter(coreTeams, (_team) => {
-      return !some(coreTeams2, (_team2) => isEqual(_team2.party, _team.party));
+      return !some(coreTeams2, (_team2) =>
+        isEqual(
+          [..._team.core_party, _team.flex[0].charId].sort(),
+          [..._team2.core_party, _team2.flex[0].charId].sort(),
+        ),
+      );
     });
-    if (team1) combinedTeams.push(omit(team1, 'party'));
+    if (team1) combinedTeams.push(team1);
+
+    console.log(coreTeams.length, newTeams.length);
 
     coreTeams = newTeams;
   }
@@ -197,12 +230,12 @@ export const updateDb = async () => {
   //   });
   // });
 
-  // const allAbyssTeams: any = cloneDeep(abyssData.abyss);
-  // forEach(abyssData.abyss, (floorData, floor_level) => {
-  //   floorData.battle_parties.forEach((parties, i) => {
-  //     allAbyssTeams[floor_level].battle_parties[i] = aggregateCoreTeams(parties);
-  //   });
-  // });
+  const allAbyssTeams: any = cloneDeep(abyssData.abyss);
+  forEach(abyssData.abyss, (floorData, floor_level) => {
+    floorData.battle_parties.forEach((parties, i) => {
+      allAbyssTeams[floor_level].battle_parties[i] = aggregateCoreTeams(parties);
+    });
+  });
 
   // const weaponStatsTotal = getTotal(weaponStats, min);
   // weaponStats = orderBy(
@@ -304,9 +337,9 @@ export const updateDb = async () => {
     //   }),
     //   cb,
     // ),
-    // ...map(allAbyssTeams, (floorData) => {
-    //   return fs.writeFile(`data/abyss/${floorData.floor_level}.json`, JSON.stringify(floorData), cb);
-    // }),
+    ...map(allAbyssTeams, (floorData) => {
+      return fs.writeFile(`data/abyss/${floorData.floor_level}.json`, JSON.stringify(floorData), cb);
+    }),
     // ...map(characterBuilds, (charBuild) => {
     //   const character = find(characterData, { _id: charBuild.char_id });
     //   const fileName = getShortName(character);
@@ -326,3 +359,5 @@ export const updateDb = async () => {
 
   console.log('DB UPDATE END');
 };
+
+// updateDb();
