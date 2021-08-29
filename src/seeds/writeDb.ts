@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 import connectDb from '../util/connection';
-import { updateDb } from './dbUtils';
+import { updateDb } from './aggregate';
 
 (async () => {
   await connectDb();

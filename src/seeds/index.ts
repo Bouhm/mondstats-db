@@ -16,7 +16,7 @@ import PlayerCharacterModel from '../player-character/player-character.model';
 import PlayerModel, { PlayerDocument } from '../player/player.model';
 import connectDb from '../util/connection';
 import WeaponModel from '../weapon/weapon.model';
-import { updateDb } from './dbUtils';
+import { updateDb } from './aggregate';
 import { IAbyssResponse, IArtifactSet, ICharacterResponse } from './interfaces';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';

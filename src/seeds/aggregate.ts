@@ -158,7 +158,7 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
         }
       });
     });
-    
+
     if (team1) combinedTeams.push(team1);
 
     let newTeams = filter(coreTeams, (_team) => {
@@ -216,7 +216,7 @@ export const updateDb = async () => {
   //   fs.mkdir(`data/characters/mains`, { recursive: true }, cb);
   // }
 
-  const threshold = 0.004;
+  const threshold = 0.003;
   const min = 2;
 
   const abyssTeamTotal = getTotal(abyssData.teams, min);
@@ -328,7 +328,7 @@ export const updateDb = async () => {
     //   }),
     //   cb,
     // ),
-    fs.writeFile('data/abyss/top-teams.json', JSON.stringify(topAbyssTeams), cb),
+    // fs.writeFile('data/abyss/top-teams.json', JSON.stringify(topAbyssTeams), cb),
     // fs.writeFile('data/weapons/top-weapons.json', JSON.stringify(weaponStats), cb),
     // fs.writeFile('data/artifacts/top-artifactsets.json', JSON.stringify(artifactSetStats), cb),
     // fs.writeFile('data/characters/top-characters.json', JSON.stringify(characterStats), cb),
@@ -342,9 +342,9 @@ export const updateDb = async () => {
     //   }),
     //   cb,
     // ),
-    ...map(allAbyssTeams, (floorData) => {
-      return fs.writeFile(`data/abyss/${floorData.floor_level}.json`, JSON.stringify(floorData), cb);
-    }),
+    // ...map(allAbyssTeams, (floorData) => {
+    //   return fs.writeFile(`data/abyss/${floorData.floor_level}.json`, JSON.stringify(floorData), cb);
+    // }),
     // ...map(characterBuilds, (charBuild) => {
     //   const character = find(characterData, { _id: charBuild.char_id });
     //   const fileName = getShortName(character);
@@ -355,16 +355,14 @@ export const updateDb = async () => {
     //   const fileName = getShortName(character);
     //   return fs.writeFile(`data/characters/mains/${fileName}.json`, JSON.stringify(charBuild), cb);
     // }),
-    // fs.writeFile('test/top-teams.json', JSON.stringify(topAbyssTeams), cb),
-
+    fs.writeFile('test/top-teams.json', JSON.stringify(topAbyssTeams), cb),
+    fs.writeFile('test/abyssFloors.json', JSON.stringify(allAbyssTeams), cb),
   ]);
 
-  await updateRepo(process.env.npm_config_branch);
+  // await updateRepo(process.env.npm_config_branch);
 
-  // Delete files to save space
-  cleanup('data');
+  // // Delete files to save space
+  // cleanup('data');
 
   console.log('DB UPDATE END');
 };
-
-// updateDb();
