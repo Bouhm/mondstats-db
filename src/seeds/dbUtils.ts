@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { lexicographicSortSchema } from 'graphql';
 import {
   cloneDeep,
   difference,
@@ -121,26 +122,26 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
       );
     });
 
-    console.log('===========================');
+    // console.log('===========================');
 
-    console.log(
-      getChar(team1.core_party[0]).name,
-      getChar(team1.core_party[1]).name,
-      getChar(team1.core_party[2]).name,
-      getChar(team1.flex[0].charId).name,
-    );
+    // console.log(
+    //   getChar(team1.core_party[0]).name,
+    //   getChar(team1.core_party[1]).name,
+    //   getChar(team1.core_party[2]).name,
+    //   getChar(team1.flex[0].charId).name,
+    // );
 
-    console.log('----------------------------');
-    coreTeams2.forEach(({ core_party, flex }) => {
-      let str = `${getChar(core_party[0]).name}, ${getChar(core_party[1]).name}, ${
-        getChar(core_party[2]).name
-      }, `;
+    // console.log('----------------------------');
+    // coreTeams2.forEach(({ core_party, flex }) => {
+    //   let str = `${getChar(core_party[0]).name}, ${getChar(core_party[1]).name}, ${
+    //     getChar(core_party[2]).name
+    //   }, `;
 
-      forEach(flex, ({ charId }) => {
-        str += getChar(charId).name + ', ';
-      });
-      console.log(str);
-    });
+    //   forEach(flex, ({ charId }) => {
+    //     str += getChar(charId).name + ', ';
+    //   });
+    //   console.log(str);
+    // });
 
     forEach(coreTeams2, (team2) => {
       // team1.count += team2.count;
@@ -157,8 +158,10 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
         }
       });
     });
+    
+    if (team1) combinedTeams.push(team1);
 
-    const newTeams = filter(coreTeams, (_team) => {
+    let newTeams = filter(coreTeams, (_team) => {
       return !some(coreTeams2, (_team2) =>
         isEqual(
           [..._team.core_party, _team.flex[0].charId].sort(),
@@ -166,9 +169,12 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
         ),
       );
     });
-    if (team1) combinedTeams.push(team1);
 
-    console.log(coreTeams.length, newTeams.length);
+    // console.log(coreTeams.length, newTeams.length)
+
+    if (newTeams.length === coreTeams.length) newTeams = coreTeams.slice(1);
+
+    // console.log(coreTeams.length, newTeams.length);
 
     coreTeams = newTeams;
   }
@@ -220,15 +226,15 @@ export const updateDb = async () => {
   );
   const topAbyssTeams = aggregateCoreTeams(abyssData.teams);
 
-  // forEach(abyssData.abyss, (floorData, floor_level) => {
-  //   floorData.battle_parties.forEach((parties, i) => {
-  //     const partyTotal = getTotal(parties, min);
-  //     abyssData.abyss[floor_level].battle_parties[i] = filter(
-  //       parties,
-  //       (stat) => stat.count / partyTotal >= threshold && stat.count > min,
-  //     );
-  //   });
-  // });
+  forEach(abyssData.abyss, (floorData, floor_level) => {
+    floorData.battle_parties.forEach((parties, i) => {
+      const partyTotal = getTotal(parties, min);
+      abyssData.abyss[floor_level].battle_parties[i] = filter(
+        parties,
+        (stat) => stat.count / partyTotal >= threshold && stat.count > min,
+      );
+    });
+  });
 
   const allAbyssTeams: any = cloneDeep(abyssData.abyss);
   forEach(abyssData.abyss, (floorData, floor_level) => {
@@ -322,8 +328,7 @@ export const updateDb = async () => {
     //   }),
     //   cb,
     // ),
-    // fs.writeFile('data/abyss/top-teams.json', JSON.stringify(topAbyssTeams), cb),
-    fs.writeFile('test/top-teams.json', JSON.stringify(topAbyssTeams), cb),
+    fs.writeFile('data/abyss/top-teams.json', JSON.stringify(topAbyssTeams), cb),
     // fs.writeFile('data/weapons/top-weapons.json', JSON.stringify(weaponStats), cb),
     // fs.writeFile('data/artifacts/top-artifactsets.json', JSON.stringify(artifactSetStats), cb),
     // fs.writeFile('data/characters/top-characters.json', JSON.stringify(characterStats), cb),
@@ -350,12 +355,14 @@ export const updateDb = async () => {
     //   const fileName = getShortName(character);
     //   return fs.writeFile(`data/characters/mains/${fileName}.json`, JSON.stringify(charBuild), cb);
     // }),
+    // fs.writeFile('test/top-teams.json', JSON.stringify(topAbyssTeams), cb),
+
   ]);
 
-  // await updateRepo(process.env.npm_config_branch);
+  await updateRepo(process.env.npm_config_branch);
 
-  // // Delete files to save space
-  // cleanup('data');
+  // Delete files to save space
+  cleanup('data');
 
   console.log('DB UPDATE END');
 };
