@@ -177,7 +177,7 @@ export const updateDb = async () => {
   const dirs = ['characters', 'artifacts', 'weapons', 'abyss'];
   const cb = (e) => e;
 
-  fs.writeFileSync(`test/abyssData.json`, JSON.stringify(abyssData));
+  // fs.writeFileSync(`test/abyssData.json`, JSON.stringify(abyssData));
   // const abyssData = JSON.parse(fs.readFileSync(`test/abyssData.json`, 'utf-8'));
   if (!fs.existsSync('data')) {
     fs.mkdir('data', { recursive: true }, cb);
