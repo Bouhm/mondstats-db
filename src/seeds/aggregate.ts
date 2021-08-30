@@ -148,15 +148,13 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
       );
     });
 
-    // console.log(coreTeams.length, newTeams.length)
-
     if (newTeams.length === coreTeams.length) newTeams = coreTeams.slice(1);
-
-    // console.log(coreTeams.length, newTeams.length);
-
     coreTeams = newTeams;
   }
 
+  combinedTeams.forEach((team) => {
+    team.flex = orderBy(team.flex, 'count', 'desc');
+  });
   return orderBy(combinedTeams, 'count', 'desc');
 };
 
@@ -194,8 +192,8 @@ export const updateDb = async () => {
     fs.mkdir(`data/characters/mains`, { recursive: true }, cb);
   }
 
-  const threshold = 0.005;
-  const min = 5;
+  const threshold = 0.004;
+  const min = 3;
 
   const abyssTeamTotal = getTotal(abyssData.teams, min);
   abyssData.teams = filter(
