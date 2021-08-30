@@ -152,12 +152,12 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
     coreTeams = newTeams;
   }
 
-  const threshold = 0.1;
+  const threshold = 0.01;
   combinedTeams.forEach((team) => {
-    const flexTotal = getTotal(team.flex);
+    // const flexTotal = getTotal(team.flex);
 
     team.flex = orderBy(
-      filter(team.flex, (flex) => flex.count / flexTotal >= threshold),
+      filter(team.flex, (flex) => flex.count / team.count >= threshold),
       'count',
       'desc',
     );
@@ -199,7 +199,7 @@ export const updateDb = async () => {
     fs.mkdir(`data/characters/mains`, { recursive: true }, cb);
   }
 
-  const abyssThreshold = 0.001;
+  const abyssThreshold = 0.003;
   const weaponThreshold = 0.003;
   const weaponCharsThreshold = 0.009;
   const artifactThreshold = 0.001;
@@ -210,7 +210,7 @@ export const updateDb = async () => {
   const abyssTeamTotal = getTotal(abyssData.teams, min);
   abyssData.teams = filter(
     abyssData.teams,
-    (team) => team.count / abyssTeamTotal >= abyssThreshold && team.count > min,
+    (team) => team.count / abyssTeamTotal >= abyssThreshold && team.count >= min,
   );
   const topAbyssTeams = aggregateCoreTeams(abyssData.teams);
 
@@ -219,7 +219,7 @@ export const updateDb = async () => {
       const partyTotal = getTotal(parties, min);
       abyssData.abyss[floor_level].battle_parties[i] = filter(
         parties,
-        (stat) => stat.count / partyTotal >= abyssThreshold && stat.count > min,
+        (stat) => stat.count / partyTotal >= abyssThreshold && stat.count >= min,
       );
     });
   });
