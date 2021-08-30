@@ -192,7 +192,7 @@ export const updateDb = async () => {
     fs.mkdir(`data/characters/mains`, { recursive: true }, cb);
   }
 
-  const threshold = 0.004;
+  const threshold = 0.003;
   const min = 3;
 
   const abyssTeamTotal = getTotal(abyssData.teams, min);
