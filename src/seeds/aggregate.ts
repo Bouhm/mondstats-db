@@ -130,7 +130,7 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
         if (charIdx > -1) {
           team1.flex[charIdx].count += count;
         } else {
-          if (!includes(team1.core_party, charId)) {
+          if (!includes(team1.core_party, charId) && count) {
             team1.flex.push({ charId, count });
           }
         }
@@ -152,8 +152,15 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
     coreTeams = newTeams;
   }
 
+  const threshold = 0.1;
   combinedTeams.forEach((team) => {
-    team.flex = orderBy(team.flex, 'count', 'desc');
+    const flexTotal = getTotal(team.flex);
+
+    team.flex = orderBy(
+      filter(team.flex, (flex) => flex.count / flexTotal >= threshold),
+      'count',
+      'desc',
+    );
   });
   return orderBy(combinedTeams, 'count', 'desc');
 };
@@ -294,7 +301,10 @@ export const updateDb = async () => {
 
       const teamsTotal = getTotal(charBuildStats.teams, min);
       charBuildStats.teams = orderBy(
-        filter(charBuildStats.teams, (team) => team.count / teamsTotal >= buildThreshold && team.count >= min),
+        filter(
+          charBuildStats.teams,
+          (team) => team.count / teamsTotal >= buildThreshold && team.count >= min,
+        ),
         'count',
         'desc',
       );
