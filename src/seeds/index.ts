@@ -328,7 +328,7 @@ const getSpiralAbyssData = async (server: string, currUid: number, scheduleType 
 };
 
 // Get player's owned character ids
-const getPlayerCharacters = async (server: string, currUid: number, threshold = 40) => {
+const getPlayerCharacters = async (server: string, currUid: number) => {
   const apiUrl = `${userApiUrl}?server=os_${server}&role_id=${currUid}`;
 
   return axios
@@ -347,10 +347,7 @@ const getPlayerCharacters = async (server: string, currUid: number, threshold = 
         return [];
       }
 
-      return map(
-        filter(resp.data.data.avatars, (char) => char.level >= threshold),
-        (char) => char.id,
-      );
+      return map(resp.data.data.avatars, (char) => char.id);
     })
     .catch((error) => {
       console.log(error);
@@ -398,8 +395,9 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
 
   // Skip incomplete builds
   if (
-    !artifactSetCombinations.length ||
-    (artifactSetCombinations.length === 1 && artifactSetCombinations[0].activation_number < 4)
+    char.level >= 40 &&
+    (!artifactSetCombinations.length ||
+      (artifactSetCombinations.length === 1 && artifactSetCombinations[0].activation_number < 4))
   )
     return;
 
