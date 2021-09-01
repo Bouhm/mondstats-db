@@ -369,79 +369,6 @@ function _getActivationNumber(count: number, affixes: any[]) {
 }
 
 const aggregateCharacterData = async (char: ICharacterResponse) => {
-  const artifactSets: IArtifactSet = {};
-  forEach(char.reliquaries, (relic) => {
-    if (artifactSets.hasOwnProperty(relic.set.id)) {
-      artifactSets[relic.set.id].count++;
-    } else {
-      artifactSets[relic.set.id] = {
-        count: 1,
-        affixes: relic.set.affixes,
-      };
-    }
-  });
-
-  const artifactSetCombinations: { id: number; activation_number: number }[] = [];
-
-  forIn(artifactSets, (setData, id) => {
-    const activationNum = _getActivationNumber(setData.count, setData.affixes);
-    if (activationNum > 0) {
-      artifactSetCombinations.push({
-        id: parseInt(id),
-        activation_number: activationNum,
-      });
-    }
-  });
-
-  // Skip incomplete builds
-  if (
-    char.level >= 40 &&
-    (!artifactSetCombinations.length ||
-      (artifactSetCombinations.length === 1 && artifactSetCombinations[0].activation_number < 4))
-  )
-    return;
-
-  // Update database
-  // Weapons
-  const charWeapon = {
-    oid: char.weapon.id,
-    ...pick(char.weapon, ['desc', 'name', 'rarity', 'level', 'affix_level', 'type', 'type_name', 'icon']),
-  };
-
-  const weaponRef = await WeaponModel.findOneAndUpdate(
-    { oid: charWeapon.oid },
-    { $setOnInsert: charWeapon },
-    options,
-  );
-
-  const artifactRefIds: Schema.Types.ObjectId[] = [];
-  // Artifacts
-  for (const artifact of char.reliquaries) {
-    const charArtifact = {
-      oid: artifact.id,
-      ...pick(artifact, ['name', 'rarity', 'icon', 'pos', 'pos_name']),
-      set: {
-        oid: artifact.set.id,
-        affixes: artifact.set.affixes,
-        name: artifact.set.name,
-      },
-    };
-
-    const artifactSetRef = await ArtifactSetModel.findOneAndUpdate(
-      { oid: artifact.set.id },
-      { $setOnInsert: artifact.set },
-      options,
-    );
-    charArtifact.set = artifactSetRef._id;
-
-    const artifactRef = await ArtifactModel.findOneAndUpdate(
-      { oid: charArtifact.oid },
-      { $setOnInsert: charArtifact },
-      options,
-    );
-    artifactRefIds.push(artifactRef._id);
-  }
-
   // Characters
   const character = {
     oid: char.id,
@@ -471,6 +398,78 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
     { $setOnInsert: character },
     options,
   );
+
+  // Weapons
+  const charWeapon = {
+    oid: char.weapon.id,
+    ...pick(char.weapon, ['desc', 'name', 'rarity', 'level', 'affix_level', 'type', 'type_name', 'icon']),
+  };
+
+  const weaponRef = await WeaponModel.findOneAndUpdate(
+    { oid: charWeapon.oid },
+    { $setOnInsert: charWeapon },
+    options,
+  );
+
+  const artifactSets: IArtifactSet = {};
+  forEach(char.reliquaries, (relic) => {
+    if (artifactSets.hasOwnProperty(relic.set.id)) {
+      artifactSets[relic.set.id].count++;
+    } else {
+      artifactSets[relic.set.id] = {
+        count: 1,
+        affixes: relic.set.affixes,
+      };
+    }
+  });
+  
+  // Artifacts
+  const artifactSetCombinations: { id: number; activation_number: number }[] = [];
+  const artifactRefIds: Schema.Types.ObjectId[] = [];
+  
+  for (const artifact of char.reliquaries) {
+    const charArtifact = {
+      oid: artifact.id,
+      ...pick(artifact, ['name', 'rarity', 'icon', 'pos', 'pos_name']),
+      set: {
+        oid: artifact.set.id,
+        affixes: artifact.set.affixes,
+        name: artifact.set.name,
+      },
+    };
+
+    const artifactSetRef = await ArtifactSetModel.findOneAndUpdate(
+      { oid: artifact.set.id },
+      { $setOnInsert: artifact.set },
+      options,
+    );
+    charArtifact.set = artifactSetRef._id;
+
+    const artifactRef = await ArtifactModel.findOneAndUpdate(
+      { oid: charArtifact.oid },
+      { $setOnInsert: charArtifact },
+      options,
+    );
+    artifactRefIds.push(artifactRef._id);
+  }
+
+  forIn(artifactSets, (setData, id) => {
+    const activationNum = _getActivationNumber(setData.count, setData.affixes);
+    if (activationNum > 0) {
+      artifactSetCombinations.push({
+        id: parseInt(id),
+        activation_number: activationNum,
+      });
+    }
+  });
+
+  // Skip incomplete builds
+  if (
+    char.level >= 40 &&
+    (!artifactSetCombinations.length ||
+      (artifactSetCombinations.length === 1 && artifactSetCombinations[0].activation_number < 4))
+  )
+    return;
 
   if (artifactRefIds.length === 5) {
     // PlayerCharacters
