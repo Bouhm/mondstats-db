@@ -771,7 +771,11 @@ mongoose.connection.once('open', async () => {
         default:
         case 'last':
           console.log('Starting after last UID...');
-          const lastPlayer = await PlayerModel.findOne().limit(1).sort('-uid').lean();
+          const baseUid = _getBaseUid(server);
+          const lastPlayer = await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
+            .sort({ uid: -1 })
+            .limit(1)
+            .lean();
           await runParallel(
             async (isMainProcess = false) =>
               await aggregateAllCharacterData(isMainProcess, lastPlayer.uid + 1),
