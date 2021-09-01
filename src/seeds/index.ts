@@ -422,11 +422,11 @@ const aggregateCharacterData = async (char: ICharacterResponse) => {
       };
     }
   });
-  
+
   // Artifacts
   const artifactSetCombinations: { id: number; activation_number: number }[] = [];
   const artifactRefIds: Schema.Types.ObjectId[] = [];
-  
+
   for (const artifact of char.reliquaries) {
     const charArtifact = {
       oid: artifact.id,
@@ -780,7 +780,12 @@ mongoose.connection.once('open', async () => {
           break;
         case 'resume':
           console.log('Starting after last upated UID...');
-          const lastUpdatedPlayer = await PlayerModel.findOne().limit(1).sort({ $natural: -1 }).lean();
+          const lastUpdatedPlayer = await PlayerModel.findOne({
+            uid: { $gt: baseUid, $lt: baseUid + 99999999 },
+          })
+            .limit(1)
+            .sort({ $natural: -1 })
+            .lean();
           await runParallel(
             async (isMainProcess = false) =>
               await aggregateAllCharacterData(isMainProcess, lastUpdatedPlayer.uid + 1),
@@ -797,7 +802,9 @@ mongoose.connection.once('open', async () => {
           console.log('Updating existing UIDs...');
           // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
           delayMs = 5 * 60 * 1000;
-          const players = await PlayerModel.find().sort({ updatedAt: -1 }).lean();
+          const players = await PlayerModel.find({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
+            .sort({ updatedAt: -1 })
+            .lean();
           const uids = map(players, (player) => player.uid);
           await runParallel(
             async (isMainProcess = false) => await aggregateAllCharacterData(isMainProcess, 0, uids),
