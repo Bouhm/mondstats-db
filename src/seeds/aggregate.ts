@@ -335,7 +335,7 @@ export const updateDb = async () => {
         player_total: playerCount,
         character_total: playerCharacterCount,
         abyss_total: abyssBattleCount,
-        banner: ['Raiden Shogun', 'Kujou Sara', 'Sucrose', 'Xiangling'],
+        banner: ['Raiden Shogun', 'Kujou Sara', 'Aloy', 'Sucrose', 'Xiangling'],
       }),
       cb,
     ),
