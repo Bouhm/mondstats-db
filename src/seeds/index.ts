@@ -744,6 +744,7 @@ mongoose.connection.once('open', async () => {
     weeklyUpdate = getNextMonday(now);
 
     concurrent = parseInt(process.env.npm_config_concurrent);
+    const baseUid = _getBaseUid(server);
 
     switch (process.env.npm_config_abyss) {
       case 'prev':
@@ -768,7 +769,6 @@ mongoose.connection.once('open', async () => {
         default:
         case 'last':
           console.log('Starting after last UID...');
-          const baseUid = _getBaseUid(server);
           const lastPlayer = await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
             .sort({ uid: -1 })
             .limit(1)
