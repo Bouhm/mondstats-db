@@ -276,11 +276,11 @@ export const updateDb = async () => {
 
   const filterCharacterBuilds = (builds: any) => {
     builds.forEach((charBuildStats) => {
-      const buildsTotal = getTotal(charBuildStats.builds, min);
+      const buildsTotal = getTotal(charBuildStats.builds, min-1);
       charBuildStats.builds = orderBy(
         filter(
           charBuildStats.builds,
-          (build) => build.count / buildsTotal >= buildThreshold && build.count >= min,
+          (build) => build.count / buildsTotal >= buildThreshold && build.count >= min-1,
         ),
         'count',
         'desc',
@@ -288,11 +288,11 @@ export const updateDb = async () => {
       charBuildStats.total = getTotal(charBuildStats.builds);
 
       charBuildStats.builds.forEach((build) => {
-        const weaponsTotal = getTotal(build.weapons, min);
+        const weaponsTotal = getTotal(build.weapons, min-1);
         build.weapons = orderBy(
           filter(
             build.weapons,
-            (weapon) => weapon.count / weaponsTotal >= buildThreshold && weapon.count >= min,
+            (weapon) => weapon.count / weaponsTotal >= buildThreshold && weapon.count >= min-1,
           ),
           'count',
           'desc',
@@ -335,7 +335,7 @@ export const updateDb = async () => {
         player_total: playerCount,
         character_total: playerCharacterCount,
         abyss_total: abyssBattleCount,
-        banner: ['Raiden Shogun', 'Kujou Sara', 'Aloy', 'Sucrose', 'Xiangling'],
+        banner: ['Raiden Shogun', 'Kujou Sara', 'Sucrose', 'Xiangling', 'Aloy'],
       }),
       cb,
     ),
