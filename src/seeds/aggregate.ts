@@ -85,11 +85,11 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
       });
       const flexIdx = difference(allIndexes, coreIndexes)[0];
 
-      if (partyIdx > -1) {
+      if (partyIdx > ) {
         coreTeams[partyIdx].count += count;
         const charIdx = findIndex(coreTeams[partyIdx].flex, (flex) => flex.charId === party[flexIdx]);
 
-        if (charIdx > -1) {
+        if (charIdx > ) {
           coreTeams[partyIdx].flex[charIdx].count += count;
         } else {
           coreTeams[partyIdx].flex.push({ charId: party[flexIdx], count });
@@ -127,7 +127,7 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
       forEach([team2.flex[0]], ({ charId, count }) => {
         const charIdx = findIndex(team1.flex, (flex) => flex.charId === charId);
 
-        if (charIdx > -1) {
+        if (charIdx > ) {
           team1.flex[charIdx].count += count;
         } else {
           if (!includes(team1.core_party, charId) && count) {
@@ -152,7 +152,7 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
     coreTeams = newTeams;
   }
 
-  const threshold = 0.01;
+  const threshold = 0.1;
   combinedTeams.forEach((team) => {
     // const flexTotal = getTotal(team.flex);
 
@@ -276,28 +276,28 @@ export const updateDb = async () => {
 
   const filterCharacterBuilds = (builds: any) => {
     builds.forEach((charBuildStats) => {
-      const buildsTotal = getTotal(charBuildStats.builds, min-1);
+      const buildsTotal = getTotal(charBuildStats.builds, min);
       charBuildStats.builds = orderBy(
         filter(
           charBuildStats.builds,
-          (build) => build.count / buildsTotal >= buildThreshold && build.count >= min-1,
+          (build) => build.count / buildsTotal >= buildThreshold && build.count >= min,
         ),
         'count',
         'desc',
       );
       charBuildStats.total = getTotal(charBuildStats.builds);
 
-      charBuildStats.builds.forEach((build) => {
-        const weaponsTotal = getTotal(build.weapons, min-1);
-        build.weapons = orderBy(
-          filter(
-            build.weapons,
-            (weapon) => weapon.count / weaponsTotal >= buildThreshold && weapon.count >= min-1,
-          ),
-          'count',
-          'desc',
-        );
-      });
+      // charBuildStats.builds.forEach((build) => {
+      //   const weaponsTotal = getTotal(build.weapons, min);
+      //   build.weapons = orderBy(
+      //     filter(
+      //       build.weapons,
+      //       (weapon) => weapon.count / weaponsTotal >= buildThreshold && weapon.count >= min,
+      //     ),
+      //     'count',
+      //     'desc',
+      //   );
+      // });
 
       const teamsTotal = getTotal(charBuildStats.teams, min);
       charBuildStats.teams = orderBy(

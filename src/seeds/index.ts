@@ -2,11 +2,10 @@
 import Axios from 'axios';
 import fs from 'fs';
 import https from 'https';
-import { clamp, filter, find, forEach, forIn, includes, map, pick, shuffle, some } from 'lodash';
+import { clamp, filter, find, forEach, forIn, map, pick, shuffle, some } from 'lodash';
 import mongoose, { Schema } from 'mongoose';
 import { firefox } from 'playwright-firefox';
 import parallel from 'run-parallel';
-import { async } from 'rxjs';
 
 import AbyssBattleModel from '../abyss-battle/abyss-battle.model';
 import ArtifactSetModel from '../artifact-set/artifact-set.model';
