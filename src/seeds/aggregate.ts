@@ -85,11 +85,11 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
       });
       const flexIdx = difference(allIndexes, coreIndexes)[0];
 
-      if (partyIdx > ) {
+      if (partyIdx > -1) {
         coreTeams[partyIdx].count += count;
         const charIdx = findIndex(coreTeams[partyIdx].flex, (flex) => flex.charId === party[flexIdx]);
 
-        if (charIdx > ) {
+        if (charIdx > -1) {
           coreTeams[partyIdx].flex[charIdx].count += count;
         } else {
           coreTeams[partyIdx].flex.push({ charId: party[flexIdx], count });
@@ -127,7 +127,7 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
       forEach([team2.flex[0]], ({ charId, count }) => {
         const charIdx = findIndex(team1.flex, (flex) => flex.charId === charId);
 
-        if (charIdx > ) {
+        if (charIdx > -1) {
           team1.flex[charIdx].count += count;
         } else {
           if (!includes(team1.core_party, charId) && count) {
@@ -287,17 +287,17 @@ export const updateDb = async () => {
       );
       charBuildStats.total = getTotal(charBuildStats.builds);
 
-      // charBuildStats.builds.forEach((build) => {
-      //   const weaponsTotal = getTotal(build.weapons, min);
-      //   build.weapons = orderBy(
-      //     filter(
-      //       build.weapons,
-      //       (weapon) => weapon.count / weaponsTotal >= buildThreshold && weapon.count >= min,
-      //     ),
-      //     'count',
-      //     'desc',
-      //   );
-      // });
+      charBuildStats.builds.forEach((build) => {
+        const weaponsTotal = getTotal(build.weapons, min);
+        build.weapons = orderBy(
+          filter(
+            build.weapons,
+            (weapon) => weapon.count / weaponsTotal >= buildThreshold && weapon.count >= min,
+          ),
+          'count',
+          'desc',
+        );
+      });
 
       const teamsTotal = getTotal(charBuildStats.teams, min);
       charBuildStats.teams = orderBy(
