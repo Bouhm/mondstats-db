@@ -6,6 +6,7 @@ import { clamp, filter, find, forEach, forIn, map, pick, shuffle, some } from 'l
 import mongoose, { Schema } from 'mongoose';
 import { firefox } from 'playwright-firefox';
 import parallel from 'run-parallel';
+import TokenModel from 'src/token/token.model';
 
 import AbyssBattleModel from '../abyss-battle/abyss-battle.model';
 import ArtifactSetModel from '../artifact-set/artifact-set.model';
@@ -30,18 +31,18 @@ const axios = Axios.create({
   }),
 });
 
-const tokensPath = './src/keys/tokens.json';
+// const tokensPath = './src/keys/tokens.json';
 const proxiesPath = './src/keys/proxies.json';
 // const dsPath = './src/keys/DS.json';
 
 let PROXIES: Array<{ ip: string; port: string }> = [];
-let TOKENS: string[] = [];
+// let TOKENS: string[] = [];
+let Cookie = '';
 let DS = '';
-let blockedIndices: boolean[] = [];
+// let blockedIndices: boolean[] = [];
 let proxyIdx = 0;
-let tokenIdx = 0;
 let uid = 0;
-let iterationStart = Date.now();
+const iterationStart = Date.now();
 let areAllStillBlocked = true;
 let abyssSchedule = 1;
 const blockedLevel = 0;
@@ -109,24 +110,17 @@ const assignTravelerOid = (charData: ICharacterResponse) => {
 };
 
 const _incrementTokenIdx = async () => {
-  tokenIdx++;
+  const token = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
+  Cookie = `${token.ltoken}; ${token.ltuid}`;
   _incrementProxyIdx();
+  const delta = new Date().getTime() - new Date(token.used).getTime();
 
-  if (tokenIdx > TOKENS.length - 1) {
-    tokenIdx = 0;
-
-    if (proxyIdx + TOKENS.length > PROXIES.length - 1) {
-      proxyIdx = 0;
-    } else {
-      proxyIdx += TOKENS.length;
-    }
-
-    const restMs = clamp(maxRest - (Date.now() - iterationStart), 0, maxRest) + delayMs;
-    iterationStart = Date.now();
-    // await _sleep(restMs);
-    await _sleep(maxRest + 200);
+  if (!token.used || delta < maxRest) {
+    const restMs = clamp(maxRest - delta, 0, maxRest) + delayMs;
+    await _sleep(restMs);
   }
 
+  TokenModel.findByIdAndUpdate({ _id: token._id }, { used: new Date() });
   // if (DEVELOPMENT) console.log("using next token... " + tokenIdx);
 };
 
@@ -163,7 +157,7 @@ const updateDS = async () => {
   const browser = await firefox.launch();
   const context = await browser.newContext({
     extraHTTPHeaders: {
-      Cookie: TOKENS[tokenIdx],
+      Cookie: Cookie,
       'x-rpc-client_type': '4',
       'x-rpc-app_version': '1.5.0',
     },
@@ -190,9 +184,8 @@ const updateDS = async () => {
   });
 };
 
-const getHeaders = () => {
+const getHeaders = async () => {
   proxyIdx = clamp(proxyIdx, 0, PROXIES.length - 1);
-  tokenIdx = clamp(tokenIdx, 0, TOKENS.length - 1);
 
   return {
     Host: 'api-os-takumi.mihoyo.com',
@@ -208,7 +201,7 @@ const getHeaders = () => {
     DNT: '1',
     Connection: 'keep-alive',
     Referer: 'https://webstatic-sea.hoyolab.com/',
-    Cookie: TOKENS[tokenIdx],
+    Cookie,
     TE: 'Trailers',
     'X-Forwarded-For': PROXIES[proxyIdx].ip,
     'X-Forwarded-Port': PROXIES[proxyIdx].port,
@@ -241,26 +234,27 @@ function _getBaseUid(server: string, start = 0) {
   return uidBase + start;
 }
 
-const handleBlock = async (tokenIdx: number) => {
-  blockedIndices[tokenIdx] = true;
-  console.log(`${filter(blockedIndices, (blocked) => blocked).length}/${blockedIndices.length}`);
+const handleBlock = async () => {
+  const tokens = await TokenModel.find().lean();
+  // blockedIndices[tokenIdx] = true;
+  // console.log(`${filter(blockedIndices, (blocked) => blocked).length}/${blockedIndices.length}`);
 
-  if (filter(blockedIndices, (blocked) => blocked).length >= TOKENS.length) {
-    console.log('--- ALL BLOCKED ---');
-    // if (areAllStillBlocked) {
-    //   blockedLevel++;
+  // if (filter(blockedIndices, (blocked) => blocked).length >= TOKENS.length) {
+  //   console.log('--- ALL BLOCKED ---');
+  //   // if (areAllStillBlocked) {
+  //   //   blockedLevel++;
 
-    //   if (blockedLevel > longRests.length - 1) {
-    //     blockedLevel = longRests.length - 1;
-    //   }
-    // } else {
-    //   blockedLevel = 0;
-    // }
+  //   //   if (blockedLevel > longRests.length - 1) {
+  //   //     blockedLevel = longRests.length - 1;
+  //   //   }
+  //   // } else {
+  //   //   blockedLevel = 0;
+  //   // }
 
-    console.log('Long rest...');
-    await _sleep(dayMs);
-    blockedIndices = new Array(TOKENS.length).fill(false);
-  }
+  //   console.log('Long rest...');
+  //   await _sleep(dayMs);
+  //   blockedIndices = new Array(TOKENS.length).fill(false);
+  // }
 };
 
 const purgePlayer = async (uid: number) => {
@@ -585,7 +579,7 @@ const aggregatePlayerData = async (server: string, curruid: number, characterIds
 const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uids = []) => {
   const baseUid = _getBaseUid(server);
   const end = baseUid + 99999999;
-  let currTokenIdx = 0;
+  // let currTokenIdx = 0;
   uid = !!initUid ? initUid : baseUid;
   let currUid = uid;
 
@@ -604,9 +598,9 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
 
       // Blocked
       if (shouldCollectData === null) {
-        currTokenIdx = tokenIdx;
+        // currTokenIdx = tokenIdx;
         await _incrementTokenIdx();
-        await handleBlock(currTokenIdx);
+        // await handleBlock(currTokenIdx);
         continue;
       } else if (shouldCollectData === undefined) {
         await updateDS();
@@ -621,7 +615,7 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
 
       if (shouldCollectData) {
         console.log(`Collecting data for player ${currUid}...`);
-        currTokenIdx = tokenIdx;
+        // currTokenIdx = tokenIdx;
         await _incrementTokenIdx();
 
         try {
@@ -644,7 +638,7 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
           //   weeklyUpdate = getNextMonday(now);
 
           //   characterIds = await getPlayerCharacters(server, currUid);
-          //   currTokenIdx = tokenIdx;
+          // currTokenIdx = tokenIdx;
           //   await _incrementTokenIdx();
 
           //   // Otherwise we skip the API call
@@ -657,13 +651,13 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
           //   characterIds = map(playerCharacters, ({ character }: any) => character.oid);
           // } else {
           characterIds = await getPlayerCharacters(server, currUid);
-          currTokenIdx = tokenIdx;
+          // currTokenIdx = tokenIdx;
           await _incrementTokenIdx();
           // }
           // }
 
           if (characterIds === null) {
-            await handleBlock(currTokenIdx);
+            // await handleBlock(currTokenIdx);
             continue;
           } else if (characterIds === undefined) {
             await updateDS();
@@ -672,11 +666,11 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
             areAllStillBlocked = false;
             if (characterIds.length > 0) {
               const result = await aggregatePlayerData(server, currUid, characterIds);
-              currTokenIdx = tokenIdx;
+              // currTokenIdx = tokenIdx;
               await _incrementTokenIdx();
 
               if (result === null) {
-                await handleBlock(currTokenIdx);
+                // await handleBlock(currTokenIdx);
                 continue;
               } else if (result === undefined) {
                 await updateDS();
@@ -710,7 +704,7 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
 // let sampleAbyss: { data: IAbyssResponse };
 
 const loadFromJson = () => {
-  TOKENS = shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
+  // TOKENS = shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
   PROXIES = shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
   // DS = shuffle(JSON.parse(fs.readFileSync(dsPath, 'utf-8')));
   // sampleChars = JSON.parse(fs.readFileSync('./src/db/sampleChars.json', 'utf-8'));
@@ -733,10 +727,9 @@ connectDb();
 mongoose.connection.once('open', async () => {
   try {
     // await purgeOld();
-    await updateDb();
 
     loadFromJson();
-    blockedIndices = new Array(TOKENS.length).fill(false);
+    // blockedIndices = new Array(TOKENS.length).fill(false);
     await updateDS();
     const now = new Date();
     dailyUpdate = getNextDay(now);

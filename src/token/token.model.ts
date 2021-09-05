@@ -16,6 +16,9 @@ export class Token {
 
   @Field(() => String)
   _MHYUUID: string;
+
+  @Field(() => Date)
+  used: Date;
 }
 
 export type TokenDocument = Token & Document;

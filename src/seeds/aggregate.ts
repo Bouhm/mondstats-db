@@ -287,17 +287,17 @@ export const updateDb = async () => {
       );
       charBuildStats.total = getTotal(charBuildStats.builds);
 
-      charBuildStats.builds.forEach((build) => {
-        const weaponsTotal = getTotal(build.weapons, min);
-        build.weapons = orderBy(
-          filter(
-            build.weapons,
-            (weapon) => weapon.count / weaponsTotal >= buildThreshold && weapon.count >= min,
-          ),
-          'count',
-          'desc',
-        );
-      });
+      // charBuildStats.builds.forEach((build) => {
+      //   const weaponsTotal = getTotal(build.weapons, min);
+      //   build.weapons = orderBy(
+      //     filter(
+      //       build.weapons,
+      //       (weapon) => weapon.count / weaponsTotal >= buildThreshold && weapon.count >= min,
+      //     ),
+      //     'count',
+      //     'desc',
+      //   );
+      // });
 
       const teamsTotal = getTotal(charBuildStats.teams, min);
       charBuildStats.teams = orderBy(
