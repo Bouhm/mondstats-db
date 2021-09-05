@@ -242,7 +242,6 @@ function _getBaseUid(server: string, start = 0) {
 }
 
 const handleBlock = async () => {
-  const tokens = await TokenModel.find().lean();
   // blockedIndices[tokenIdx] = true;
   // console.log(`${filter(blockedIndices, (blocked) => blocked).length}/${blockedIndices.length}`);
 
@@ -262,6 +261,8 @@ const handleBlock = async () => {
   //   await _sleep(dayMs);
   //   blockedIndices = new Array(TOKENS.length).fill(false);
   // }
+  console.log(`Blocked at ${Cookie.split(' ')[1]}`);
+  await _sleep(maxRest);
 };
 
 const purgePlayer = async (uid: number) => {
@@ -606,7 +607,7 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
       if (shouldCollectData === null) {
         // currTokenIdx = tokenIdx;
         await nextToken();
-        // await handleBlock(currTokenIdx);
+        await handleBlock();
         continue;
       } else if (shouldCollectData === undefined) {
         await updateDS();
@@ -663,7 +664,7 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
           // }
 
           if (characterIds === null) {
-            // await handleBlock(currTokenIdx);
+            await handleBlock();
             continue;
           } else if (characterIds === undefined) {
             await updateDS();
@@ -676,7 +677,7 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
               await nextToken();
 
               if (result === null) {
-                // await handleBlock(currTokenIdx);
+                await handleBlock();
                 continue;
               } else if (result === undefined) {
                 await updateDS();
