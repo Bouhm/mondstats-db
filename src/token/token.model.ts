@@ -15,9 +15,11 @@ export class Token {
   ltoken: string;
 
   @Field(() => String)
+  @Prop()
   _MHYUUID: string;
 
   @Field(() => Date)
+  @Prop()
   used: Date;
 }
 

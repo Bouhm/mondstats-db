@@ -6,7 +6,6 @@ import { clamp, filter, find, forEach, forIn, map, pick, shuffle, some } from 'l
 import mongoose, { Schema } from 'mongoose';
 import { firefox } from 'playwright-firefox';
 import parallel from 'run-parallel';
-import TokenModel from 'src/token/token.model';
 
 import AbyssBattleModel from '../abyss-battle/abyss-battle.model';
 import ArtifactSetModel from '../artifact-set/artifact-set.model';
@@ -14,9 +13,10 @@ import ArtifactModel from '../artifact/artifact.model';
 import CharacterModel from '../character/character.model';
 import PlayerCharacterModel from '../player-character/player-character.model';
 import PlayerModel, { PlayerDocument } from '../player/player.model';
+import TokenModel from '../token/token.model';
 import connectDb from '../util/connection';
 import WeaponModel from '../weapon/weapon.model';
-import { updateDb } from './aggregate';
+// import { updateDb } from './aggregate';
 import { IAbyssResponse, IArtifactSet, ICharacterResponse } from './interfaces';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -109,18 +109,25 @@ const assignTravelerOid = (charData: ICharacterResponse) => {
   return oid;
 };
 
-const _incrementTokenIdx = async () => {
+const nextToken = async () => {
   const token = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
-  Cookie = `${token.ltoken}; ${token.ltuid}`;
+  Cookie = `ltoken=${token.ltoken}; ltuid=${token.ltuid}`;
   _incrementProxyIdx();
-  const delta = new Date().getTime() - new Date(token.used).getTime();
 
-  if (!token.used || delta < maxRest) {
-    const restMs = clamp(maxRest - delta, 0, maxRest) + delayMs;
-    await _sleep(restMs);
+  if (token.used) {
+    const delta = new Date().getTime() - new Date(token.used).getTime();
+
+    if (delta < maxRest) {
+      const restMs = clamp(maxRest - delta, 0, maxRest) + delayMs;
+      await _sleep(restMs);
+    }
   }
 
-  TokenModel.findByIdAndUpdate({ _id: token._id }, { used: new Date() });
+  const updatedToken = await TokenModel.findOneAndUpdate(
+    { ltuid: token.ltuid },
+    { used: new Date() },
+    options,
+  );
   // if (DEVELOPMENT) console.log("using next token... " + tokenIdx);
 };
 
@@ -184,7 +191,7 @@ const updateDS = async () => {
   });
 };
 
-const getHeaders = async () => {
+const getHeaders = () => {
   proxyIdx = clamp(proxyIdx, 0, PROXIES.length - 1);
 
   return {
@@ -288,7 +295,6 @@ const getSpiralAbyssData = async (server: string, currUid: number, scheduleType 
       withCredentials: true,
     });
 
-    // console.log(resp.data.message, tokenIdx, ++count);
     // Rate limit reached message
     if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
       // console.log('Abyss data: ', resp.data.message);
@@ -591,7 +597,7 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
 
     playerCharRefMap = {};
     areAllStillBlocked = true;
-    const now = new Date();
+    // const now = new Date();
 
     try {
       const shouldCollectData = await getSpiralAbyssData(server, currUid, abyssSchedule);
@@ -599,7 +605,7 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
       // Blocked
       if (shouldCollectData === null) {
         // currTokenIdx = tokenIdx;
-        await _incrementTokenIdx();
+        await nextToken();
         // await handleBlock(currTokenIdx);
         continue;
       } else if (shouldCollectData === undefined) {
@@ -616,7 +622,7 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
       if (shouldCollectData) {
         console.log(`Collecting data for player ${currUid}...`);
         // currTokenIdx = tokenIdx;
-        await _incrementTokenIdx();
+        await nextToken();
 
         try {
           playerRef = await PlayerModel.findOneAndUpdate(
@@ -639,7 +645,7 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
 
           //   characterIds = await getPlayerCharacters(server, currUid);
           // currTokenIdx = tokenIdx;
-          //   await _incrementTokenIdx();
+          //   await nextToken();
 
           //   // Otherwise we skip the API call
           // } else {
@@ -652,7 +658,7 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
           // } else {
           characterIds = await getPlayerCharacters(server, currUid);
           // currTokenIdx = tokenIdx;
-          await _incrementTokenIdx();
+          await nextToken();
           // }
           // }
 
@@ -667,7 +673,7 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
             if (characterIds.length > 0) {
               const result = await aggregatePlayerData(server, currUid, characterIds);
               // currTokenIdx = tokenIdx;
-              await _incrementTokenIdx();
+              await nextToken();
 
               if (result === null) {
                 // await handleBlock(currTokenIdx);
@@ -727,6 +733,9 @@ connectDb();
 mongoose.connection.once('open', async () => {
   try {
     // await purgeOld();
+
+    const token = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
+    Cookie = `ltoken=${token.ltoken}; ltuid=${token.ltuid}`;
 
     loadFromJson();
     // blockedIndices = new Array(TOKENS.length).fill(false);
