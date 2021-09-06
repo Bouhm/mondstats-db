@@ -49,7 +49,7 @@ const blockedLevel = 0;
 const dayMs = 24 * 60 * 60 * 1000;
 const maxRest = dayMs / 30;
 const lastPatchCycle = new Date(Date.now() - 6 * 7 * dayMs);
-let delayMs = 200;
+const delayMs = 200;
 let dailyUpdate;
 let weeklyUpdate;
 let collectedTotal = 0;
@@ -58,6 +58,7 @@ let playerCharRefMap: { [oid: string]: any } = {};
 let playerAbyssData: IAbyssResponse;
 let concurrent = 1;
 let existingUids = false;
+let maxUid = 0;
 
 const options = {
   upsert: true,
@@ -524,7 +525,7 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
             )
               return;
 
-            await AbyssBattleModel.findOneAndUpdate(
+            AbyssBattleModel.findOneAndUpdate(
               {
                 floor_level: `${floor.index}-${level.index}`,
                 battle_index: battle.index,
@@ -532,7 +533,7 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
               },
               { $setOnInsert: abyssBattle },
               options,
-            );
+            ).then((a) => console.log(a));
           });
         },
       );
@@ -583,7 +584,7 @@ const aggregatePlayerData = async (server: string, curruid: number, characterIds
     });
 };
 
-const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uids = []) => {
+const aggregatePlayerGameData = async (isMainProcess = false, initUid = 0) => {
   const baseUid = _getBaseUid(server);
   const end = baseUid + 99999999;
   // let currTokenIdx = 0;
@@ -591,9 +592,13 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
   let currUid = uid;
 
   while (uid < end) {
-    if (uids.length) {
-      uid = uids.pop();
+    if (existingUids && uid < maxUid) {
+      if (!(await PlayerModel.findOne({ uid }).lean())) {
+        uid++;
+        continue;
+      }
     }
+
     currUid = uid;
 
     playerCharRefMap = {};
@@ -616,7 +621,7 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
       areAllStillBlocked = false;
 
       if (!shouldCollectData) {
-        if (!uids.length) uid++;
+        uid++;
         continue;
       }
 
@@ -688,7 +693,7 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
                 console.log('Total: ', collectedTotal);
               }
             }
-            if (!uids.length) uid++;
+            uid++;
           }
         } catch (err) {
           console.log(err);
@@ -764,12 +769,12 @@ mongoose.connection.once('open', async () => {
       console.log('Starting from ' + process.env.npm_config_uid);
       await runParallel(
         async (isMainProcess: boolean) =>
-          await aggregateAllCharacterData(isMainProcess, parseInt(process.env.npm_config_uid)),
+          await aggregatePlayerGameData(isMainProcess, parseInt(process.env.npm_config_uid)),
       );
     } else {
       switch (process.env.npm_config_uid) {
         default:
-        case 'last':
+        case 'last': {
           console.log('Starting after last UID...');
           const lastPlayer = await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
             .sort({ uid: -1 })
@@ -777,10 +782,11 @@ mongoose.connection.once('open', async () => {
             .lean();
           await runParallel(
             async (isMainProcess = false) =>
-              await aggregateAllCharacterData(isMainProcess, lastPlayer.uid + 1),
+              await aggregatePlayerGameData(isMainProcess, lastPlayer.uid + 1),
           );
           break;
-        case 'resume':
+        }
+        case 'resume': {
           console.log('Starting after last upated UID...');
           const lastUpdatedPlayer = await PlayerModel.findOne({
             uid: { $gt: baseUid, $lt: baseUid + 99999999 },
@@ -790,28 +796,35 @@ mongoose.connection.once('open', async () => {
             .lean();
           await runParallel(
             async (isMainProcess = false) =>
-              await aggregateAllCharacterData(isMainProcess, lastUpdatedPlayer.uid + 1),
+              await aggregatePlayerGameData(isMainProcess, lastUpdatedPlayer.uid + 1),
           );
           break;
+        }
         case 'all':
           console.log('Starting from base UID...');
-          await runParallel(
-            async (isMainProcess = false) => await aggregateAllCharacterData(isMainProcess),
-          );
+          await runParallel(async (isMainProcess = false) => await aggregatePlayerGameData(isMainProcess));
           break;
-        case 'existing':
+        case 'existing': {
           existingUids = true;
           console.log('Updating existing UIDs...');
-          // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
-          delayMs = 5 * 60 * 1000;
-          const players = await PlayerModel.find({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
+          const oldestUpdatedPlayer = await PlayerModel.findOne({
+            uid: { $gt: baseUid, $lt: baseUid + 99999999 },
+          })
             .sort({ updatedAt: -1 })
+            .limit(1)
             .lean();
-          const uids = map(players, (player) => player.uid);
+          maxUid = (
+            await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
+              .sort({ uid: -1 })
+              .limit(1)
+              .lean()
+          ).uid;
           await runParallel(
-            async (isMainProcess = false) => await aggregateAllCharacterData(isMainProcess, 0, uids),
+            async (isMainProcess = false) =>
+              await aggregatePlayerGameData(isMainProcess, oldestUpdatedPlayer.uid + 1),
           );
           break;
+        }
       }
     }
   } finally {
