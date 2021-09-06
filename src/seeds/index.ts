@@ -524,7 +524,7 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
             )
               return;
 
-            AbyssBattleModel.findOneAndUpdate(
+            await AbyssBattleModel.findOneAndUpdate(
               {
                 floor_level: `${floor.index}-${level.index}`,
                 battle_index: battle.index,
