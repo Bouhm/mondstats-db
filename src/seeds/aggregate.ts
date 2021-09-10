@@ -5,6 +5,7 @@ import {
   filter,
   find,
   findIndex,
+  flatten,
   forEach,
   includes,
   intersection,
@@ -125,7 +126,7 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
     forEach(coreTeams2, (team2) => {
       // team1.count += team2.count;
 
-      forEach([team2.flex[0]], ({ charId, count }) => {
+      forEach(team2.flex, ({ charId, count }) => {
         const charIdx = findIndex(team1.flex, (flex) => flex.charId === charId);
 
         if (charIdx > -1) {
@@ -153,7 +154,7 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
     coreTeams = newTeams;
   }
 
-  const threshold = 0.16;
+  const threshold = 0.25;
   combinedTeams.forEach((team) => {
     // const flexTotal = getTotal(team.flex);
 
@@ -201,7 +202,7 @@ export const updateDb = async () => {
     fs.mkdir(`data/characters/mains`, { recursive: true }, cb);
   }
 
-  const abyssThreshold = 0.001;
+  const abyssThreshold = 0.003;
   const weaponThreshold = 0.003;
   const weaponCharsThreshold = 0.009;
   const artifactThreshold = 0.001;
@@ -214,23 +215,47 @@ export const updateDb = async () => {
     abyssData.teams,
     (team) => team.count / abyssTeamTotal >= abyssThreshold && team.count >= min,
   );
-  // const characterAbyssTeams = map(
-    
-  // )
-  const topAbyssTeams = aggregateCoreTeams([...totalAbyssTeams, characterAbyssTeams]);
+  const characterAbyssTeams = flatten(map(
+    characterData,
+    ({ _id }) => take(filter(abyssData.teams, ({ party }) => {
+      return includes(party, _id) && !find(totalAbyssTeams, { party })
+    }), 20)
+  ));
+  const topAbyssTeams = aggregateCoreTeams([...totalAbyssTeams, ...characterAbyssTeams]);
 
-  forEach(abyssData.abyss, (floorData, floor_level) => {
+  let allAbyssFloors = cloneDeep(abyssData.abyss)
+  forEach(allAbyssFloors, (floorData) => {
     floorData.battle_parties.forEach((parties, i) => {
       const partyTotal = getTotal(parties, min);
-      abyssData.abyss[floor_level].battle_parties[i] = filter(
+      parties = filter(
         parties,
         (stat) => stat.count / partyTotal >= abyssThreshold && stat.count >= min,
       );
     });
   });
 
-  const allAbyssTeams: any = cloneDeep(abyssData.abyss);
-  forEach(abyssData.abyss, (floorData, floor_level) => {
+  function _range(size: number, startAt = 0) {
+    return [...Array(size).keys()].map(i => i + startAt);
+  }
+
+  const floors = _range(4, 9);
+  const stages = flatten(map(floors, floor => map(_range(3,1), stage => {
+    return `${floor}-${stage}`
+  })))
+
+  let characterAbyssFloors = {};
+  forEach(stages, stage => characterAbyssFloors[stage] = { battle_parties: [[],[]] })
+
+  map(
+    characterData,
+    ({ _id }) => forEach(abyssData.floors, (floorData) => {
+      floorData.battle_parties.forEach((parties, i) => {
+      })
+    }
+  );
+
+  const allAbyssTeams = [...allAbyssFloors, ...characterAbyssFloors];
+  forEach([...allAbyssFloors, ...characterAbyssFloors], (floorData, floor_level) => {
     floorData.battle_parties.forEach((parties, i) => {
       allAbyssTeams[floor_level].battle_parties[i] = aggregateCoreTeams(parties);
     });
@@ -330,7 +355,6 @@ export const updateDb = async () => {
     //   }),
     //   cb,
     // ),
-    fs.writeFile('data/abyss/top-teams.json', JSON.stringify(topAbyssTeams), cb),
     // fs.writeFile('data/weapons/top-weapons.json', JSON.stringify(weaponStats), cb),
     // fs.writeFile('data/artifacts/top-artifactsets.json', JSON.stringify(artifactSetStats), cb),
     // fs.writeFile('data/characters/top-characters.json', JSON.stringify(characterStats), cb),
@@ -344,6 +368,7 @@ export const updateDb = async () => {
     //   }),
     //   cb,
     // ),
+    fs.writeFile('data/abyss/top-teams.json', JSON.stringify(topAbyssTeams), cb),
     ...map(allAbyssTeams, (floorData) => {
       return fs.writeFile(`data/abyss/${floorData.floor_level}.json`, JSON.stringify(floorData), cb);
     }),
@@ -357,13 +382,13 @@ export const updateDb = async () => {
     //   const fileName = getShortName(character);
     //   return fs.writeFile(`data/characters/mains/${fileName}.json`, JSON.stringify(charBuild), cb);
     // }),
-    // // fs.writeFile('test/top-teams.json', JSON.stringify(topAbyssTeams), cb),
-    // // fs.writeFile('test/abyssFloors.json', JSON.stringify(allAbyssTeams), cb),
+    // fs.writeFile('test/top-teams.json', JSON.stringify(topAbyssTeams), cb),
+    // fs.writeFile('test/abyssFloors.json', JSON.stringify(allAbyssTeams), cb),
   ]);
 
   await updateRepo(process.env.npm_config_branch);
 
-  // Delete files to save space
+  // // Delete files to save space
   cleanup('data');
 
   console.log('DB UPDATE END');
