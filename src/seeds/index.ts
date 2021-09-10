@@ -2,11 +2,10 @@
 import Axios from 'axios';
 import fs from 'fs';
 import https from 'https';
-import { clamp, filter, find, forEach, forIn, includes, map, pick, shuffle, some } from 'lodash';
+import { clamp, filter, find, forEach, forIn, map, pick, shuffle, some } from 'lodash';
 import mongoose, { Schema } from 'mongoose';
 import { firefox } from 'playwright-firefox';
 import parallel from 'run-parallel';
-import { async } from 'rxjs';
 
 import AbyssBattleModel from '../abyss-battle/abyss-battle.model';
 import ArtifactSetModel from '../artifact-set/artifact-set.model';
@@ -14,9 +13,10 @@ import ArtifactModel from '../artifact/artifact.model';
 import CharacterModel from '../character/character.model';
 import PlayerCharacterModel from '../player-character/player-character.model';
 import PlayerModel, { PlayerDocument } from '../player/player.model';
+import TokenModel from '../token/token.model';
 import connectDb from '../util/connection';
 import WeaponModel from '../weapon/weapon.model';
-import { updateDb } from './aggregate';
+// import { updateDb } from './aggregate';
 import { IAbyssResponse, IArtifactSet, ICharacterResponse } from './interfaces';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -31,25 +31,25 @@ const axios = Axios.create({
   }),
 });
 
-const tokensPath = './src/keys/tokens.json';
+// const tokensPath = './src/keys/tokens.json';
 const proxiesPath = './src/keys/proxies.json';
 // const dsPath = './src/keys/DS.json';
 
 let PROXIES: Array<{ ip: string; port: string }> = [];
-let TOKENS: string[] = [];
+// let TOKENS: string[] = [];
+let Cookie = '';
 let DS = '';
-let blockedIndices: boolean[] = [];
+// let blockedIndices: boolean[] = [];
 let proxyIdx = 0;
-let tokenIdx = 0;
 let uid = 0;
-let iterationStart = Date.now();
+const iterationStart = Date.now();
 let areAllStillBlocked = true;
 let abyssSchedule = 1;
 const blockedLevel = 0;
 const dayMs = 24 * 60 * 60 * 1000;
 const maxRest = dayMs / 30;
 const lastPatchCycle = new Date(Date.now() - 6 * 7 * dayMs);
-let delayMs = 200;
+const delayMs = 200;
 let dailyUpdate;
 let weeklyUpdate;
 let collectedTotal = 0;
@@ -58,6 +58,7 @@ let playerCharRefMap: { [oid: string]: any } = {};
 let playerAbyssData: IAbyssResponse;
 let concurrent = 1;
 let existingUids = false;
+let maxUid = 0;
 
 const options = {
   upsert: true,
@@ -109,25 +110,25 @@ const assignTravelerOid = (charData: ICharacterResponse) => {
   return oid;
 };
 
-const _incrementTokenIdx = async () => {
-  tokenIdx++;
+const nextToken = async () => {
+  const token = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
+  Cookie = `ltoken=${token.ltoken}; ltuid=${token.ltuid}`;
   _incrementProxyIdx();
 
-  if (tokenIdx > TOKENS.length - 1) {
-    tokenIdx = 0;
+  if (token.used) {
+    const delta = new Date().getTime() - new Date(token.used).getTime();
 
-    if (proxyIdx + TOKENS.length > PROXIES.length - 1) {
-      proxyIdx = 0;
-    } else {
-      proxyIdx += TOKENS.length;
+    if (delta < maxRest) {
+      const restMs = clamp(maxRest - delta, 0, maxRest) + delayMs;
+      await _sleep(restMs);
     }
-
-    const restMs = clamp(maxRest - (Date.now() - iterationStart), 0, maxRest) + delayMs;
-    iterationStart = Date.now();
-    // await _sleep(restMs);
-    await _sleep(maxRest + 200);
   }
 
+  const updatedToken = await TokenModel.findOneAndUpdate(
+    { ltuid: token.ltuid },
+    { used: new Date() },
+    options,
+  );
   // if (DEVELOPMENT) console.log("using next token... " + tokenIdx);
 };
 
@@ -164,7 +165,7 @@ const updateDS = async () => {
   const browser = await firefox.launch();
   const context = await browser.newContext({
     extraHTTPHeaders: {
-      Cookie: TOKENS[tokenIdx],
+      Cookie: Cookie,
       'x-rpc-client_type': '4',
       'x-rpc-app_version': '1.5.0',
     },
@@ -193,7 +194,6 @@ const updateDS = async () => {
 
 const getHeaders = () => {
   proxyIdx = clamp(proxyIdx, 0, PROXIES.length - 1);
-  tokenIdx = clamp(tokenIdx, 0, TOKENS.length - 1);
 
   return {
     Host: 'api-os-takumi.mihoyo.com',
@@ -209,7 +209,7 @@ const getHeaders = () => {
     DNT: '1',
     Connection: 'keep-alive',
     Referer: 'https://webstatic-sea.hoyolab.com/',
-    Cookie: TOKENS[tokenIdx],
+    Cookie,
     TE: 'Trailers',
     'X-Forwarded-For': PROXIES[proxyIdx].ip,
     'X-Forwarded-Port': PROXIES[proxyIdx].port,
@@ -242,26 +242,28 @@ function _getBaseUid(server: string, start = 0) {
   return uidBase + start;
 }
 
-const handleBlock = async (tokenIdx: number) => {
-  blockedIndices[tokenIdx] = true;
-  console.log(`${filter(blockedIndices, (blocked) => blocked).length}/${blockedIndices.length}`);
+const handleBlock = async () => {
+  // blockedIndices[tokenIdx] = true;
+  // console.log(`${filter(blockedIndices, (blocked) => blocked).length}/${blockedIndices.length}`);
 
-  if (filter(blockedIndices, (blocked) => blocked).length >= TOKENS.length) {
-    console.log('--- ALL BLOCKED ---');
-    // if (areAllStillBlocked) {
-    //   blockedLevel++;
+  // if (filter(blockedIndices, (blocked) => blocked).length >= TOKENS.length) {
+  //   console.log('--- ALL BLOCKED ---');
+  //   // if (areAllStillBlocked) {
+  //   //   blockedLevel++;
 
-    //   if (blockedLevel > longRests.length - 1) {
-    //     blockedLevel = longRests.length - 1;
-    //   }
-    // } else {
-    //   blockedLevel = 0;
-    // }
+  //   //   if (blockedLevel > longRests.length - 1) {
+  //   //     blockedLevel = longRests.length - 1;
+  //   //   }
+  //   // } else {
+  //   //   blockedLevel = 0;
+  //   // }
 
-    console.log('Long rest...');
-    await _sleep(dayMs);
-    blockedIndices = new Array(TOKENS.length).fill(false);
-  }
+  //   console.log('Long rest...');
+  //   await _sleep(dayMs);
+  //   blockedIndices = new Array(TOKENS.length).fill(false);
+  // }
+  console.log(`Blocked at ${Cookie.split(' ')[1]}`);
+  await _sleep(maxRest);
 };
 
 const purgePlayer = async (uid: number) => {
@@ -295,7 +297,6 @@ const getSpiralAbyssData = async (server: string, currUid: number, scheduleType 
       withCredentials: true,
     });
 
-    // console.log(resp.data.message, tokenIdx, ++count);
     // Rate limit reached message
     if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
       // console.log('Abyss data: ', resp.data.message);
@@ -583,31 +584,35 @@ const aggregatePlayerData = async (server: string, curruid: number, characterIds
     });
 };
 
-const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uids = []) => {
+const aggregatePlayerGameData = async (isMainProcess = false, initUid = 0) => {
   const baseUid = _getBaseUid(server);
   const end = baseUid + 99999999;
-  let currTokenIdx = 0;
+  // let currTokenIdx = 0;
   uid = !!initUid ? initUid : baseUid;
   let currUid = uid;
 
   while (uid < end) {
-    if (uids.length) {
-      uid = uids.pop();
+    if (existingUids && uid < maxUid) {
+      if (!(await PlayerModel.findOne({ uid }).lean())) {
+        uid++;
+        continue;
+      }
     }
+
     currUid = uid;
 
     playerCharRefMap = {};
     areAllStillBlocked = true;
-    const now = new Date();
+    // const now = new Date();
 
     try {
       const shouldCollectData = await getSpiralAbyssData(server, currUid, abyssSchedule);
 
       // Blocked
       if (shouldCollectData === null) {
-        currTokenIdx = tokenIdx;
-        await _incrementTokenIdx();
-        await handleBlock(currTokenIdx);
+        // currTokenIdx = tokenIdx;
+        await nextToken();
+        await handleBlock();
         continue;
       } else if (shouldCollectData === undefined) {
         await updateDS();
@@ -616,14 +621,14 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
       areAllStillBlocked = false;
 
       if (!shouldCollectData) {
-        if (!uids.length) uid++;
+        uid++;
         continue;
       }
 
       if (shouldCollectData) {
         console.log(`Collecting data for player ${currUid}...`);
-        currTokenIdx = tokenIdx;
-        await _incrementTokenIdx();
+        // currTokenIdx = tokenIdx;
+        await nextToken();
 
         try {
           playerRef = await PlayerModel.findOneAndUpdate(
@@ -645,8 +650,8 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
           //   weeklyUpdate = getNextMonday(now);
 
           //   characterIds = await getPlayerCharacters(server, currUid);
-          //   currTokenIdx = tokenIdx;
-          //   await _incrementTokenIdx();
+          // currTokenIdx = tokenIdx;
+          //   await nextToken();
 
           //   // Otherwise we skip the API call
           // } else {
@@ -658,13 +663,13 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
           //   characterIds = map(playerCharacters, ({ character }: any) => character.oid);
           // } else {
           characterIds = await getPlayerCharacters(server, currUid);
-          currTokenIdx = tokenIdx;
-          await _incrementTokenIdx();
+          // currTokenIdx = tokenIdx;
+          await nextToken();
           // }
           // }
 
           if (characterIds === null) {
-            await handleBlock(currTokenIdx);
+            await handleBlock();
             continue;
           } else if (characterIds === undefined) {
             await updateDS();
@@ -673,11 +678,11 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
             areAllStillBlocked = false;
             if (characterIds.length > 0) {
               const result = await aggregatePlayerData(server, currUid, characterIds);
-              currTokenIdx = tokenIdx;
-              await _incrementTokenIdx();
+              // currTokenIdx = tokenIdx;
+              await nextToken();
 
               if (result === null) {
-                await handleBlock(currTokenIdx);
+                await handleBlock();
                 continue;
               } else if (result === undefined) {
                 await updateDS();
@@ -688,7 +693,7 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
                 console.log('Total: ', collectedTotal);
               }
             }
-            if (!uids.length) uid++;
+            uid++;
           }
         } catch (err) {
           console.log(err);
@@ -711,7 +716,7 @@ const aggregateAllCharacterData = async (isMainProcess = false, initUid = 0, uid
 // let sampleAbyss: { data: IAbyssResponse };
 
 const loadFromJson = () => {
-  TOKENS = shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
+  // TOKENS = shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
   PROXIES = shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
   // DS = shuffle(JSON.parse(fs.readFileSync(dsPath, 'utf-8')));
   // sampleChars = JSON.parse(fs.readFileSync('./src/db/sampleChars.json', 'utf-8'));
@@ -734,10 +739,12 @@ connectDb();
 mongoose.connection.once('open', async () => {
   try {
     // await purgeOld();
-    // await updateDb();
+
+    const token = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
+    Cookie = `ltoken=${token.ltoken}; ltuid=${token.ltuid}`;
 
     loadFromJson();
-    blockedIndices = new Array(TOKENS.length).fill(false);
+    // blockedIndices = new Array(TOKENS.length).fill(false);
     await updateDS();
     const now = new Date();
     dailyUpdate = getNextDay(now);
@@ -762,12 +769,12 @@ mongoose.connection.once('open', async () => {
       console.log('Starting from ' + process.env.npm_config_uid);
       await runParallel(
         async (isMainProcess: boolean) =>
-          await aggregateAllCharacterData(isMainProcess, parseInt(process.env.npm_config_uid)),
+          await aggregatePlayerGameData(isMainProcess, parseInt(process.env.npm_config_uid)),
       );
     } else {
       switch (process.env.npm_config_uid) {
         default:
-        case 'last':
+        case 'last': {
           console.log('Starting after last UID...');
           const lastPlayer = await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
             .sort({ uid: -1 })
@@ -775,10 +782,11 @@ mongoose.connection.once('open', async () => {
             .lean();
           await runParallel(
             async (isMainProcess = false) =>
-              await aggregateAllCharacterData(isMainProcess, lastPlayer.uid + 1),
+              await aggregatePlayerGameData(isMainProcess, lastPlayer.uid + 1),
           );
           break;
-        case 'resume':
+        }
+        case 'resume': {
           console.log('Starting after last upated UID...');
           const lastUpdatedPlayer = await PlayerModel.findOne({
             uid: { $gt: baseUid, $lt: baseUid + 99999999 },
@@ -788,28 +796,35 @@ mongoose.connection.once('open', async () => {
             .lean();
           await runParallel(
             async (isMainProcess = false) =>
-              await aggregateAllCharacterData(isMainProcess, lastUpdatedPlayer.uid + 1),
+              await aggregatePlayerGameData(isMainProcess, lastUpdatedPlayer.uid + 1),
           );
           break;
+        }
         case 'all':
           console.log('Starting from base UID...');
-          await runParallel(
-            async (isMainProcess = false) => await aggregateAllCharacterData(isMainProcess),
-          );
+          await runParallel(async (isMainProcess = false) => await aggregatePlayerGameData(isMainProcess));
           break;
-        case 'existing':
+        case 'existing': {
           existingUids = true;
           console.log('Updating existing UIDs...');
-          // NEWEST TO OLDEST -- WE UPDATE IN REVERSE ORDER
-          delayMs = 5 * 60 * 1000;
-          const players = await PlayerModel.find({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
+          const oldestUpdatedPlayer = await PlayerModel.findOne({
+            uid: { $gt: baseUid, $lt: baseUid + 99999999 },
+          })
             .sort({ updatedAt: -1 })
+            .limit(1)
             .lean();
-          const uids = map(players, (player) => player.uid);
+          maxUid = (
+            await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
+              .sort({ uid: -1 })
+              .limit(1)
+              .lean()
+          ).uid;
           await runParallel(
-            async (isMainProcess = false) => await aggregateAllCharacterData(isMainProcess, 0, uids),
+            async (isMainProcess = false) =>
+              await aggregatePlayerGameData(isMainProcess, oldestUpdatedPlayer.uid + 1),
           );
           break;
+        }
       }
     }
   } finally {

@@ -6,12 +6,20 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 @ObjectType()
 @Schema({ _id: false })
 export class Token {
+  @Field(() => Number)
+  @Prop({ required: true, unique: true })
+  ltuid: number;
+
   @Field(() => String)
   @Prop({ required: true, unique: true })
-  value: string;
+  ltoken: string;
+
+  @Field(() => String)
+  @Prop()
+  _MHYUUID: string;
 
   @Field(() => Date)
-  @Prop({ required: true })
+  @Prop()
   used: Date;
 }
 
