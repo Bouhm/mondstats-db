@@ -509,12 +509,13 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
     filter(abyssData.floors, (floor) => floor.index > 8),
     (floor) => {
       forEach(
-        filter(floor.levels, (level) => level.star > 2),
+        filter(floor.levels, (level) => level.star > 0),
         (level) => {
           forEach(level.battles, (battle) => {
             const abyssBattle = {
               floor_level: `${floor.index}-${level.index}`,
               battle_index: battle.index,
+              star: level.star,
               player: playerRef._id,
               party: map(battle.avatars, (char) => playerCharRefMap[char.id]),
             };
