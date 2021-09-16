@@ -112,6 +112,7 @@ const assignTravelerOid = (charData: ICharacterResponse) => {
 
 const nextToken = async () => {
   const token = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
+  await updateDS();
   Cookie = `ltoken=${token.ltoken}; ltuid=${token.ltuid}`;
   _incrementProxyIdx();
 
@@ -739,95 +740,95 @@ const runParallel = async (func: (iMP: boolean) => void) => {
 connectDb();
 mongoose.connection.once('open', async () => {
   try {
-    await purgeOld();
+    // await purgeOld();
 
-    // const token = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
-    // Cookie = `ltoken=${token.ltoken}; ltuid=${token.ltuid}`;
+    const token = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
+    Cookie = `ltoken=${token.ltoken}; ltuid=${token.ltuid}`;
 
-    // loadFromJson();
-    // // blockedIndices = new Array(TOKENS.length).fill(false);
-    // await updateDS();
-    // const now = new Date();
-    // dailyUpdate = getNextDay(now);
-    // weeklyUpdate = getNextMonday(now);
+    loadFromJson();
+    // blockedIndices = new Array(TOKENS.length).fill(false);
+    await updateDS();
+    const now = new Date();
+    dailyUpdate = getNextDay(now);
+    weeklyUpdate = getNextMonday(now);
 
-    // concurrent = parseInt(process.env.npm_config_concurrent);
-    // const baseUid = _getBaseUid(server);
+    concurrent = parseInt(process.env.npm_config_concurrent);
+    const baseUid = _getBaseUid(server);
 
-    // switch (process.env.npm_config_abyss) {
-    //   case 'prev':
-    //     console.log('Using last abyss data...');
-    //     abyssSchedule = 2;
-    //     break;
-    //   default:
-    //   case 'current':
-    //     console.log('Using current abyss data...');
-    //     abyssSchedule = 1;
-    //     break;
-    // }
+    switch (process.env.npm_config_abyss) {
+      case 'prev':
+        console.log('Using last abyss data...');
+        abyssSchedule = 2;
+        break;
+      default:
+      case 'current':
+        console.log('Using current abyss data...');
+        abyssSchedule = 1;
+        break;
+    }
 
-    // if (parseInt(process.env.npm_config_uid)) {
-    //   console.log('Starting from ' + process.env.npm_config_uid);
-    //   await runParallel(
-    //     async (isMainProcess: boolean) =>
-    //       await aggregatePlayerGameData(isMainProcess, parseInt(process.env.npm_config_uid)),
-    //   );
-    // } else {
-    //   switch (process.env.npm_config_uid) {
-    //     default:
-    //     case 'last': {
-    //       console.log('Starting after last UID...');
-    //       const lastPlayer = await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
-    //         .sort({ uid: -1 })
-    //         .limit(1)
-    //         .lean();
-    //       await runParallel(
-    //         async (isMainProcess = false) =>
-    //           await aggregatePlayerGameData(isMainProcess, lastPlayer.uid + 1),
-    //       );
-    //       break;
-    //     }
-    //     case 'resume': {
-    //       console.log('Starting after last upated UID...');
-    //       const lastUpdatedPlayer = await PlayerModel.findOne({
-    //         uid: { $gt: baseUid, $lt: baseUid + 99999999 },
-    //       })
-    //         .limit(1)
-    //         .sort({ $natural: -1 })
-    //         .lean();
-    //       await runParallel(
-    //         async (isMainProcess = false) =>
-    //           await aggregatePlayerGameData(isMainProcess, lastUpdatedPlayer.uid + 1),
-    //       );
-    //       break;
-    //     }
-    //     case 'all':
-    //       console.log('Starting from base UID...');
-    //       await runParallel(async (isMainProcess = false) => await aggregatePlayerGameData(isMainProcess));
-    //       break;
-    //     case 'existing': {
-    //       existingUids = true;
-    //       console.log('Updating existing UIDs...');
-    //       const oldestUpdatedPlayer = await PlayerModel.findOne({
-    //         uid: { $gt: baseUid, $lt: baseUid + 99999999 },
-    //       })
-    //         .sort({ updatedAt: -1 })
-    //         .limit(1)
-    //         .lean();
-    //       maxUid = (
-    //         await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
-    //           .sort({ uid: -1 })
-    //           .limit(1)
-    //           .lean()
-    //       ).uid;
-    //       await runParallel(
-    //         async (isMainProcess = false) =>
-    //           await aggregatePlayerGameData(isMainProcess, oldestUpdatedPlayer.uid + 1),
-    //       );
-    //       break;
-    //     }
-    //   }
-    // }
+    if (parseInt(process.env.npm_config_uid)) {
+      console.log('Starting from ' + process.env.npm_config_uid);
+      await runParallel(
+        async (isMainProcess: boolean) =>
+          await aggregatePlayerGameData(isMainProcess, parseInt(process.env.npm_config_uid)),
+      );
+    } else {
+      switch (process.env.npm_config_uid) {
+        default:
+        case 'last': {
+          console.log('Starting after last UID...');
+          const lastPlayer = await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
+            .sort({ uid: -1 })
+            .limit(1)
+            .lean();
+          await runParallel(
+            async (isMainProcess = false) =>
+              await aggregatePlayerGameData(isMainProcess, lastPlayer.uid + 1),
+          );
+          break;
+        }
+        case 'resume': {
+          console.log('Starting after last upated UID...');
+          const lastUpdatedPlayer = await PlayerModel.findOne({
+            uid: { $gt: baseUid, $lt: baseUid + 99999999 },
+          })
+            .limit(1)
+            .sort({ $natural: -1 })
+            .lean();
+          await runParallel(
+            async (isMainProcess = false) =>
+              await aggregatePlayerGameData(isMainProcess, lastUpdatedPlayer.uid + 1),
+          );
+          break;
+        }
+        case 'all':
+          console.log('Starting from base UID...');
+          await runParallel(async (isMainProcess = false) => await aggregatePlayerGameData(isMainProcess));
+          break;
+        case 'existing': {
+          existingUids = true;
+          console.log('Updating existing UIDs...');
+          const oldestUpdatedPlayer = await PlayerModel.findOne({
+            uid: { $gt: baseUid, $lt: baseUid + 99999999 },
+          })
+            .sort({ updatedAt: -1 })
+            .limit(1)
+            .lean();
+          maxUid = (
+            await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
+              .sort({ uid: -1 })
+              .limit(1)
+              .lean()
+          ).uid;
+          await runParallel(
+            async (isMainProcess = false) =>
+              await aggregatePlayerGameData(isMainProcess, oldestUpdatedPlayer.uid + 1),
+          );
+          break;
+        }
+      }
+    }
   } finally {
     await mongoose.connection.close();
   }
