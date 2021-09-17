@@ -13,7 +13,7 @@ import ArtifactModel from '../artifact/artifact.model';
 import CharacterModel from '../character/character.model';
 import PlayerCharacterModel from '../player-character/player-character.model';
 import PlayerModel, { PlayerDocument } from '../player/player.model';
-import TokenModel from '../token/token.model';
+import TokenModel, { TokenDocument } from '../token/token.model';
 import connectDb from '../util/connection';
 import WeaponModel from '../weapon/weapon.model';
 // import { updateDb } from './aggregate';
@@ -37,8 +37,7 @@ const proxiesPath = './src/keys/proxies.json';
 
 let PROXIES: Array<{ ip: string; port: string }> = [];
 // let TOKENS: string[] = [];
-let Cookie = '';
-let DS = '';
+let currTokens: TokenDocument[];
 // let blockedIndices: boolean[] = [];
 let proxyIdx = 0;
 let uid = 0;
@@ -110,14 +109,12 @@ const assignTravelerOid = (charData: ICharacterResponse) => {
   return oid;
 };
 
-const nextToken = async () => {
-  const token = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
-  await updateDS();
-  Cookie = `ltoken=${token.ltoken}; ltuid=${token.ltuid}`;
+const nextToken = async (i) => {
+  currTokens[i] = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
   _incrementProxyIdx();
 
-  if (token.used) {
-    const delta = new Date().getTime() - new Date(token.used).getTime();
+  if (currTokens[i].used) {
+    const delta = new Date().getTime() - new Date(currTokens[i].used).getTime();
 
     if (delta < maxRest) {
       const restMs = clamp(maxRest - delta, 0, maxRest) + delayMs;
@@ -125,11 +122,8 @@ const nextToken = async () => {
     }
   }
 
-  const updatedToken = await TokenModel.findOneAndUpdate(
-    { ltuid: token.ltuid },
-    { used: new Date() },
-    options,
-  );
+  await TokenModel.findOneAndUpdate({ ltuid: currTokens[i].ltuid }, { used: new Date() }, options);
+
   // if (DEVELOPMENT) console.log("using next token... " + tokenIdx);
 };
 
@@ -158,15 +152,16 @@ async function _retry(promiseFactory, retryCount) {
 }
 
 // Grab DS
-const updateDS = async () => {
+const updateDS = async (i: number) => {
   // const cookieTokens = TOKENS[tokenIdx].split(' ');
   // const ltoken = cookieTokens[0].split('=')[1].slice(0, -1);
   // const ltuid = cookieTokens[1].split('=')[1];
 
   const browser = await firefox.launch();
+  const Cookie = `ltoken=${currTokens[i].ltoken}; ltuid=${currTokens[i].ltuid}`;
   const context = await browser.newContext({
     extraHTTPHeaders: {
-      Cookie: Cookie,
+      Cookie,
       'x-rpc-client_type': '4',
       'x-rpc-app_version': '1.5.0',
     },
@@ -180,21 +175,26 @@ const updateDS = async () => {
   const page = await context.newPage();
 
   return new Promise<void>(async (resolve) => {
-    page.on('request', (req) => {
+    page.on('request', async (req) => {
       if (req.headers().ds) {
-        DS = req.headers().ds;
+        await TokenModel.findOneAndUpdate(
+          { ltuid: currTokens[i].ltuid },
+          { DS: req.headers().ds },
+          options,
+        );
         resolve();
-        browser.close();
+        await browser.close();
       }
     });
 
-    const url = 'https://www.hoyolab.com/genshin/accountCenter/gameRecord?id=63548220';
+    const url = 'https://www.hoyolab.com/accountCenter/postList?id=59349680';
     await _retry(() => page.goto(url), 3);
   });
 };
 
-const getHeaders = () => {
+const getHeaders = (i: number) => {
   proxyIdx = clamp(proxyIdx, 0, PROXIES.length - 1);
+  const Cookie = `ltoken=${currTokens[i].ltoken}; ltuid=${currTokens[i].ltuid}`;
 
   return {
     Host: 'api-os-takumi.mihoyo.com',
@@ -205,7 +205,7 @@ const getHeaders = () => {
     'x-rpc-client_type': '4',
     'x-rpc-app_version': '1.5.0',
     'x-rpc-language': 'en-us',
-    DS,
+    DS: currTokens[i].DS,
     Origin: 'https://webstatic-sea.hoyolab.com',
     DNT: '1',
     Connection: 'keep-alive',
@@ -243,7 +243,7 @@ function _getBaseUid(server: string, start = 0) {
   return uidBase + start;
 }
 
-const handleBlock = async () => {
+const handleBlock = async (i: number) => {
   // blockedIndices[tokenIdx] = true;
   // console.log(`${filter(blockedIndices, (blocked) => blocked).length}/${blockedIndices.length}`);
 
@@ -263,7 +263,7 @@ const handleBlock = async () => {
   //   await _sleep(dayMs);
   //   blockedIndices = new Array(TOKENS.length).fill(false);
   // }
-  console.log(`Blocked at ${Cookie.split(' ')[1]}`);
+  console.log(`Blocked at ${currTokens[i].ltuid}`);
   await _sleep(maxRest);
 };
 
@@ -289,12 +289,12 @@ const purgeOld = async () => {
 };
 
 // Aggregate spiral abyss data
-const getSpiralAbyssData = async (server: string, currUid: number, scheduleType = 1, threshold = 9) => {
+const getSpiralAbyssData = async (server: string, currUid: number, scheduleType = 1, i = 0) => {
   const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${currUid}&schedule_type=${scheduleType}`;
 
   try {
     const resp = await axios.get(apiUrl, {
-      headers: getHeaders(),
+      headers: getHeaders(i),
       withCredentials: true,
     });
 
@@ -317,7 +317,7 @@ const getSpiralAbyssData = async (server: string, currUid: number, scheduleType 
 
     const maxFloor = resp.data.data.max_floor;
 
-    if (maxFloor.split('-')[0] >= threshold) {
+    if (maxFloor.split('-')[0] >= 9) {
       playerAbyssData = resp.data.data;
       return true;
     } else {
@@ -330,11 +330,11 @@ const getSpiralAbyssData = async (server: string, currUid: number, scheduleType 
 };
 
 // Get player's owned character ids
-const getPlayerCharacters = async (server: string, currUid: number) => {
+const getPlayerCharacters = async (server: string, currUid: number, i = 0) => {
   const apiUrl = `${userApiUrl}?server=os_${server}&role_id=${currUid}`;
 
   return axios
-    .get(apiUrl, { headers: getHeaders(), withCredentials: true })
+    .get(apiUrl, { headers: getHeaders(i), withCredentials: true })
     .then(async (resp) => {
       // Rate limit reached message
       if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
@@ -543,7 +543,7 @@ const aggregateAbyssData = (abyssData: IAbyssResponse) => {
   );
 };
 
-const aggregatePlayerData = async (server: string, curruid: number, characterIds: number[]) => {
+const aggregatePlayerData = async (server: string, curruid: number, characterIds: number[], i = 0) => {
   const reqBody = {
     character_ids: characterIds,
     server: `os_${server}`,
@@ -551,7 +551,7 @@ const aggregatePlayerData = async (server: string, curruid: number, characterIds
   };
 
   return axios
-    .post(charApiUrl, reqBody, { headers: getHeaders(), withCredentials: true })
+    .post(charApiUrl, reqBody, { headers: getHeaders(i), withCredentials: true })
     .then(async (resp) => {
       // Rate limit reached message
       if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
@@ -586,10 +586,13 @@ const aggregatePlayerData = async (server: string, curruid: number, characterIds
     });
 };
 
-const aggregatePlayerGameData = async (isMainProcess = false, initUid = 0) => {
+const aggregatePlayerGameData = async (initUid = 0, i = 0) => {
+  currTokens[i] = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
+  await updateDS(i);
+
   const baseUid = _getBaseUid(server);
   const end = baseUid + 99999999;
-  // let currTokenIdx = 0;
+  // let currTokens[i]Idx = 0;
   uid = !!initUid ? initUid : baseUid;
   let currUid = uid;
 
@@ -608,16 +611,16 @@ const aggregatePlayerGameData = async (isMainProcess = false, initUid = 0) => {
     // const now = new Date();
 
     try {
-      const shouldCollectData = await getSpiralAbyssData(server, currUid, abyssSchedule);
+      const shouldCollectData = await getSpiralAbyssData(server, currUid, abyssSchedule, i);
 
       // Blocked
       if (shouldCollectData === null) {
-        // currTokenIdx = tokenIdx;
-        await nextToken();
-        await handleBlock();
+        // currTokens[i]Idx = tokenIdx;
+        await nextToken(i);
+        await handleBlock(i);
         continue;
       } else if (shouldCollectData === undefined) {
-        await updateDS();
+        await updateDS(i);
         continue;
       }
       areAllStillBlocked = false;
@@ -629,8 +632,8 @@ const aggregatePlayerGameData = async (isMainProcess = false, initUid = 0) => {
 
       if (shouldCollectData) {
         console.log(`Collecting data for player ${currUid}...`);
-        // currTokenIdx = tokenIdx;
-        await nextToken();
+        // currTokens[i]Idx = tokenIdx;
+        await nextToken(i);
 
         try {
           playerRef = await PlayerModel.findOneAndUpdate(
@@ -652,7 +655,7 @@ const aggregatePlayerGameData = async (isMainProcess = false, initUid = 0) => {
           //   weeklyUpdate = getNextMonday(now);
 
           //   characterIds = await getPlayerCharacters(server, currUid);
-          // currTokenIdx = tokenIdx;
+          // currTokens[i]Idx = tokenIdx;
           //   await nextToken();
 
           //   // Otherwise we skip the API call
@@ -664,33 +667,33 @@ const aggregatePlayerGameData = async (isMainProcess = false, initUid = 0) => {
           // if (playerCharacters && playerCharacters.length > 0 && !includes(playerCharacters, undefined)) {
           //   characterIds = map(playerCharacters, ({ character }: any) => character.oid);
           // } else {
-          characterIds = await getPlayerCharacters(server, currUid);
-          // currTokenIdx = tokenIdx;
-          await nextToken();
+          characterIds = await getPlayerCharacters(server, currUid, i);
+          // currTokens[i]Idx = tokenIdx;
+          await nextToken(i);
           // }
           // }
 
           if (characterIds === null) {
-            await handleBlock();
+            await handleBlock(i);
             continue;
           } else if (characterIds === undefined) {
-            await updateDS();
+            await updateDS(i);
             continue;
           } else {
             areAllStillBlocked = false;
             if (characterIds.length > 0) {
-              const result = await aggregatePlayerData(server, currUid, characterIds);
-              // currTokenIdx = tokenIdx;
-              await nextToken();
+              const result = await aggregatePlayerData(server, currUid, characterIds, i);
+              // currTokens[i]Idx = tokenIdx;
+              await nextToken(i);
 
               if (result === null) {
-                await handleBlock();
+                await handleBlock(i);
                 continue;
               } else if (result === undefined) {
-                await updateDS();
+                await updateDS(i);
                 continue;
               } else {
-                areAllStillBlocked = false;
+                // areAllStillBlocked = false;
                 collectedTotal++;
                 console.log('Total: ', collectedTotal);
               }
@@ -700,7 +703,7 @@ const aggregatePlayerGameData = async (isMainProcess = false, initUid = 0) => {
         } catch (err) {
           console.log(err);
         } finally {
-          // if (isMainProcess && now.getTime() > dailyUpdate) {
+          // if ( && now.getTime() > dailyUpdate) {
           //   console.log('DB UPDATE START');
           //   dailyUpdate = getNextDay(now);
           //   updateDb();
@@ -725,11 +728,9 @@ const loadFromJson = () => {
   // sampleAbyss = JSON.parse(fs.readFileSync('./src/db/sampleAbyss.json', 'utf-8'));
 };
 
-const runParallel = async (func: (iMP: boolean) => void) => {
-  const funcs = Array(concurrent).fill(func);
-
+const runParallel = async (func: (i: number) => void) => {
   // First process is main process
-  funcs[0] = () => func(true);
+  const funcs = map(Array(concurrent), (_, i) => () => func(i));
 
   await new Promise(() => {
     parallel(funcs);
@@ -742,12 +743,8 @@ mongoose.connection.once('open', async () => {
   try {
     // await purgeOld();
 
-    const token = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
-    Cookie = `ltoken=${token.ltoken}; ltuid=${token.ltuid}`;
-
     loadFromJson();
     // blockedIndices = new Array(TOKENS.length).fill(false);
-    await updateDS();
     const now = new Date();
     dailyUpdate = getNextDay(now);
     weeklyUpdate = getNextMonday(now);
@@ -770,8 +767,7 @@ mongoose.connection.once('open', async () => {
     if (parseInt(process.env.npm_config_uid)) {
       console.log('Starting from ' + process.env.npm_config_uid);
       await runParallel(
-        async (isMainProcess: boolean) =>
-          await aggregatePlayerGameData(isMainProcess, parseInt(process.env.npm_config_uid)),
+        async (i: number) => await aggregatePlayerGameData(parseInt(process.env.npm_config_uid), i),
       );
     } else {
       switch (process.env.npm_config_uid) {
@@ -782,10 +778,7 @@ mongoose.connection.once('open', async () => {
             .sort({ uid: -1 })
             .limit(1)
             .lean();
-          await runParallel(
-            async (isMainProcess = false) =>
-              await aggregatePlayerGameData(isMainProcess, lastPlayer.uid + 1),
-          );
+          await runParallel(async (i: number) => await aggregatePlayerGameData(lastPlayer.uid + 1, i));
           break;
         }
         case 'resume': {
@@ -797,14 +790,13 @@ mongoose.connection.once('open', async () => {
             .sort({ $natural: -1 })
             .lean();
           await runParallel(
-            async (isMainProcess = false) =>
-              await aggregatePlayerGameData(isMainProcess, lastUpdatedPlayer.uid + 1),
+            async (i: number) => await aggregatePlayerGameData(lastUpdatedPlayer.uid + 1, i),
           );
           break;
         }
         case 'all':
           console.log('Starting from base UID...');
-          await runParallel(async (isMainProcess = false) => await aggregatePlayerGameData(isMainProcess));
+          await runParallel(async (i: number) => await aggregatePlayerGameData(null, i));
           break;
         case 'existing': {
           existingUids = true;
@@ -822,8 +814,7 @@ mongoose.connection.once('open', async () => {
               .lean()
           ).uid;
           await runParallel(
-            async (isMainProcess = false) =>
-              await aggregatePlayerGameData(isMainProcess, oldestUpdatedPlayer.uid + 1),
+            async (i: number) => await aggregatePlayerGameData(oldestUpdatedPlayer.uid + 1, i),
           );
           break;
         }

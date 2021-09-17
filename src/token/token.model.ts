@@ -21,6 +21,10 @@ export class Token {
   @Field(() => Date)
   @Prop()
   used: Date;
+
+  @Field(() => String)
+  @Prop()
+  DS: string;
 }
 
 export type TokenDocument = Token & Document;
