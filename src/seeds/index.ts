@@ -90,7 +90,7 @@ const assignTravelerOid = (charData: ICharacterResponse) => {
     case 'Electro':
       oid = 102;
       break;
-    case 'Cr2o':
+    case 'Cryo':
       oid = 103;
       break;
     case 'Hydro':
@@ -672,7 +672,6 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
             await updateDS(i);
             continue;
           } else {
-            areAllStillBlocked = false;
             if (characterIds.length > 0) {
               const result = await fetchPlayerData(server, currUid, characterIds, i);
               await nextToken(i);
@@ -684,7 +683,6 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
                 await updateDS(i);
                 continue;
               } else {
-                // areAllStillBlocked = false;
                 collectedTotal++;
                 console.log('Total: ', collectedTotal);
               }
@@ -741,7 +739,7 @@ mongoose.connection.once('open', async () => {
     weeklyUpdate = getNextMonday(now);
 
     concurrent = parseInt(process.env.npm_config_concurrent);
-    server = process.env.npm_config_server ? process.env.npm_config_server : 'usa'
+    server = process.env.npm_config_server ? process.env.npm_config_server : 'usa';
     currTokens = concurrent ? Array(concurrent) : [];
     const baseUid = _getBaseUid(server);
 
