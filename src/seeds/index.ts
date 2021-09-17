@@ -295,6 +295,8 @@ const getSpiralAbyssData = async (server: string, currUid: number, scheduleType 
       withCredentials: true,
     });
 
+    console.log(resp.data.message)
+
     // Rate limit reached message
     if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
       // console.log('Abyss data: ', resp.data.message);
@@ -314,7 +316,7 @@ const getSpiralAbyssData = async (server: string, currUid: number, scheduleType 
 
     const maxFloor = resp.data.data.max_floor;
 
-    if (maxFloor.split('-')[0] >= 9) {
+    if (maxFloor.split('-')[0] > 8) {
       playerAbyssData = resp.data.data;
       return true;
     } else {
@@ -502,14 +504,14 @@ const fetchCharacterData = async (char: ICharacterResponse) => {
   }
 };
 
-const fetchAbyssData = (abyssData: IAbyssResponse) => {
+const fetchAbyssData = async (abyssData: IAbyssResponse) => {
   forEach(
     filter(abyssData.floors, (floor) => floor.index > 8),
     (floor) => {
       forEach(
         filter(floor.levels, (level) => level.star > 0),
         (level) => {
-          forEach(level.battles, (battle) => {
+          forEach(level.battles, async (battle) => {
             const abyssBattle = {
               floor_level: `${floor.index}-${level.index}`,
               battle_index: battle.index,
@@ -524,7 +526,7 @@ const fetchAbyssData = (abyssData: IAbyssResponse) => {
             )
               return;
 
-            AbyssBattleModel.findOneAndUpdate(
+            await AbyssBattleModel.findOneAndUpdate(
               {
                 floor_level: `${floor.index}-${level.index}`,
                 battle_index: battle.index,
@@ -532,7 +534,7 @@ const fetchAbyssData = (abyssData: IAbyssResponse) => {
               },
               { $setOnInsert: abyssBattle },
               options,
-            );
+            )
           });
         },
       );
@@ -574,7 +576,7 @@ const fetchPlayerData = async (server: string, curruid: number, characterIds: nu
       );
 
       // Abyss data
-      fetchAbyssData(playerAbyssData);
+      await fetchAbyssData(playerAbyssData);
 
       return true;
     })
