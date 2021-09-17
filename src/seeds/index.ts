@@ -214,7 +214,7 @@ const getHeaders = (i: number) => {
   };
 };
 
-const server = 'usa';
+let server = 'usa';
 
 function _getBaseUid(server: string, start = 0) {
   let uidBase = 100000000;
@@ -741,6 +741,7 @@ mongoose.connection.once('open', async () => {
     weeklyUpdate = getNextMonday(now);
 
     concurrent = parseInt(process.env.npm_config_concurrent);
+    server = process.env.npm_config_server ? process.env.npm_config_server : 'usa'
     currTokens = concurrent ? Array(concurrent) : [];
     const baseUid = _getBaseUid(server);
 
