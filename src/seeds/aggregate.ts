@@ -411,7 +411,6 @@ export const updateDb = async () => {
       fs.writeFile('test/top-teams.json', JSON.stringify(topAbyssTeams), cb),
       fs.writeFile('test/abyssFloors.json', JSON.stringify(allAbyssTeams), cb),
     ]);
-
   }
 
   console.log('DB UPDATE END');
