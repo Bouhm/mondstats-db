@@ -37,7 +37,13 @@ const proxiesPath = './src/keys/proxies.json';
 
 let PROXIES: Array<{ ip: string; port: string }> = [];
 // let TOKENS: string[] = [];
-let currTokens: (TokenDocument & { DS: string })[];
+let currRefs: {
+  token: TokenDocument;
+  DS: string;
+  playerRef: PlayerDocument;
+  playerCharRefMap: { [oid: string]: any };
+  playerAbyssData: IAbyssResponse;
+}[];
 // let blockedIndices: boolean[] = [];
 let proxyIdx = 0;
 let uid = 0;
@@ -52,9 +58,6 @@ const delayMs = 200;
 let dailyUpdate;
 let weeklyUpdate;
 let collectedTotal = 0;
-let playerRef: PlayerDocument;
-let playerCharRefMap: { [oid: string]: any } = {};
-let playerAbyssData: IAbyssResponse;
 let concurrent = 1;
 let existingUids = false;
 let maxUid = 0;
@@ -111,11 +114,11 @@ const assignTravelerOid = (charData: ICharacterResponse) => {
 
 const nextToken = async (i: number) => {
   const newToken = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
-  currTokens[i] = { ...currTokens[i], ...newToken } as unknown as TokenDocument & { DS: string };
+  currRefs[i].token = { ...currRefs[i].token, ...newToken } as unknown as TokenDocument & { DS: string };
   _incrementProxyIdx();
 
-  if (currTokens[i].used) {
-    const delta = new Date().getTime() - new Date(currTokens[i].used).getTime();
+  if (currRefs[i].token.used) {
+    const delta = new Date().getTime() - new Date(currRefs[i].token.used).getTime();
 
     if (delta < maxRest) {
       const restMs = clamp(maxRest - delta, 0, maxRest) + delayMs;
@@ -123,7 +126,7 @@ const nextToken = async (i: number) => {
     }
   }
 
-  await TokenModel.findOneAndUpdate({ ltuid: currTokens[i].ltuid }, { used: new Date() }, options);
+  await TokenModel.findOneAndUpdate({ ltuid: currRefs[i].token.ltuid }, { used: new Date() }, options);
 
   // if (DEVELOPMENT) console.log("using next token... " + tokenIdx);
 };
@@ -159,7 +162,7 @@ const updateDS = async (i: number) => {
   // const ltuid = cookieTokens[1].split('=')[1];
 
   const browser = await firefox.launch();
-  const Cookie = `ltoken=${currTokens[i].ltoken}; ltuid=${currTokens[i].ltuid}`;
+  const Cookie = `ltoken=${currRefs[i].token.ltoken}; ltuid=${currRefs[i].token.ltuid}`;
   const context = await browser.newContext({
     extraHTTPHeaders: {
       Cookie,
@@ -178,7 +181,7 @@ const updateDS = async (i: number) => {
   return new Promise<void>(async (resolve) => {
     page.on('request', (req) => {
       if (req.headers().ds) {
-        currTokens[i].DS = req.headers().ds;
+        currRefs[i].DS = req.headers().ds;
         resolve();
         browser.close();
       }
@@ -191,7 +194,7 @@ const updateDS = async (i: number) => {
 
 const getHeaders = (i: number) => {
   proxyIdx = clamp(proxyIdx, 0, PROXIES.length - 1);
-  const Cookie = `ltoken=${currTokens[i].ltoken}; ltuid=${currTokens[i].ltuid}`;
+  const Cookie = `ltoken=${currRefs[i].token.ltoken}; ltuid=${currRefs[i].token.ltuid}`;
 
   return {
     Host: 'api-os-takumi.mihoyo.com',
@@ -202,7 +205,7 @@ const getHeaders = (i: number) => {
     'x-rpc-client_type': '4',
     'x-rpc-app_version': '1.5.0',
     'x-rpc-language': 'en-us',
-    DS: currTokens[i].DS,
+    DS: currRefs[i].DS,
     Origin: 'https://webstatic-sea.hoyolab.com',
     DNT: '1',
     Connection: 'keep-alive',
@@ -260,7 +263,7 @@ const handleBlock = async (i: number) => {
   //   await _sleep(dayMs);
   //   blockedIndices = new Array(TOKENS.length).fill(false);
   // }
-  console.log(`Blocked at ${currTokens[i].ltuid}`);
+  console.log(`Blocked at ${currRefs[i].token.ltuid}`);
   await _sleep(maxRest);
 };
 
@@ -295,8 +298,6 @@ const getSpiralAbyssData = async (server: string, currUid: number, scheduleType 
       withCredentials: true,
     });
 
-    console.log(resp.data.message)
-
     // Rate limit reached message
     if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
       // console.log('Abyss data: ', resp.data.message);
@@ -317,7 +318,7 @@ const getSpiralAbyssData = async (server: string, currUid: number, scheduleType 
     const maxFloor = resp.data.data.max_floor;
 
     if (maxFloor.split('-')[0] > 8) {
-      playerAbyssData = resp.data.data;
+      currRefs[i].playerAbyssData = resp.data.data;
       return true;
     } else {
       return false;
@@ -369,7 +370,7 @@ function _getActivationNumber(count: number, affixes: any[]) {
   return activation;
 }
 
-const fetchCharacterData = async (char: ICharacterResponse) => {
+const fetchCharacterData = async (char: ICharacterResponse, i: number) => {
   // Characters
   const character = {
     oid: char.id,
@@ -464,47 +465,49 @@ const fetchCharacterData = async (char: ICharacterResponse) => {
     }
   });
 
+  console.log(char.name, artifactRefIds)
   // Skip incomplete builds
-  if (
-    char.level >= 40 &&
-    (!artifactSetCombinations.length ||
-      (artifactSetCombinations.length === 1 && artifactSetCombinations[0].activation_number < 4))
-  )
-    return;
+  if (artifactRefIds.length < 5) return;
 
-  if (artifactRefIds.length === 5) {
-    // PlayerCharacters
-    let cNum = 0;
-    for (let i = 0; i < 6; i++) {
-      if (char.constellations[i].is_actived) {
-        cNum++;
-      }
+  // PlayerCharacters
+  let cNum = 0;
+  for (let i = 0; i < 6; i++) {
+    if (char.constellations[i].is_actived) {
+      cNum++;
     }
-
-    const playerCharacter: any = {
-      character: characterRef._id,
-      artifacts: artifactRefIds,
-      constellation: cNum,
-      fetter: char.fetter,
-      level: char.level,
-      weapon: weaponRef._id,
-      player: playerRef._id,
-    };
-
-    if (playerAbyssData.damage_rank.length && playerAbyssData.damage_rank[0].avatar_id === character.oid) {
-      playerCharacter.strongest_strike = playerAbyssData.damage_rank[0].value;
-    }
-
-    const playerCharacterRef = await PlayerCharacterModel.findOneAndUpdate(
-      { character: characterRef._id, player: playerRef._id },
-      { $setOnInsert: playerCharacter },
-      options,
-    );
-    playerCharRefMap[character.oid] = playerCharacterRef._id;
   }
+
+  const playerCharacter: any = {
+    character: characterRef._id,
+    artifacts: artifactRefIds,
+    constellation: cNum,
+    fetter: char.fetter,
+    level: char.level,
+    weapon: weaponRef._id,
+    player: currRefs[i].playerRef._id,
+  };
+
+  if (
+    currRefs[i].playerAbyssData.damage_rank.length &&
+    currRefs[i].playerAbyssData.damage_rank[0].avatar_id === character.oid
+  ) {
+    playerCharacter.strongest_strike = currRefs[i].playerAbyssData.damage_rank[0].value;
+  }
+
+  const playerCharacterRef = await PlayerCharacterModel.findOneAndUpdate(
+    { character: characterRef._id, player: currRefs[i].playerRef._id },
+    { $setOnInsert: playerCharacter },
+    options,
+  );
+
+  currRefs[i].playerCharRefMap[character.oid] = playerCharacterRef._id;
+  console.log(currRefs[i].playerCharRefMap)
 };
 
-const fetchAbyssData = async (abyssData: IAbyssResponse) => {
+const fetchAbyssData = (abyssData: IAbyssResponse, i: number) => {
+  console.log(map(abyssData.floors, (floor) => floor.index));
+  const abyssBattlePromises = [];
+
   forEach(
     filter(abyssData.floors, (floor) => floor.index > 8),
     (floor) => {
@@ -516,9 +519,11 @@ const fetchAbyssData = async (abyssData: IAbyssResponse) => {
               floor_level: `${floor.index}-${level.index}`,
               battle_index: battle.index,
               star: level.star,
-              player: playerRef._id,
-              party: map(battle.avatars, (char) => playerCharRefMap[char.id]),
+              player: currRefs[i].playerRef._id,
+              party: map(battle.avatars, (char) => currRefs[i].playerCharRefMap[char.id]),
             };
+
+            console.log(abyssBattle)
 
             if (
               some(abyssBattle.party, (char) => char === null || char === undefined) ||
@@ -526,20 +531,26 @@ const fetchAbyssData = async (abyssData: IAbyssResponse) => {
             )
               return;
 
-            await AbyssBattleModel.findOneAndUpdate(
+            const battleUpdate = AbyssBattleModel.findOneAndUpdate(
               {
                 floor_level: `${floor.index}-${level.index}`,
                 battle_index: battle.index,
-                player: playerRef._id,
+                player: currRefs[i].playerRef._id,
               },
               { $setOnInsert: abyssBattle },
               options,
-            )
+            );
+
+            abyssBattlePromises.push(battleUpdate);
           });
         },
       );
     },
   );
+
+  console.log(abyssBattlePromises);
+
+  return abyssBattlePromises;
 };
 
 const fetchPlayerData = async (server: string, curruid: number, characterIds: number[], i = 0) => {
@@ -570,13 +581,13 @@ const fetchPlayerData = async (server: string, curruid: number, characterIds: nu
             char.reliquaries.length === 5 &&
             !find(char.reliquaries, (relic) => relic.rarity <= 3)
           ) {
-            return fetchCharacterData(char);
+            return fetchCharacterData(char, i);
           }
         }),
       );
 
       // Abyss data
-      await fetchAbyssData(playerAbyssData);
+      await Promise.all(fetchAbyssData(currRefs[i].playerAbyssData, i));
 
       return true;
     })
@@ -586,7 +597,7 @@ const fetchPlayerData = async (server: string, curruid: number, characterIds: nu
 };
 
 const collectDataFromPlayer = async (initUid = 0, i = 0) => {
-  currTokens[i] = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
+  currRefs[i].token = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
   await updateDS(i);
 
   const baseUid = _getBaseUid(server);
@@ -604,7 +615,7 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
 
     currUid = uid;
 
-    playerCharRefMap = {};
+    currRefs[i].playerCharRefMap = {};
     areAllStillBlocked = true;
     // const now = new Date();
 
@@ -632,14 +643,14 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
         await nextToken(i);
 
         try {
-          playerRef = await PlayerModel.findOneAndUpdate(
+          currRefs[i].playerRef = await PlayerModel.findOneAndUpdate(
             { uid: currUid },
             {
               uid: currUid,
-              total_star: playerAbyssData.total_star,
-              total_battles: playerAbyssData.total_battle_times,
-              total_wins: playerAbyssData.total_win_times,
-              schedule_id: playerAbyssData.schedule_id,
+              total_star: currRefs[i].playerAbyssData.total_star,
+              total_battles: currRefs[i].playerAbyssData.total_battle_times,
+              total_wins: currRefs[i].playerAbyssData.total_win_times,
+              schedule_id: currRefs[i].playerAbyssData.schedule_id,
             },
             options,
           );
@@ -655,7 +666,7 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
 
           //   // Otherwise we skip the API call
           // } else {
-          // const playerCharacters = await PlayerCharacterModel.find({ player: playerRef._id })
+          // const playerCharacters = await PlayerCharacterModel.find({ player: currRefs[i].playerRef._id })
           //   .lean()
           //   .populate({ path: 'character', select: 'oid -_id' });
 
@@ -742,7 +753,7 @@ mongoose.connection.once('open', async () => {
 
     concurrent = parseInt(process.env.npm_config_concurrent);
     server = process.env.npm_config_server ? process.env.npm_config_server : 'usa';
-    currTokens = concurrent ? Array(concurrent) : [];
+    currRefs = concurrent ? Array(concurrent).fill({}) : [{}];
     const baseUid = _getBaseUid(server);
 
     switch (process.env.npm_config_abyss) {
