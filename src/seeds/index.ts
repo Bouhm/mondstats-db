@@ -465,10 +465,6 @@ const fetchCharacterData = async (char: ICharacterResponse, i: number) => {
     }
   });
 
-  console.log(char.name, artifactRefIds)
-  // Skip incomplete builds
-  if (artifactRefIds.length < 5) return;
-
   // PlayerCharacters
   let cNum = 0;
   for (let i = 0; i < 6; i++) {
@@ -501,12 +497,12 @@ const fetchCharacterData = async (char: ICharacterResponse, i: number) => {
   );
 
   currRefs[i].playerCharRefMap[character.oid] = playerCharacterRef._id;
-  console.log(currRefs[i].playerCharRefMap)
 };
 
 const fetchAbyssData = (abyssData: IAbyssResponse, i: number) => {
   console.log(map(abyssData.floors, (floor) => floor.index));
   const abyssBattlePromises = [];
+  console.log(currRefs[i].playerCharRefMap)
 
   forEach(
     filter(abyssData.floors, (floor) => floor.index > 8),
@@ -548,7 +544,7 @@ const fetchAbyssData = (abyssData: IAbyssResponse, i: number) => {
     },
   );
 
-  console.log(abyssBattlePromises);
+  // console.log(abyssBattlePromises);
 
   return abyssBattlePromises;
 };
@@ -576,13 +572,14 @@ const fetchPlayerData = async (server: string, curruid: number, characterIds: nu
 
       await Promise.all(
         map(resp.data.data.avatars, async (char) => {
-          if (
-            char.weapon.rarity >= 3 &&
-            char.reliquaries.length === 5 &&
-            !find(char.reliquaries, (relic) => relic.rarity <= 3)
-          ) {
+          // if (
+          //   char.weapon.rarity >= 3 &&
+          //   char.reliquaries.length === 5 &&
+          //   !find(char.reliquaries, (relic) => relic.rarity <= 3)
+          // ) {
+            console.log(char.name)
             return fetchCharacterData(char, i);
-          }
+          // }
         }),
       );
 
