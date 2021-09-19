@@ -804,7 +804,7 @@ mongoose.connection.once('open', async () => {
           const oldestUpdatedPlayer = await PlayerModel.findOne({
             uid: { $gt: baseUid, $lt: baseUid + 99999999 },
           })
-            .sort({ updatedAt: -1 })
+            .sort({ updatedAt: 1 })
             .limit(1)
             .lean();
           maxUid = (
@@ -813,9 +813,7 @@ mongoose.connection.once('open', async () => {
               .limit(1)
               .lean()
           ).uid;
-          await runParallel(
-            async (i: number) => await collectDataFromPlayer(oldestUpdatedPlayer.uid + 1, i),
-          );
+          await runParallel(async (i: number) => await collectDataFromPlayer(oldestUpdatedPlayer.uid, i));
           break;
         }
       }
