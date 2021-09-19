@@ -503,7 +503,6 @@ const saveCharacterData = async (char: ICharacterResponse, i: number) => {
 
 const saveAbyssData = (abyssData: IAbyssResponse, i: number) => {
   const abyssBattlePromises = [];
-  console.log(currRefs[i].playerCharRefMap);
 
   forEach(
     filter(abyssData.floors, (floor) => floor.index > 8),
