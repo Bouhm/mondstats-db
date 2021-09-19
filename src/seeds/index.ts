@@ -289,7 +289,7 @@ const purgeOld = async () => {
 };
 
 // fetch spiral abyss data
-const getSpiralAbyssData = async (server: string, currUid: number, scheduleType = 1, i = 0) => {
+const fetchAbyssData = async (server: string, currUid: number, scheduleType = 1, i = 0) => {
   const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${currUid}&schedule_type=${scheduleType}`;
 
   try {
@@ -330,7 +330,7 @@ const getSpiralAbyssData = async (server: string, currUid: number, scheduleType 
 };
 
 // Get player's owned character ids
-const getPlayerCharacters = async (server: string, currUid: number, i = 0) => {
+const fetchPlayerCharacters = async (server: string, currUid: number, i = 0) => {
   const apiUrl = `${userApiUrl}?server=os_${server}&role_id=${currUid}`;
 
   return axios
@@ -370,7 +370,7 @@ function _getActivationNumber(count: number, affixes: any[]) {
   return activation;
 }
 
-const fetchCharacterData = async (char: ICharacterResponse, i: number) => {
+const saveCharacterData = async (char: ICharacterResponse, i: number) => {
   // Characters
   const character = {
     oid: char.id,
@@ -465,6 +465,8 @@ const fetchCharacterData = async (char: ICharacterResponse, i: number) => {
     }
   });
 
+  if (artifactRefIds.length > 5) return;
+
   // PlayerCharacters
   let cNum = 0;
   for (let i = 0; i < 6; i++) {
@@ -490,19 +492,18 @@ const fetchCharacterData = async (char: ICharacterResponse, i: number) => {
     playerCharacter.strongest_strike = currRefs[i].playerAbyssData.damage_rank[0].value;
   }
 
-  const playerCharacterRef = await PlayerCharacterModel.findOneAndUpdate(
+  return PlayerCharacterModel.findOneAndUpdate(
     { character: characterRef._id, player: currRefs[i].playerRef._id },
     { $setOnInsert: playerCharacter },
     options,
-  );
-
-  currRefs[i].playerCharRefMap[character.oid] = playerCharacterRef._id;
+  ).then((record: any) => {
+    return { _id: record._doc._id, oid: character.oid };
+  });
 };
 
-const fetchAbyssData = (abyssData: IAbyssResponse, i: number) => {
-  console.log(map(abyssData.floors, (floor) => floor.index));
+const saveAbyssData = (abyssData: IAbyssResponse, i: number) => {
   const abyssBattlePromises = [];
-  console.log(currRefs[i].playerCharRefMap)
+  console.log(currRefs[i].playerCharRefMap);
 
   forEach(
     filter(abyssData.floors, (floor) => floor.index > 8),
@@ -516,10 +517,8 @@ const fetchAbyssData = (abyssData: IAbyssResponse, i: number) => {
               battle_index: battle.index,
               star: level.star,
               player: currRefs[i].playerRef._id,
-              party: map(battle.avatars, (char) => currRefs[i].playerCharRefMap[char.id]),
+              party: map(battle.avatars, (char) => currRefs[i].playerCharRefMap[char.id.toString()]),
             };
-
-            console.log(abyssBattle)
 
             if (
               some(abyssBattle.party, (char) => char === null || char === undefined) ||
@@ -570,21 +569,22 @@ const fetchPlayerData = async (server: string, curruid: number, characterIds: nu
       }
       if (!resp.data || !resp.data.data) return false;
 
-      await Promise.all(
-        map(resp.data.data.avatars, async (char) => {
-          // if (
-          //   char.weapon.rarity >= 3 &&
-          //   char.reliquaries.length === 5 &&
-          //   !find(char.reliquaries, (relic) => relic.rarity <= 3)
-          // ) {
-            console.log(char.name)
-            return fetchCharacterData(char, i);
-          // }
+      const records = await Promise.all(
+        map(resp.data.data.avatars, (char) => {
+          if (char.reliquaries.length === 5) {
+            return saveCharacterData(char, i);
+          }
         }),
       );
 
+      forEach(records, (record) => {
+        if (record) {
+          currRefs[i].playerCharRefMap[record.oid] = record._id;
+        }
+      });
+
       // Abyss data
-      await Promise.all(fetchAbyssData(currRefs[i].playerAbyssData, i));
+      await Promise.all(saveAbyssData(currRefs[i].playerAbyssData, i));
 
       return true;
     })
@@ -617,7 +617,7 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
     // const now = new Date();
 
     try {
-      const shouldCollectData = await getSpiralAbyssData(server, currUid, abyssSchedule, i);
+      const shouldCollectData = await fetchAbyssData(server, currUid, abyssSchedule, i);
 
       // Blocked
       if (shouldCollectData === null) {
@@ -658,7 +658,7 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
           // if (now.getTime() > weeklyUpdate) {
           //   weeklyUpdate = getNextMonday(now);
 
-          //   characterIds = await getPlayerCharacters(server, currUid);
+          //   characterIds = await fetchPlayerCharacters(server, currUid);
           //   await nextToken();
 
           //   // Otherwise we skip the API call
@@ -670,7 +670,7 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
           // if (playerCharacters && playerCharacters.length > 0 && !includes(playerCharacters, undefined)) {
           //   characterIds = map(playerCharacters, ({ character }: any) => character.oid);
           // } else {
-          characterIds = await getPlayerCharacters(server, currUid, i);
+          characterIds = await fetchPlayerCharacters(server, currUid, i);
           await nextToken(i);
           // }
           // }
