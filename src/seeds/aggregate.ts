@@ -278,7 +278,10 @@ export const updateDb = async () => {
   if (process.env.npm_config_mode !== 'test') {
     const weaponStatsTotal = getTotal(allWeaponStats, min);
     allWeaponStats = orderBy(
-      filter(allWeaponStats, (stat) => stat.count / weaponStatsTotal >= weaponThreshold && stat.count >= min),
+      filter(
+        allWeaponStats,
+        (stat) => stat.count / weaponStatsTotal >= weaponThreshold && stat.count >= min,
+      ),
       'count',
       'desc',
     );
@@ -318,6 +321,19 @@ export const updateDb = async () => {
     allArtifactSetStats = filter(allArtifactSetStats, (stat) => stat.characters.length);
 
     allCharacterStats = orderBy(allCharacterStats, 'total', 'desc');
+
+    // const weaponStats: {
+    //   _id: string,
+    //   type: number,
+    //   level: number,
+    //   refinement: number,
+    //   characters: {
+    //     [_id: string]: number
+    //   },
+    //   artifactSets: {
+
+    //   }[]
+    // }[] = []
 
     const filterCharacterBuilds = (builds: any) => {
       builds.forEach((charBuildStats) => {

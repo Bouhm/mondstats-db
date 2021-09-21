@@ -115,6 +115,7 @@ const assignTravelerOid = (charData: ICharacterResponse) => {
 const nextToken = async (i: number) => {
   const newToken = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
   currRefs[i].token = { ...currRefs[i].token, ...newToken } as unknown as TokenDocument & { DS: string };
+  console.log(currRefs[i].token);
   _incrementProxyIdx();
 
   if (currRefs[i].token.used) {
@@ -298,12 +299,20 @@ const fetchAbyssData = async (server: string, currUid: number, scheduleType = 1,
       withCredentials: true,
     });
 
+    console.log(resp.data);
+
     // Rate limit reached message
-    if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
+    if (
+      (resp.data && resp.data.message && resp.data.message.startsWith('Y')) ||
+      resp.data.retcode === 10103
+    ) {
       // console.log('Abyss data: ', resp.data.message);
       return null;
     }
-    if (resp.data && resp.data.message && resp.data.message.startsWith('invalid')) {
+    if (
+      (resp.data && resp.data.message && resp.data.message.startsWith('invalid')) ||
+      resp.data.retcode === 10103
+    ) {
       // console.log('Abyss data: ', resp.data.message);
       return undefined;
     }
@@ -337,7 +346,10 @@ const fetchPlayerCharacters = async (server: string, currUid: number, i = 0) => 
     .get(apiUrl, { headers: getHeaders(i), withCredentials: true })
     .then(async (resp) => {
       // Rate limit reached message
-      if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
+      if (
+        (resp.data && resp.data.message && resp.data.message.startsWith('Y')) ||
+        resp.data.retcode === 10103
+      ) {
         // console.log('Character list data: ', resp.data.message);
         return null;
       }
@@ -556,7 +568,10 @@ const fetchPlayerData = async (server: string, curruid: number, characterIds: nu
     .post(charApiUrl, reqBody, { headers: getHeaders(i), withCredentials: true })
     .then(async (resp) => {
       // Rate limit reached message
-      if (resp.data && resp.data.message && resp.data.message.startsWith('Y')) {
+      if (
+        (resp.data && resp.data.message && resp.data.message.startsWith('Y')) ||
+        resp.data.retcode === 10103
+      ) {
         // console.log('Player characters data: ', resp.data.message);
         return null;
       }
@@ -612,6 +627,7 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
     }
 
     currUid = uid;
+    console.log(currUid);
 
     currRefs[i].playerCharRefMap = {};
     areAllStillBlocked = true;
@@ -780,6 +796,7 @@ mongoose.connection.once('open', async () => {
             .sort({ uid: -1 })
             .limit(1)
             .lean();
+          console.log(lastPlayer.uid + 1);
           await runParallel(async (i: number) => await collectDataFromPlayer(lastPlayer.uid + 1, i));
           break;
         }
@@ -791,6 +808,7 @@ mongoose.connection.once('open', async () => {
             .limit(1)
             .sort({ $natural: -1 })
             .lean();
+          console.log(lastUpdatedPlayer.uid + 1);
           await runParallel(
             async (i: number) => await collectDataFromPlayer(lastUpdatedPlayer.uid + 1, i),
           );
@@ -815,6 +833,7 @@ mongoose.connection.once('open', async () => {
               .limit(1)
               .lean()
           ).uid;
+          console.log(oldestUpdatedPlayer.uid);
           await runParallel(async (i: number) => await collectDataFromPlayer(oldestUpdatedPlayer.uid, i));
           break;
         }
