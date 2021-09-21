@@ -2,7 +2,7 @@
 import Axios from 'axios';
 import fs from 'fs';
 import https from 'https';
-import { clamp, filter, find, forEach, forIn, map, pick, shuffle, some } from 'lodash';
+import { clamp, every, filter, find, forEach, forIn, map, pick, shuffle, some } from 'lodash';
 import mongoose, { Schema } from 'mongoose';
 import { firefox } from 'playwright-firefox';
 import parallel from 'run-parallel';
@@ -465,8 +465,6 @@ const saveCharacterData = async (char: ICharacterResponse, i: number) => {
     }
   });
 
-  if (artifactRefIds.length > 5) return;
-
   // PlayerCharacters
   let cNum = 0;
   for (let i = 0; i < 6; i++) {
@@ -570,7 +568,11 @@ const fetchPlayerData = async (server: string, curruid: number, characterIds: nu
 
       const records = await Promise.all(
         map(resp.data.data.avatars, (char) => {
-          if (char.reliquaries.length === 5) {
+          if (
+            char.reliquaries.length === 5 &&
+            !every(char.reliquaries, (reliquary) => reliquary.rarity >= 4) &&
+            char.weapon.rarity >= 3
+          ) {
             return saveCharacterData(char, i);
           }
         }),
