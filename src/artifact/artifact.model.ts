@@ -31,7 +31,7 @@ export class Artifact {
   @Prop({ required: true })
   pos_name: string;
 
-  @Field(() => String)
+  @Field(() => Number)
   rarity: number;
 
   @Field(() => String)
