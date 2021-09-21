@@ -280,9 +280,9 @@ export class PlayerCharacterService {
 
     const characterBuilds: CharacterBuildStats[] = [];
     const mainCharacterBuilds: CharacterBuildStats[] = [];
-    const weaponStats = [];
-    const artifactSetStats = [];
-    const characterStats = [];
+    const allWeaponStats = [];
+    const allArtifactSetStats = [];
+    const allCharacterStats = [];
 
     forEach(playerCharacters, ({ _id, character, weapon, artifacts, constellation, level }: any) => {
       const charWeapon = <WeaponDocument>weapon;
@@ -328,7 +328,7 @@ export class PlayerCharacterService {
         parties,
       );
 
-      if (level >= 80) {
+      if (level >= 90) {
         addCharacterBuild(
           mainCharacterBuilds,
           character,
@@ -340,11 +340,11 @@ export class PlayerCharacterService {
       }
 
       // ===== CHARACTER STATS ====
-      const charStatIdx = findIndex(characterStats, { _id: character._id });
+      const charStatIdx = findIndex(allCharacterStats, { _id: character._id });
       if (charStatIdx > -1) {
-        characterStats[charStatIdx].total++;
+        allCharacterStats[charStatIdx].total++;
       } else {
-        characterStats.push({
+        allCharacterStats.push({
           _id: character._id,
           total: 1,
           abyssCount: abyssUsageCounts.characters[character._id],
@@ -352,21 +352,21 @@ export class PlayerCharacterService {
       }
 
       // ===== WEAPON STATS =====
-      const weaponStatIdx = findIndex(weaponStats, { _id: charWeapon._id });
+      const weaponStatIdx = findIndex(allWeaponStats, { _id: charWeapon._id });
       if (weaponStatIdx > -1) {
-        const charIdx = findIndex(weaponStats[weaponStatIdx].characters, {
+        const charIdx = findIndex(allWeaponStats[weaponStatIdx].characters, {
           _id: character._id.toString(),
         });
 
         if (charIdx > -1) {
-          weaponStats[weaponStatIdx].characters[charIdx].count++;
+          allWeaponStats[weaponStatIdx].characters[charIdx].count++;
         } else {
-          weaponStats[weaponStatIdx].characters.push({ _id: character._id.toString(), count: 1 });
+          allWeaponStats[weaponStatIdx].characters.push({ _id: character._id.toString(), count: 1 });
         }
 
-        weaponStats[weaponStatIdx].count++;
+        allWeaponStats[weaponStatIdx].count++;
       } else {
-        weaponStats.push({
+        allWeaponStats.push({
           _id: charWeapon._id,
           characters: [
             {
@@ -382,28 +382,31 @@ export class PlayerCharacterService {
       }
 
       // ===== ARTIFACT SET STATS =====
-      const artifactStatIdx = findIndex(artifactSetStats, ({ artifacts }) =>
+      const artifactStatIdx = findIndex(allArtifactSetStats, ({ artifacts }) =>
         isEqual(artifacts, artifactSetCombinations),
       );
       if (artifactStatIdx > -1) {
-        const charIdx = findIndex(artifactSetStats[artifactStatIdx].characters, {
+        const charIdx = findIndex(allArtifactSetStats[artifactStatIdx].characters, {
           _id: character._id.toString(),
         });
 
         if (charIdx > -1) {
-          artifactSetStats[artifactStatIdx].characters[charIdx].count++;
+          allArtifactSetStats[artifactStatIdx].characters[charIdx].count++;
         } else {
-          artifactSetStats[artifactStatIdx].characters.push({ _id: character._id.toString(), count: 1 });
+          allArtifactSetStats[artifactStatIdx].characters.push({
+            _id: character._id.toString(),
+            count: 1,
+          });
         }
 
-        artifactSetStats[artifactStatIdx].count++;
+        allArtifactSetStats[artifactStatIdx].count++;
       } else {
         // const abyssSetIdx = findIndex(abyssUsageCounts.artifactSets, ({ artifacts }) =>
         //   isEqual(artifacts, artifactSetCombinations),
         // );
 
         // const abyssCount = abyssSetIdx > -1 ? abyssUsageCounts.artifactSets[abyssSetIdx].count : 0;
-        artifactSetStats.push({
+        allArtifactSetStats.push({
           artifacts: artifactSetCombinations,
           characters: [
             {
@@ -417,7 +420,13 @@ export class PlayerCharacterService {
       }
     });
 
-    return { weaponStats, artifactSetStats, characterBuilds, mainCharacterBuilds, characterStats };
+    return {
+      allWeaponStats,
+      allArtifactSetStats,
+      characterBuilds,
+      mainCharacterBuilds,
+      allCharacterStats,
+    };
   }
 
   async aggregateBuilds(filter: ListPlayerCharacterInput = {}) {

@@ -32,6 +32,9 @@ export class Artifact {
   pos_name: string;
 
   @Field(() => String)
+  rarity: number;
+
+  @Field(() => String)
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     ref: ArtifactSet.name,
