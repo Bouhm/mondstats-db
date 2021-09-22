@@ -27,7 +27,7 @@ import artifactModel from '../artifact/artifact.model';
 import { ArtifactService } from '../artifact/artifact.service';
 import characterModel from '../character/character.model';
 import { CharacterService } from '../character/character.service';
-import playerCharacterModel, { CharBuildStats } from '../player-character/player-character.model';
+import playerCharacterModel from '../player-character/player-character.model';
 import { PlayerCharacterService } from '../player-character/player-character.service';
 import playerModel from '../player/player.model';
 import { PlayerService } from '../player/player.service';
@@ -338,7 +338,7 @@ export const updateDb = async () => {
     //   }[];
     // }[] = []; 
 
-    const filterCharacterBuilds = (builds: CharBuildStats[]) => {
+    const filterCharacterBuilds = (builds: any) => {
       builds.forEach((charBuildStats) => {
         // forEach(charBuildStats.builds, (build) => {
         //   forEach(build.weapons, (weapon) => {
@@ -413,7 +413,7 @@ export const updateDb = async () => {
           player_total: playerCount,
           character_total: playerCharacterCount,
           abyss_total: abyssBattleCount,
-          banner: ['Raiden Shogun', 'Kujou Sara', 'Sucrose', 'Xiangling', 'Aloy'],
+          banner: ['Sangonomiya Kokomi', 'Xingqiu', 'Beidou', 'Rosaria'],
         }),
         cb,
       ),

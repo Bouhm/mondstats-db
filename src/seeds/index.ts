@@ -298,6 +298,8 @@ const fetchAbyssData = async (server: string, currUid: number, scheduleType = 1,
       withCredentials: true,
     });
 
+    console.log(resp.data)
+    
     // Rate limit reached message
     if (
       (resp.data && resp.data.message && resp.data.message.startsWith('Y')) ||
@@ -306,10 +308,7 @@ const fetchAbyssData = async (server: string, currUid: number, scheduleType = 1,
       // console.log('Abyss data: ', resp.data.message);
       return null;
     }
-    if (
-      (resp.data && resp.data.message && resp.data.message.startsWith('invalid')) ||
-      resp.data.retcode === 10103
-    ) {
+    if (resp.data && resp.data.message && resp.data.message.startsWith('invalid')) {
       // console.log('Abyss data: ', resp.data.message);
       return undefined;
     }
@@ -624,6 +623,7 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
     }
 
     currUid = uid;
+    console.log(currUid);
 
     currRefs[i].playerCharRefMap = {};
     areAllStillBlocked = true;
