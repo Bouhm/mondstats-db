@@ -115,7 +115,6 @@ const assignTravelerOid = (charData: ICharacterResponse) => {
 const nextToken = async (i: number) => {
   const newToken = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
   currRefs[i].token = { ...currRefs[i].token, ...newToken } as unknown as TokenDocument & { DS: string };
-  console.log(currRefs[i].token);
   _incrementProxyIdx();
 
   if (currRefs[i].token.used) {
@@ -298,8 +297,6 @@ const fetchAbyssData = async (server: string, currUid: number, scheduleType = 1,
       headers: getHeaders(i),
       withCredentials: true,
     });
-
-    console.log(resp.data);
 
     // Rate limit reached message
     if (
@@ -627,7 +624,6 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
     }
 
     currUid = uid;
-    console.log(currUid);
 
     currRefs[i].playerCharRefMap = {};
     areAllStillBlocked = true;

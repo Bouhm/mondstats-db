@@ -27,7 +27,7 @@ import artifactModel from '../artifact/artifact.model';
 import { ArtifactService } from '../artifact/artifact.service';
 import characterModel from '../character/character.model';
 import { CharacterService } from '../character/character.service';
-import playerCharacterModel from '../player-character/player-character.model';
+import playerCharacterModel, { CharBuildStats } from '../player-character/player-character.model';
 import { PlayerCharacterService } from '../player-character/player-character.service';
 import playerModel from '../player/player.model';
 import { PlayerService } from '../player/player.service';
@@ -323,20 +323,38 @@ export const updateDb = async () => {
     allCharacterStats = orderBy(allCharacterStats, 'total', 'desc');
 
     // const weaponStats: {
-    //   _id: string,
-    //   type: number,
-    //   level: number,
-    //   refinement: number,
+    //   _id: string;
+    //   type: number;
     //   characters: {
-    //     [_id: string]: number
-    //   },
+    //     _id: string;
+    //     count: number;
+    //   }[];
     //   artifactSets: {
+    //     artifacts: {
+    //       _id: string;
+    //       activation_number: number;
+    //     }[];
+    //     count: number;
+    //   }[];
+    // }[] = []; 
 
-    //   }[]
-    // }[] = []
-
-    const filterCharacterBuilds = (builds: any) => {
+    const filterCharacterBuilds = (builds: CharBuildStats[]) => {
       builds.forEach((charBuildStats) => {
+        // forEach(charBuildStats.builds, (build) => {
+        //   forEach(build.weapons, (weapon) => {
+        //     const weaponStatsIdx = findIndex(weaponStats, (stat) => stat._id === weapon._id);
+
+        //     if (weaponStatsIdx > -1) {
+        //       const characterIdx = findIndex(weaponStats[weaponStatsIdx].characters, character => character._id === build.char_id)
+        //       weaponsStats[weaponStatsIdx]
+        //     } else {
+        //       weaponStats.push({
+
+        //       })
+        //     }
+        //   });
+        // });
+
         const buildsTotal = getTotal(charBuildStats.builds, min);
         charBuildStats.builds = orderBy(
           filter(
