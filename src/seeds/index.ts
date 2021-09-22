@@ -298,8 +298,6 @@ const fetchAbyssData = async (server: string, currUid: number, scheduleType = 1,
       withCredentials: true,
     });
 
-    console.log(resp.data)
-    
     // Rate limit reached message
     if (
       (resp.data && resp.data.message && resp.data.message.startsWith('Y')) ||
@@ -623,8 +621,6 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
     }
 
     currUid = uid;
-    console.log(currUid);
-
     currRefs[i].playerCharRefMap = {};
     areAllStillBlocked = true;
     // const now = new Date();
