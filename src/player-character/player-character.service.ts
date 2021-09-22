@@ -17,7 +17,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { AbyssBattle, AbyssBattleDocument } from '../abyss-battle/abyss-battle.model';
-import { Affix } from '../artifact-set/artifact-set.model';
+import { Affix, ArtifactSet, ArtifactSetDocument } from '../artifact-set/artifact-set.model';
 // import abyssBattles from '../data/abyssBattles.json';
 import { WeaponDocument } from '../weapon/weapon.model';
 import { ListPlayerCharacterInput } from './player-character.inputs';
@@ -112,7 +112,7 @@ export class PlayerCharacterService {
     private playerCharacterModel: Model<PlayerCharacterDocument>,
 
     @InjectModel(AbyssBattle.name)
-    private abyssBattleModel: Model<AbyssBattleDocument>,
+    private abyssBattleModel: Model<AbyssBattleDocument>, // @InjectModel(ArtifactSet.name) // private artifactSetModel: Model<ArtifactSetDocument>,
   ) {}
 
   async list(filter: ListPlayerCharacterInput = {}) {
@@ -197,6 +197,20 @@ export class PlayerCharacterService {
               path: 'character',
               select: '_id',
             },
+            {
+              path: 'weapon',
+              select: '_id',
+            },
+            {
+              path: 'artifacts',
+              select: 'set',
+              populate: [
+                {
+                  path: 'set',
+                  select: 'affixes _id',
+                },
+              ],
+            },
           ],
         },
       ])
@@ -222,19 +236,22 @@ export class PlayerCharacterService {
         const playerSets: any = {};
 
         // Get artifact set combinations
-        forEach(artifacts, (relic: any) => {
-          if (playerSets.hasOwnProperty(relic['set']._id.toString())) {
-            playerSets[relic['set']._id.toString()].count++;
+        forEach(artifacts, async (relic: any) => {
+          if (playerSets.hasOwnProperty(relic['set'].toString())) {
+            playerSets[relic.set._id.toString()].count++;
           } else {
-            playerSets[relic['set'].toString()] = {
+            playerSets[relic.set._id.toString()] = {
               count: 1,
-              affixes: map(relic['set'].affixes, (affix) => omit(affix, ['_id'])),
+              affixes: map(relic.set.affixes, (affix) => omit(affix, ['_id'])),
             };
           }
         });
+        // console.log(playerSets)
+
         let artifactSetCombinations: { _id: string; activation_number: number }[] = [];
         forIn(playerSets, (set, _id) => {
           const activationNum = _getActivationNumber(set.count, set.affixes);
+          // console.log(activationNum)
 
           if (activationNum > 1) {
             artifactSetCombinations.push({
@@ -245,9 +262,11 @@ export class PlayerCharacterService {
         });
         artifactSetCombinations = sortBy(artifactSetCombinations, (set) => set._id.toString());
 
-        const artifactSetIdx = findIndex(abyssUsageCounts.artifactSets, (set) =>
-          isEqual(set.artifacts, artifactSetCombinations),
-        );
+        // console.log(artifactSetCombinations)
+        const artifactSetIdx = findIndex(abyssUsageCounts.artifactSets, (set) => {
+          // console.log(set.artifacts)
+          return artifactSetCombinations.length && isEqual(set.artifacts, artifactSetCombinations)
+        });
 
         if (artifactSetIdx > -1) {
           abyssUsageCounts.artifactSets[artifactSetIdx].count[0]++;
@@ -261,8 +280,11 @@ export class PlayerCharacterService {
         if (star > 2) {
           abyssUsageCounts.characters[character._id][1]++;
           abyssUsageCounts.weapons[weapon._id][1]++;
-          abyssUsageCounts.artifactSets[artifactSetIdx || abyssUsageCounts.artifactSets.length - 1]
+
+          if (abyssUsageCounts.artifactSets.length) {
+            abyssUsageCounts.artifactSets[artifactSetIdx || abyssUsageCounts.artifactSets.length - 1]
             .count[1]++;
+          }
         }
 
         const buildIdx = findIndex(abyssUsageCounts.artifactSets, (build: any) =>

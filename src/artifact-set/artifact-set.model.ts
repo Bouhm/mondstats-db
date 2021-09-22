@@ -4,6 +4,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @ObjectType('Affix')
+@Schema({ _id: false })
 export class Affix {
   @Field(() => Number)
   activation_number: number;
