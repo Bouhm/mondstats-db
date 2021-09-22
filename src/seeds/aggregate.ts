@@ -27,7 +27,7 @@ import artifactModel from '../artifact/artifact.model';
 import { ArtifactService } from '../artifact/artifact.service';
 import characterModel from '../character/character.model';
 import { CharacterService } from '../character/character.service';
-import playerCharacterModel from '../player-character/player-character.model';
+import playerCharacterModel, { CharacterBuildStats } from '../player-character/player-character.model';
 import { PlayerCharacterService } from '../player-character/player-character.service';
 import playerModel from '../player/player.model';
 import { PlayerService } from '../player/player.service';
@@ -322,38 +322,117 @@ export const updateDb = async () => {
 
     allCharacterStats = orderBy(allCharacterStats, 'total', 'desc');
 
-    // const weaponStats: {
-    //   _id: string;
-    //   type: number;
-    //   characters: {
-    //     _id: string;
-    //     count: number;
-    //   }[];
-    //   artifactSets: {
-    //     artifacts: {
-    //       _id: string;
-    //       activation_number: number;
-    //     }[];
-    //     count: number;
-    //   }[];
-    // }[] = []; 
+    const weaponStats: {
+      _id: string;
+      total: number;
+      characters: {
+        _id: string;
+        count: number;
+      }[];
+      artifactSets: {
+        artifacts: {
+          _id: string;
+          activation_number: number;
+        }[];
+        count: number;
+      }[];
+    }[] = [];
 
-    const filterCharacterBuilds = (builds: any) => {
+    const artifactSetStats: {
+      artifacts: {
+        _id: string;
+        activation_number: number;
+      }[];
+      total: number;
+      characters: {
+        _id: string;
+        count: number;
+      }[];
+      weapons: {
+        _id: string;
+        count: number;
+      }[];
+    }[] = [];
+
+    const filterCharacterBuilds = (builds: CharacterBuildStats[]) => {
       builds.forEach((charBuildStats) => {
-        // forEach(charBuildStats.builds, (build) => {
-        //   forEach(build.weapons, (weapon) => {
-        //     const weaponStatsIdx = findIndex(weaponStats, (stat) => stat._id === weapon._id);
+        forEach(charBuildStats.builds, (build) => {
+          forEach(build.weapons, (weapon) => {
+            const allArtifactStat = find(allArtifactSetStats, (set) =>
+              isEqual(set.artifacts, build.artifacts),
+            );
 
-        //     if (weaponStatsIdx > -1) {
-        //       const characterIdx = findIndex(weaponStats[weaponStatsIdx].characters, character => character._id === build.char_id)
-        //       weaponsStats[weaponStatsIdx]
-        //     } else {
-        //       weaponStats.push({
+            const artifactStatsIdx = findIndex(artifactSetStats, (stat) =>
+              isEqual(stat.artifacts, build.artifacts),
+            );
 
-        //       })
-        //     }
-        //   });
-        // });
+            if (artifactStatsIdx > -1) {
+              const characterIdx = findIndex(
+                artifactSetStats[artifactStatsIdx].characters,
+                (character) => character._id === charBuildStats.char_id,
+              );
+              if (characterIdx > -1) {
+                artifactSetStats[artifactStatsIdx].characters[characterIdx].count += weapon.count;
+              } else {
+                artifactSetStats[artifactStatsIdx].characters.push({
+                  _id: charBuildStats.char_id,
+                  count: build.count,
+                });
+              }
+            } else {
+              artifactSetStats.push({
+                artifacts: build.artifacts,
+                total: build.count,
+                characters: [
+                  {
+                    _id: charBuildStats.char_id,
+                    count: weapon.count,
+                  },
+                ],
+                weapons: [
+                  {
+                    _id: weapon._id,
+                    count: weapon.count,
+                  },
+                ],
+              });
+            }
+
+            const weaponStatsIdx = findIndex(weaponStats, (stat) => stat._id === weapon._id);
+
+            if (weaponStatsIdx > -1) {
+              const characterIdx = findIndex(
+                weaponStats[weaponStatsIdx].characters,
+                (character) => character._id === charBuildStats.char_id,
+              );
+              if (characterIdx > -1) {
+                weaponStats[weaponStatsIdx].characters[characterIdx].count += weapon.count;
+              } else {
+                weaponStats[weaponStatsIdx].characters.push({
+                  _id: charBuildStats.char_id,
+                  count: weapon.count,
+                });
+              }
+            } else {
+              weaponStats.push({
+                _id: weapon._id,
+                total: weapon.count,
+                characters: [
+                  {
+                    _id: charBuildStats.char_id,
+                    count: weapon.count,
+                  },
+                ],
+                artifactSets: [
+                  {
+                    artifacts: build.artifacts,
+                    count: build.count,
+                  },
+                ],
+              });
+            }
+          });
+        });
 
         const buildsTotal = getTotal(charBuildStats.builds, min);
         charBuildStats.builds = orderBy(
@@ -405,7 +484,9 @@ export const updateDb = async () => {
         cb,
       ),
       fs.writeFile('data/weapons/top-weapons.json', JSON.stringify(allWeaponStats), cb),
+      fs.writeFile('data/weapons/weapon-stats.json', JSON.stringify(weaponStats), cb),
       fs.writeFile('data/artifacts/top-artifactsets.json', JSON.stringify(allArtifactSetStats), cb),
+      fs.writeFile('data/artifacts/artifactset-stats.json', JSON.stringify(artifactSetStats), cb),
       fs.writeFile('data/characters/top-characters.json', JSON.stringify(allCharacterStats), cb),
       fs.writeFile(
         'data/featured.json',
