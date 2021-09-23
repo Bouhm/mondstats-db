@@ -325,9 +325,6 @@ const fetchAbyssData = async (server: string, currUid: number, scheduleType = 1,
       withCredentials: true,
     });
 
-    console.log();
-    console.log(resp.data);
-
     return handleResponse(
       resp.data,
       () => {
