@@ -112,6 +112,33 @@ const assignTravelerOid = (charData: ICharacterResponse) => {
   return oid;
 };
 
+const handleResponse = (
+  resp: { data: any; message: string; retcode: number },
+  notOk: () => any,
+  ok: () => any,
+) => {
+  if (!resp) {
+    return notOk();
+  }
+
+  switch (resp.retcode) {
+    case 10101: // Rate limit reached (30 per day)
+    case -100: // Incorrect login cookies
+    case 10001: // Incorrect login cookies
+    case 10103: // Cookies correct but not bound to account
+      return null;
+    case -10001: // Invalid request (DS)
+      return undefined;
+    case 0:
+      return ok();
+    case 10102: // Data not public
+    case 1009: // Could not find user with UID
+    case -1: // Could not find user with UID
+    default:
+      return notOk();
+  }
+};
+
 const nextToken = async (i: number) => {
   const newToken = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
   currRefs[i].token = { ...currRefs[i].token, ...newToken } as unknown as TokenDocument & { DS: string };
@@ -162,7 +189,7 @@ const updateDS = async (i: number) => {
   // const ltuid = cookieTokens[1].split('=')[1];
 
   const browser = await firefox.launch();
-  const Cookie = `ltoken=${currRefs[i].token.ltoken}; ltuid=${currRefs[i].token.ltuid}`;
+  const Cookie = `ltoken=${currRefs[i].token.ltoken}; ltuid=${currRefs[i].token.ltuid}; mi18nLang=en-us; _MHYUUID=${currRefs[i].token._MHYUUID}`;
   const context = await browser.newContext({
     extraHTTPHeaders: {
       Cookie,
@@ -194,7 +221,7 @@ const updateDS = async (i: number) => {
 
 const getHeaders = (i: number) => {
   proxyIdx = clamp(proxyIdx, 0, PROXIES.length - 1);
-  const Cookie = `ltoken=${currRefs[i].token.ltoken}; ltuid=${currRefs[i].token.ltuid}`;
+  const Cookie = `ltoken=${currRefs[i].token.ltoken}; ltuid=${currRefs[i].token.ltuid}; mi18nLang=en-us; _MHYUUID=${currRefs[i].token._MHYUUID}`;
 
   return {
     Host: 'api-os-takumi.mihoyo.com',
@@ -298,34 +325,27 @@ const fetchAbyssData = async (server: string, currUid: number, scheduleType = 1,
       withCredentials: true,
     });
 
-    // Rate limit reached message
-    if (
-      (resp.data && resp.data.message && resp.data.message.startsWith('Y')) ||
-      resp.data.retcode === 10103
-    ) {
-      // console.log('Abyss data: ', resp.data.message);
-      return null;
-    }
-    if (resp.data && resp.data.message && resp.data.message.startsWith('invalid')) {
-      // console.log('Abyss data: ', resp.data.message);
-      return undefined;
-    }
-    if (resp.data && resp.data.message && resp.data.message.startsWith('Data')) {
-      if (existingUids) purgePlayer(currUid);
-      return false;
-    }
-    if (!resp.data || !resp.data.data) {
-      return false;
-    }
+    console.log();
+    console.log(resp.data);
 
-    const maxFloor = resp.data.data.max_floor;
+    return handleResponse(
+      resp.data,
+      () => {
+        if (existingUids) purgePlayer(uid);
+        return false;
+      },
+      () => {
+        const maxFloor = resp.data.data.max_floor;
+        console.log(maxFloor);
 
-    if (maxFloor.split('-')[0] > 8) {
-      currRefs[i].playerAbyssData = resp.data.data;
-      return true;
-    } else {
-      return false;
-    }
+        if (maxFloor.split('-')[0] > 8) {
+          currRefs[i].playerAbyssData = resp.data.data;
+          return true;
+        } else {
+          return false;
+        }
+      },
+    );
   } catch (error) {
     console.log(error);
     return false;
@@ -339,23 +359,13 @@ const fetchPlayerCharacters = async (server: string, currUid: number, i = 0) => 
   return axios
     .get(apiUrl, { headers: getHeaders(i), withCredentials: true })
     .then(async (resp) => {
-      // Rate limit reached message
-      if (
-        (resp.data && resp.data.message && resp.data.message.startsWith('Y')) ||
-        resp.data.retcode === 10103
-      ) {
-        // console.log('Character list data: ', resp.data.message);
-        return null;
-      }
-      if (resp.data && resp.data.message && resp.data.message.startsWith('invalid')) {
-        // console.log('Abyss data: ', resp.data.message);
-        return undefined;
-      }
-      if (!resp.data || !resp.data.data) {
-        return [];
-      }
-
-      return map(resp.data.data.avatars, (char) => char.id);
+      return handleResponse(
+        resp.data,
+        () => [],
+        () => {
+          return map(resp.data.data.avatars, (char) => char.id);
+        },
+      );
     })
     .catch((error) => {
       console.log(error);
@@ -561,42 +571,30 @@ const fetchPlayerData = async (server: string, curruid: number, characterIds: nu
   return axios
     .post(charApiUrl, reqBody, { headers: getHeaders(i), withCredentials: true })
     .then(async (resp) => {
-      // Rate limit reached message
-      if (
-        (resp.data && resp.data.message && resp.data.message.startsWith('Y')) ||
-        resp.data.retcode === 10103
-      ) {
-        // console.log('Player characters data: ', resp.data.message);
-        return null;
-      }
-      if (resp.data && resp.data.message && resp.data.message.startsWith('invalid')) {
-        // console.log('Abyss data: ', resp.data.message);
-        return undefined;
-      }
-      if (!resp.data || !resp.data.data) return false;
+      return handleResponse(
+        resp.data,
+        () => false,
+        async () => {
+          const records = await Promise.all(
+            map(resp.data.data.avatars, (char) => {
+              if (char.reliquaries.length > 4) {
+                return saveCharacterData(char, i);
+              }
+            }),
+          );
 
-      const records = await Promise.all(
-        map(resp.data.data.avatars, (char) => {
-          if (
-            char.reliquaries.length === 5 &&
-            !every(char.reliquaries, (reliquary) => reliquary.rarity >= 4) &&
-            char.weapon.rarity >= 3
-          ) {
-            return saveCharacterData(char, i);
-          }
-        }),
+          forEach(records, (record) => {
+            if (record) {
+              currRefs[i].playerCharRefMap[record.oid] = record._id;
+            }
+          });
+
+          // Abyss data
+          await Promise.all(saveAbyssData(currRefs[i].playerAbyssData, i));
+
+          return true;
+        },
       );
-
-      forEach(records, (record) => {
-        if (record) {
-          currRefs[i].playerCharRefMap[record.oid] = record._id;
-        }
-      });
-
-      // Abyss data
-      await Promise.all(saveAbyssData(currRefs[i].playerAbyssData, i));
-
-      return true;
     })
     .catch((error) => {
       console.log(error);
@@ -627,6 +625,7 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
 
     try {
       const shouldCollectData = await fetchAbyssData(server, currUid, abyssSchedule, i);
+      console.log(shouldCollectData);
 
       // Blocked
       if (shouldCollectData === null) {

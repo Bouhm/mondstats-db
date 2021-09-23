@@ -265,26 +265,25 @@ export class PlayerCharacterService {
         // console.log(artifactSetCombinations)
         const artifactSetIdx = findIndex(abyssUsageCounts.artifactSets, (set) => {
           // console.log(set.artifacts)
-          return artifactSetCombinations.length && isEqual(set.artifacts, artifactSetCombinations)
+          return artifactSetCombinations.length && isEqual(set.artifacts, artifactSetCombinations);
         });
 
         if (artifactSetIdx > -1) {
           abyssUsageCounts.artifactSets[artifactSetIdx].count[0]++;
+
+          if (star > 2) {
+            abyssUsageCounts.artifactSets[artifactSetIdx].count[1]++;
+          }
         } else {
           abyssUsageCounts.artifactSets.push({
             artifacts: artifactSetCombinations,
-            count: [1, 0],
+            count: [1, star > 2 ? 1 : 0],
           });
         }
 
         if (star > 2) {
           abyssUsageCounts.characters[character._id][1]++;
           abyssUsageCounts.weapons[weapon._id][1]++;
-
-          if (abyssUsageCounts.artifactSets.length) {
-            abyssUsageCounts.artifactSets[artifactSetIdx || abyssUsageCounts.artifactSets.length - 1]
-            .count[1]++;
-          }
         }
 
         const buildIdx = findIndex(abyssUsageCounts.artifactSets, (build: any) =>
@@ -414,8 +413,12 @@ export class PlayerCharacterService {
         allCharacterStats.push({
           _id: character._id,
           total: 1,
-          abyssCount: abyssUsageCounts.characters[character._id][0],
-          abyssWinCount: abyssUsageCounts.characters[character._id][1],
+          abyssCount: abyssUsageCounts.characters[character._id]
+            ? abyssUsageCounts.characters[character._id][0]
+            : 0,
+          abyssWinCount: abyssUsageCounts.characters[character._id]
+            ? abyssUsageCounts.characters[character._id][1]
+            : 0,
         });
       }
 
@@ -445,8 +448,12 @@ export class PlayerCharacterService {
           type_name: charWeapon.type_name,
           rarity: charWeapon.rarity,
           count: 1,
-          abyssCount: abyssUsageCounts.weapons[charWeapon._id][0],
-          abyssWinCount: abyssUsageCounts.weapons[charWeapon._id][1],
+          abyssCount: abyssUsageCounts.weapons[charWeapon._id]
+            ? abyssUsageCounts.weapons[charWeapon._id][0]
+            : 0,
+          abyssWinCount: abyssUsageCounts.weapons[charWeapon._id]
+            ? abyssUsageCounts.weapons[charWeapon._id][1]
+            : 0,
         });
       }
 
