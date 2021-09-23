@@ -336,7 +336,6 @@ const fetchAbyssData = async (server: string, currUid: number, scheduleType = 1,
       },
       () => {
         const maxFloor = resp.data.data.max_floor;
-        console.log(maxFloor);
 
         if (maxFloor.split('-')[0] > 8) {
           currRefs[i].playerAbyssData = resp.data.data;
@@ -362,9 +361,7 @@ const fetchPlayerCharacters = async (server: string, currUid: number, i = 0) => 
       return handleResponse(
         resp.data,
         () => [],
-        () => {
-          return map(resp.data.data.avatars, (char) => char.id);
-        },
+        () => map(resp.data.data.avatars, (char) => char.id),
       );
     })
     .catch((error) => {
@@ -625,7 +622,6 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
 
     try {
       const shouldCollectData = await fetchAbyssData(server, currUid, abyssSchedule, i);
-      console.log(shouldCollectData);
 
       // Blocked
       if (shouldCollectData === null) {
