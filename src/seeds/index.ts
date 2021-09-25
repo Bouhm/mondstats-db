@@ -120,7 +120,7 @@ const handleResponse = (
   if (!resp) {
     return notOk();
   }
-
+  
   switch (resp.retcode) {
     case 10101: // Rate limit reached (30 per day)
     case -100: // Incorrect login cookies
@@ -128,6 +128,7 @@ const handleResponse = (
     case 10103: // Cookies correct but not bound to account
       return null;
     case -10001: // Invalid request (DS)
+      console.log(resp.message, resp.retcode)
       return undefined;
     case 0:
       return ok();
@@ -238,7 +239,7 @@ const getHeaders = (i: number) => {
     Connection: 'keep-alive',
     Referer: 'https://webstatic-sea.hoyolab.com/',
     Cookie,
-    TE: 'Trailers',
+    TE: 'trailers',
     'X-Forwarded-For': PROXIES[proxyIdx].ip,
     'X-Forwarded-Port': PROXIES[proxyIdx].port,
   };
@@ -270,7 +271,7 @@ function _getBaseUid(server: string, start = 0) {
   return uidBase + start;
 }
 
-const handleBlock = async (i: number) => {
+// const handleBlock = async (i: number) => {
   // blockedIndices[tokenIdx] = true;
   // console.log(`${filter(blockedIndices, (blocked) => blocked).length}/${blockedIndices.length}`);
 
@@ -623,7 +624,7 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
       // Blocked
       if (shouldCollectData === null) {
         await nextToken(i);
-        await handleBlock(i);
+        // await handleBlock(i);
         continue;
       } else if (shouldCollectData === undefined) {
         await updateDS(i);
@@ -677,7 +678,7 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
           // }
 
           if (characterIds === null) {
-            await handleBlock(i);
+            // await handleBlock(i);
             continue;
           } else if (characterIds === undefined) {
             await updateDS(i);
@@ -688,7 +689,7 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
               await nextToken(i);
 
               if (result === null) {
-                await handleBlock(i);
+                // await handleBlock(i);
                 continue;
               } else if (result === undefined) {
                 await updateDS(i);

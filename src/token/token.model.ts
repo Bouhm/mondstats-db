@@ -15,7 +15,7 @@ export class Token {
   ltoken: string;
 
   @Field(() => String)
-  @Prop()
+  @Prop({ required: true, unique: true })
   _MHYUUID: string;
 
   @Field(() => Date)
