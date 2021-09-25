@@ -271,7 +271,7 @@ function _getBaseUid(server: string, start = 0) {
   return uidBase + start;
 }
 
-// const handleBlock = async (i: number) => {
+const handleBlock = async (i: number) => {
   // blockedIndices[tokenIdx] = true;
   // console.log(`${filter(blockedIndices, (blocked) => blocked).length}/${blockedIndices.length}`);
 
