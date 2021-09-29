@@ -61,12 +61,12 @@ const cleanup = (dirPath, removeSelf = false) => {
 };
 
 const printTeam = (team: any) => {
-  let teamStr = ''
-  teamStr += map(team.core_party, char => getChar(char).name).join(', ')
-  teamStr += '; flex: ' + map(team.flex[0], ({charId}) => getChar(charId).name).join(', ')
+  let teamStr = '';
+  teamStr += map(team.core_party, (char) => getChar(char).name).join(', ');
+  teamStr += '; flex: ' + map(team.flex[0], ({ charId }) => getChar(charId).name).join(', ');
 
-  console.log(teamStr)
-}
+  console.log(teamStr);
+};
 
 const getChar = (_id: string) => find(db.characters, { _id });
 
@@ -128,7 +128,7 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
     const team1 = coreTeams[0];
     const compareTeams = cloneDeep(coreTeams.slice(1));
     const coreTeams2 = [];
-    let prevCoreTeamsLen = coreTeams.length;
+    const prevCoreTeamsLen = coreTeams.length;
 
     for (let i = 0; i < compareTeams.length; i++) {
       if (difference(
