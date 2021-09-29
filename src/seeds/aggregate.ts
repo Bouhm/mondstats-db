@@ -155,12 +155,14 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
       const otherChar = difference(team2.party, team1.party)[0];
 
       const teamIdx = findIndex(combinedTeams, team => some(team.flex, flex => {
-        return isEqual([...team.core_party, flex[0].charId].sort(), team1.party.sort())
+        // return difference(team1.party, [...team.core_party, map(flex, ({charId}) => charId)]).length === 0
+        return isEqual(team1.party.sort(), [...team.core_party, flex[0].charId].sort())
       }))
 
       if (teamIdx > -1) {
         combinedTeams[teamIdx].count += team1.count;
-        const flexIdx = findIndex(combinedTeams[teamIdx].flex, flex => flex[0].charId === flexChar)
+        const flexIdx = findIndex(combinedTeams[teamIdx].flex, (flex: any) => some(flex, ({charId}) => charId === flexChar))
+
         if (flexIdx > -1) {
           combinedTeams[teamIdx].flex[flexIdx][0].count += team1.count
           const otherCharIdx = findIndex(combinedTeams[teamIdx].flex[flexIdx], (flex: any) => flex.charId === otherChar)
