@@ -9,6 +9,7 @@ import {
   forEach,
   includes,
   intersection,
+  isEmpty,
   isEqual,
   map,
   omit,
@@ -76,51 +77,52 @@ const getTotal = (stats: any, min = 0) => {
 const resetCharCounts = (characters: any) => forEach(characters, ({ _id }) => (charCounts[_id] = 0));
 
 const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
-  const allIndexes = [0, 1, 2, 3];
-  const permIndexes = [
-    [0, 1, 2],
-    [0, 1, 3],
-    [0, 2, 3],
-    [1, 2, 3],
-  ];
+  // const allIndexes = [0, 1, 2, 3];
+  // const permIndexes = [
+  //   [0, 1, 2],
+  //   [0, 1, 3],
+  //   [0, 2, 3],
+  //   [1, 2, 3],
+  // ];
 
-  let coreTeams: { core_party: string[]; count: number; flex: Flex[][] }[] = [];
+  // let coreTeams: { core_party: string[]; count: number; flex: Flex[][] }[] = [];
 
-  forEach(parties, ({ party, count }) => {
-    forEach(permIndexes, (coreIndexes) => {
-      const coreParty = [party[coreIndexes[0]], party[coreIndexes[1]], party[coreIndexes[2]]].sort();
-      const partyIdx = findIndex(coreTeams, (team) => {
-        return (
-          isEqual(team.core_party, coreParty) &&
-          intersection(map(team.flex[0], (flex) => flex.charId)).length > 0
-        );
-      });
-      const flexIdx = difference(allIndexes, coreIndexes)[0];
+  // forEach(parties, ({ party, count }) => {
+  //   forEach(permIndexes, (coreIndexes) => {
+  //     const coreParty = [party[coreIndexes[0]], party[coreIndexes[1]], party[coreIndexes[2]]].sort();
+  //     const partyIdx = findIndex(coreTeams, (team) => {
+  //       return (
+  //         isEqual(team.core_party, coreParty) &&
+  //         intersection(map(team.flex[0], (flex) => flex.charId)).length > 0
+  //       );
+  //     });
+  //     const flexIdx = difference(allIndexes, coreIndexes)[0];
 
-      if (partyIdx > -1) {
-        coreTeams[partyIdx].count += count;
-        const charIdx = findIndex(coreTeams[partyIdx].flex[0], (flex) => flex.charId === party[flexIdx]);
+  //     if (partyIdx > -1) {
+  //       coreTeams[partyIdx].count += count;
+  //       const charIdx = findIndex(coreTeams[partyIdx].flex[0], (flex) => flex.charId === party[flexIdx]);
 
-        if (charIdx > -1) {
-          coreTeams[partyIdx].flex[0][charIdx].count += count;
-        } else {
-          coreTeams[partyIdx].flex[0].push({ charId: party[flexIdx], count });
-        }
-      } else {
-        coreTeams.push({
-          core_party: coreParty,
-          count,
-          flex: [[{ charId: party[flexIdx], count }]],
-        });
-      }
-    });
-  });
+  //       if (charIdx > -1) {
+  //         coreTeams[partyIdx].flex[0][charIdx].count += count;
+  //       } else {
+  //         coreTeams[partyIdx].flex[0].push({ charId: party[flexIdx], count });
+  //       }
+  //     } else {
+  //       coreTeams.push({
+  //         core_party: coreParty,
+  //         count,
+  //         flex: [[{ charId: party[flexIdx], count }]],
+  //       });
+  //     }
+  //   });
+  // });
 
-  coreTeams = orderBy(coreTeams, 'count', 'desc');
-  coreTeams.forEach((team, i) => {
-    team.flex[0] = orderBy(team.flex[0], 'count', 'desc');
-  });
+  // coreTeams = orderBy(coreTeams, 'count', 'desc');
+  // coreTeams.forEach((team, i) => {
+  //   team.flex[0] = orderBy(team.flex[0], 'count', 'desc');
+  // });
 
+  let coreTeams = parties;
   const combinedTeams = [];
   while (coreTeams.length) {
     const team1 = coreTeams[0];
@@ -130,74 +132,113 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
 
     for (let i = 0; i < compareTeams.length; i++) {
       if (difference(
-        [...compareTeams[i].core_party, compareTeams[i].flex[0][0].charId],
-        [...team1.core_party, team1.flex[0][0].charId],
+        compareTeams[i].party,
+        team1.party
       ).length === 1) {
         coreTeams2.push(compareTeams[i])
         coreTeams.splice(i, 1)
       }
     }
 
-    console.log("NEW ITER")
-    if (some(team1.core_party, char => getChar(char).name === 'Ganyu')) {
-      printTeam(team1)
+    // console.log("NEW ITER")
+    // if (some(team1.core_party, char => getChar(char).name === 'Ganyu')) {
+    //   printTeam(team1)
 
-      forEach(coreTeams2, team2 => {
-        printTeam(team2)
-      })
-    }
+    //   forEach(coreTeams2, team2 => {
+    //     printTeam(team2)
+    //   })
+    // }
 
+    let coreTeam: any = { flex: [], core_party: [], count: 0 };
     forEach(coreTeams2, (team2) => {
       // team1.count += team2.count;
+      const flexChar = difference(team1.party, team2.party)[0];
+      const otherChar = difference(team2.party, team1.party)[0];
+      coreTeam.core_party = intersection(team1.party, team2.party);
 
-      forEach(team2.flex[0], ({ charId, count }) => {
-        const charIdx = findIndex(team1.flex[0], (flex) => flex.charId === charId);
+      const flexIdx = findIndex(coreTeam.flex, flex => flex[0].charId === difference)
+      if (flexIdx > -1) {
+        forEach(coreTeam.flex[flexIdx], flex => {
+          
+        })
+        const flexCharIdx = findIndex(coreTeam.flex[flexIdx], (flex: any) => flex.charId === flexChar)
 
-        if (charIdx > -1) {
-          team1.flex[0][charIdx].count += count;
-        } else {
-          if (!includes(team1.core_party, charId) && count) {
-            team1.flex[0].push({ charId, count });
+        if (flexCharIdx > -1) {
+          coreTeam.flex[flexIdx][flexCharIdx].count += team1.count
+          const otherCharIdx = findIndex(coreTeam.flex[flexIdx], (flex: any) => flex.charId === otherChar)
+
+          if (otherCharIdx > -1) { 
+            coreTeam.flex[flexIdx][otherCharIdx].count += team2.count
+          } else {
+            coreTeam.flex[flexIdx].push({
+              charId: otherChar,
+              count: team2.count
+            })
           }
+        } else {
+          coreTeam.flex[flexIdx].push(
+            {
+              charId: flexChar,
+              count: team1.count
+            },
+            {
+              charId: otherChar,
+              count: team2.count
+            }
+          )
         }
-      });
+      } else {
+        coreTeam.flex.push([
+          {
+            charId: flexChar,
+            count: team1.count
+          },
+          {
+            charId: otherChar,
+            count: team2.count
+          }
+        ])
+      }
     });
 
-    if (team1) combinedTeams.push(team1);
+    if (!isEmpty(coreTeam)) combinedTeams.push(coreTeam);
+    if (prevCoreTeamsLen === coreTeams.length) coreTeams = coreTeams.slice(1)
   }
 
   const threshold = 0.25;
   combinedTeams.forEach((team) => {
     // const flexTotal = getTotal(team.flex);
 
-    team.flex[0] = orderBy(
-      filter(team.flex[0], (flex) => {
-        return flex.count / team.count >= threshold;
-      }),
-      'count',
-      'desc',
-    );
-  });
-
-  const mergedTeams = [];
-  combinedTeams.forEach((team) => {
-    const teamIdx = findIndex(mergedTeams, (_team) => {
-      if ((team.flex[0] && !team.flex[0].length) || (_team.flex[0] && !_team.flex[0].length)) return false;
-
-      return isEqual(
-        [...team.core_party, team.flex[0][0].charId].sort(),
-        [..._team.core_party, _team.flex[0][0].charId].sort(),
+    team.flex.forEach(flex => {
+      flex = orderBy(
+        filter(flex, (_flex) => {
+          return _flex.count / team.count >= threshold;
+        }),
+        'count',
+        'desc',
       );
-    });
-
-    if (teamIdx > -1) {
-      mergedTeams[teamIdx].flex.push(team.flex[0]);
-    } else {
-      mergedTeams.push(team);
-    }
+    })
   });
 
-  return orderBy(mergedTeams, 'count', 'desc');
+  // const mergedTeams = [];
+  // combinedTeams.forEach((team) => {
+  //   const teamIdx = findIndex(mergedTeams, (_team) => {
+  //     if ((team.flex[0] && !team.flex[0].length) || (_team.flex[0] && !_team.flex[0].length)) return false;
+
+  //     return isEqual(
+  //       [...team.core_party, team.flex[0][0].charId].sort(),
+  //       [..._team.core_party, _team.flex[0][0].charId].sort(),
+  //     );
+  //   });
+
+  //   if (teamIdx > -1) {
+  //     mergedTeams[teamIdx].flex.push(team.flex[0]);
+  //   } else {
+  //     mergedTeams.push(team);
+  //   }
+  // });
+
+  return orderBy(combinedTeams, 'count', 'desc');
 };
 
 export const updateDb = async () => {
