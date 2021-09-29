@@ -149,34 +149,32 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
     //   })
     // }
 
-    let coreTeam: any = { flex: [], core_party: [], count: 0 };
     forEach(coreTeams2, (team2) => {
       // team1.count += team2.count;
       const flexChar = difference(team1.party, team2.party)[0];
       const otherChar = difference(team2.party, team1.party)[0];
-      coreTeam.core_party = intersection(team1.party, team2.party);
 
-      const flexIdx = findIndex(coreTeam.flex, flex => flex[0].charId === difference)
-      if (flexIdx > -1) {
-        forEach(coreTeam.flex[flexIdx], flex => {
-          
-        })
-        const flexCharIdx = findIndex(coreTeam.flex[flexIdx], (flex: any) => flex.charId === flexChar)
+      const teamIdx = findIndex(combinedTeams, team => some(team.flex, flex => {
+        return isEqual([...team.core_party, flex[0].charId].sort(), team1.party.sort())
+      }))
 
-        if (flexCharIdx > -1) {
-          coreTeam.flex[flexIdx][flexCharIdx].count += team1.count
-          const otherCharIdx = findIndex(coreTeam.flex[flexIdx], (flex: any) => flex.charId === otherChar)
-
-          if (otherCharIdx > -1) { 
-            coreTeam.flex[flexIdx][otherCharIdx].count += team2.count
+      if (teamIdx > -1) {
+        combinedTeams[teamIdx].count += team1.count;
+        const flexIdx = findIndex(combinedTeams[teamIdx].flex, flex => flex[0].charId === flexChar)
+        if (flexIdx > -1) {
+          combinedTeams[teamIdx].flex[flexIdx][0].count += team1.count
+          const otherCharIdx = findIndex(combinedTeams[teamIdx].flex[flexIdx], (flex: any) => flex.charId === otherChar)
+  
+          if (otherCharIdx > -1) {
+            combinedTeams[teamIdx].flex[flexIdx][otherCharIdx].count += team2.count
           } else {
-            coreTeam.flex[flexIdx].push({
+            combinedTeams[teamIdx].flex[flexIdx].push({
               charId: otherChar,
               count: team2.count
             })
           }
         } else {
-          coreTeam.flex[flexIdx].push(
+          combinedTeams[teamIdx].flex.push([
             {
               charId: flexChar,
               count: team1.count
@@ -185,9 +183,12 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
               charId: otherChar,
               count: team2.count
             }
-          )
+          ])
         }
       } else {
+        let coreTeam: any = { core_party: [], flex: [], count: 0 }
+        coreTeam.core_party = intersection(team1.party, team2.party).sort();
+        coreTeam.count = team1.count;
         coreTeam.flex.push([
           {
             charId: flexChar,
@@ -198,21 +199,22 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
             count: team2.count
           }
         ])
+        
+        combinedTeams.push(coreTeam)
       }
     });
 
-    if (!isEmpty(coreTeam)) combinedTeams.push(coreTeam);
     if (prevCoreTeamsLen === coreTeams.length) coreTeams = coreTeams.slice(1)
   }
 
-  const threshold = 0.25;
+  const threshold = 0.1;
   combinedTeams.forEach((team) => {
     // const flexTotal = getTotal(team.flex);
 
-    team.flex.forEach(flex => {
-      flex = orderBy(
-        filter(flex, (_flex) => {
-          return _flex.count / team.count >= threshold;
+    team.flex.forEach((flex, i) => {
+      team.flex[i] = orderBy(
+        filter(flex, ({ count }) => {
+          return count / team.count >= threshold;
         }),
         'count',
         'desc',
