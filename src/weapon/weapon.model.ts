@@ -15,10 +15,6 @@ export class Weapon {
 
   @Field(() => String)
   @Prop({ required: true })
-  desc: string;
-
-  @Field(() => String)
-  @Prop({ required: true })
   icon: string;
 
   @Field(() => String)
@@ -28,18 +24,6 @@ export class Weapon {
   @Field(() => Number)
   @Prop({ required: true })
   rarity: number;
-
-  @Field(() => Number)
-  @Prop({ required: true })
-  level: number;
-
-  @Field(() => Number)
-  @Prop({ required: true })
-  affix_level: number;
-
-  @Field(() => Number)
-  @Prop({ required: true })
-  type: number;
 
   @Field(() => String)
   @Prop({ required: true })

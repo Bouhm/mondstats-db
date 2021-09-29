@@ -145,7 +145,12 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
     }
 
     if (team1) combinedTeams.push(team1);
-    coreTeams = compareTeams;
+
+    if (prevCoreTeamsLen === compareTeams.length) {
+      coreTeams = coreTeams.slice(1);
+    } else {
+      coreTeams = compareTeams;
+    }
   }
 
   const threshold = 0.15;

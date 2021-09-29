@@ -415,7 +415,7 @@ const saveCharacterData = async (char: ICharacterResponse, i: number) => {
   // Weapons
   const charWeapon = {
     oid: char.weapon.id,
-    ...pick(char.weapon, ['desc', 'name', 'rarity', 'level', 'affix_level', 'type', 'type_name', 'icon']),
+    ...pick(char.weapon, ['name', 'rarity', 'type_name', 'icon']),
   };
 
   const weaponRef = await WeaponModel.findOneAndUpdate(

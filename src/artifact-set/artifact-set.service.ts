@@ -1,3 +1,4 @@
+import genshindb from 'genshin-db';
 import { forEach, map, maxBy } from 'lodash';
 import { Model } from 'mongoose';
 
@@ -35,12 +36,7 @@ export class ArtifactSetService {
     let artifactSets = await this.artifactSetModel.find().lean().exec();
     artifactSets = await Promise.all(
       map(artifactSets, async (set: any) => {
-        const artifacts = await this.artifactModel.find({ set: set._id.toString(), pos: 5 }).lean().exec();
-        const max = maxBy(artifacts, 'rarity') as unknown as any;
-
-        if (max) {
-          set.rarity = max.rarity;
-        }
+        set.rarity = genshindb.artifacts(set.name).rarity.pop();
         delete set.__v;
         delete set.createdAt;
         delete set.updatedAt;

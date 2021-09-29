@@ -1,5 +1,5 @@
 import genshindb from 'genshin-db';
-import _, { replace } from 'lodash';
+import { forEach, replace } from 'lodash';
 import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
@@ -31,12 +31,10 @@ export class WeaponService {
   async aggregate() {
     const weapons = await this.weaponModel.find().lean().exec();
 
-    _.forEach(weapons, (weapon: any) => {
+    forEach(weapons, (weapon: any) => {
       const { r1, r2, r3, r4, r5, baseatk, substat, subvalue, effectname, effect } = genshindb.weapons(
         weapon.name,
       );
-
-      console.log(genshindb.weapons(weapon.name))
 
       weapon.baseAtk = baseatk;
       weapon.subStat = substat;
@@ -47,7 +45,7 @@ export class WeaponService {
         modEffect = modEffect.replace(`{${i}}`, `${r1[i]}/${r2[i]}/${r3[i]}/${r4[i]}/${r5[i]}`);
       }
       weapon.effect = modEffect;
-
+      if (weapon.desc) delete weapon.description;
       delete weapon.__v;
       delete weapon.createdAt;
       delete weapon.updatedAt;
