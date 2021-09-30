@@ -74,7 +74,9 @@ const getTotal = (stats: any, min = 0) => {
   return reduce(stats, (sum, curr) => sum + (curr.count >= min ? curr.count : 0), 0);
 };
 
-const resetCharCounts = (characters: any) => forEach(characters, ({ _id }) => (charCounts[_id] = 0));
+const resetCharCounts = (characters: any) => {
+  forEach(characters, ({ _id }) => (charCounts[_id] = 0));
+};
 
 const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
   const allIndexes = [0, 1, 2, 3];
@@ -248,11 +250,10 @@ export const updateDb = async () => {
   const artifactCharsThreshold = 0.009;
   const buildThreshold = 0.003;
   const min = 3;
-  const charCountMin = 20;
+  const charCountMin = 100;
 
-  resetCharCounts(characterData);
   const abyssTeamTotal = getTotal(abyssData.teams, min);
-  const totalAbyssTeams = filter(abyssData.teams, (team) => {
+  const totalAbyssTeams = filter(orderBy(abyssData.teams, 'count', 'desc'), (team) => {
     let shouldCollectForChar = false;
     forEach(team.party, (char) => {
       if (charCounts[char] < charCountMin) {
@@ -264,20 +265,22 @@ export const updateDb = async () => {
   });
   const topAbyssTeams = aggregateCoreTeams(totalAbyssTeams);
 
-  resetCharCounts(characterData);
   forEach(abyssData.abyss, (floorData, floor_level) => {
     floorData.battle_parties.forEach((parties, i) => {
       const partyTotal = getTotal(parties, min);
-      abyssData.abyss[floor_level].battle_parties[i] = filter(parties, (stat) => {
-        let shouldCollectForChar = false;
-        forEach(stat.party, (char) => {
-          if (charCounts[char] < charCountMin) {
-            charCounts[char]++;
-            shouldCollectForChar = true;
-          }
-        });
-        return shouldCollectForChar || (stat.count / partyTotal >= abyssThreshold && stat.count >= min);
-      });
+      abyssData.abyss[floor_level].battle_parties[i] = filter(
+        orderBy(parties, 'count', 'desc'),
+        (stat) => {
+          let shouldCollectForChar = false;
+          forEach(stat.party, (char) => {
+            if (charCounts[char] < charCountMin) {
+              charCounts[char]++;
+              shouldCollectForChar = true;
+            }
+          });
+          return shouldCollectForChar || (stat.count / partyTotal >= abyssThreshold && stat.count >= min);
+        },
+      );
     });
   });
 
@@ -338,6 +341,8 @@ export const updateDb = async () => {
     const weaponStats: {
       _id: string;
       total: number;
+      abyssCount: number;
+      abyssWins: number;
       characters: {
         _id: string;
         count: number;
@@ -357,6 +362,8 @@ export const updateDb = async () => {
         activation_number: number;
       }[];
       total: number;
+      abyssCount: number;
+      abyssWins: number;
       characters: {
         _id: string;
         count: number;
@@ -408,9 +415,12 @@ export const updateDb = async () => {
                     count: weapon.count,
                   },
                 ],
+                abyssCount: allArtifactStat.abyssCount,
+                abyssWins: allArtifactStat.abyssWins,
               });
             }
 
+            const allWeaponStat = find(allWeaponStats, (weaponStat) => weaponStat._id === weapon._id);
             const weaponStatsIdx = findIndex(weaponStats, (stat) => stat._id === weapon._id);
 
             if (weaponStatsIdx > -1) {
@@ -442,6 +452,8 @@ export const updateDb = async () => {
                     count: build.count,
                   },
                 ],
+                abyssCount: allWeaponStat.abyssCount,
+                abyssWins: allWeaponStat.abyssWins,
               });
             }
           });

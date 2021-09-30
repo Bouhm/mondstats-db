@@ -36,7 +36,7 @@ export class ArtifactSetService {
     let artifactSets = await this.artifactSetModel.find().lean().exec();
     artifactSets = await Promise.all(
       map(artifactSets, async (set: any) => {
-        set.rarity = genshindb.artifacts(set.name).rarity.pop();
+        set.rarity = parseInt(genshindb.artifacts(set.name).rarity.pop());
         delete set.__v;
         delete set.createdAt;
         delete set.updatedAt;

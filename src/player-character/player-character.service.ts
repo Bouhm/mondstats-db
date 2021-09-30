@@ -220,7 +220,7 @@ export class PlayerCharacterService {
       forEach(party, ({ character, weapon, artifacts }: any) => {
         if (party.length < 4) return;
 
-        // [abyssCount, abyssWinCount]
+        // [abyssCount, abyssWins]
         if (abyssUsageCounts.characters[character._id]) {
           abyssUsageCounts.characters[character._id][0]++;
         } else {
@@ -416,7 +416,7 @@ export class PlayerCharacterService {
           abyssCount: abyssUsageCounts.characters[character._id]
             ? abyssUsageCounts.characters[character._id][0]
             : 0,
-          abyssWinCount: abyssUsageCounts.characters[character._id]
+          abyssWins: abyssUsageCounts.characters[character._id]
             ? abyssUsageCounts.characters[character._id][1]
             : 0,
         });
@@ -451,7 +451,7 @@ export class PlayerCharacterService {
           abyssCount: abyssUsageCounts.weapons[charWeapon._id]
             ? abyssUsageCounts.weapons[charWeapon._id][0]
             : 0,
-          abyssWinCount: abyssUsageCounts.weapons[charWeapon._id]
+          abyssWins: abyssUsageCounts.weapons[charWeapon._id]
             ? abyssUsageCounts.weapons[charWeapon._id][1]
             : 0,
         });
@@ -482,7 +482,7 @@ export class PlayerCharacterService {
         );
 
         const abyssCount = abyssSetIdx > -1 ? abyssUsageCounts.artifactSets[abyssSetIdx].count[0] : 0;
-        const abyssWinCount = abyssSetIdx > -1 ? abyssUsageCounts.artifactSets[abyssSetIdx].count[1] : 0;
+        const abyssWins = abyssSetIdx > -1 ? abyssUsageCounts.artifactSets[abyssSetIdx].count[1] : 0;
         allArtifactSetStats.push({
           artifacts: artifactSetCombinations,
           characters: [
@@ -493,7 +493,7 @@ export class PlayerCharacterService {
           ],
           count: 1,
           abyssCount,
-          abyssWinCount,
+          abyssWins,
         });
       }
     });
