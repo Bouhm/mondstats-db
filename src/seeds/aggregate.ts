@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs, { copyFile } from 'fs';
 import {
   cloneDeep,
   difference,
@@ -265,6 +265,8 @@ export const updateDb = async () => {
   });
   const topAbyssTeams = aggregateCoreTeams(totalAbyssTeams);
 
+  console.log('Done top abyss teams');
+
   forEach(abyssData.abyss, (floorData, floor_level) => {
     floorData.battle_parties.forEach((parties, i) => {
       const partyTotal = getTotal(parties, min);
@@ -290,6 +292,8 @@ export const updateDb = async () => {
       allAbyssTeams[floor_level].battle_parties[i] = aggregateCoreTeams(parties);
     });
   });
+
+  console.log('Done top abyss floors');
 
   if (process.env.npm_config_mode !== 'test') {
     const weaponStats: {
@@ -453,6 +457,8 @@ export const updateDb = async () => {
     filterCharacterBuilds(characterBuilds);
     filterCharacterBuilds(mainCharacterBuilds);
 
+    console.log('Done character builds');
+
     const weaponStatsTotal = getTotal(allWeaponStats, min);
     allWeaponStats = orderBy(
       filter(
@@ -496,6 +502,8 @@ export const updateDb = async () => {
     });
     allArtifactSetStats = filter(allArtifactSetStats, (stat) => stat.characters.length);
     allCharacterStats = orderBy(allCharacterStats, 'total', 'desc');
+
+    console.log('Done item stats');
 
     await Promise.all([
       fs.writeFile(
