@@ -292,52 +292,6 @@ export const updateDb = async () => {
   });
 
   if (process.env.npm_config_mode !== 'test') {
-    const weaponStatsTotal = getTotal(allWeaponStats, min);
-    allWeaponStats = orderBy(
-      filter(
-        allWeaponStats,
-        (stat) => stat.count / weaponStatsTotal >= weaponThreshold && stat.count >= min,
-      ),
-      'count',
-      'desc',
-    );
-    allWeaponStats.forEach((stat, i) => {
-      const charCountsTotal = getTotal(values(stat.characters), min);
-      stat.characters = orderBy(
-        filter(
-          stat.characters,
-          (char) => char.count / charCountsTotal >= weaponCharsThreshold && char.count >= min,
-        ),
-        'count',
-        'desc',
-      );
-    });
-    allWeaponStats = filter(allWeaponStats, (stat) => stat.characters.length);
-
-    const artifactSetStatsTotal = getTotal(allWeaponStats, min);
-    allArtifactSetStats = orderBy(
-      filter(
-        allArtifactSetStats,
-        (stat) => stat.count / artifactSetStatsTotal >= artifactThreshold && stat.count >= min,
-      ),
-      'count',
-      'desc',
-    );
-    allArtifactSetStats.forEach((stat, i) => {
-      const charCountsTotal = getTotal(values(stat.characters), min);
-      stat.characters = orderBy(
-        filter(
-          stat.characters,
-          (char) => char.count / charCountsTotal >= artifactCharsThreshold && char.count >= min,
-        ),
-        'count',
-        'desc',
-      );
-    });
-    allArtifactSetStats = filter(allArtifactSetStats, (stat) => stat.characters.length);
-
-    allCharacterStats = orderBy(allCharacterStats, 'total', 'desc');
-
     const weaponStats: {
       _id: string;
       total: number;
@@ -357,6 +311,7 @@ export const updateDb = async () => {
     }[] = [];
 
     const artifactSetStats: {
+      _ids: string[];
       artifacts: {
         _id: string;
         activation_number: number;
@@ -401,6 +356,7 @@ export const updateDb = async () => {
               }
             } else {
               artifactSetStats.push({
+                _ids: map(build.artifacts, ({ _id }) => _id),
                 artifacts: build.artifacts,
                 total: build.count,
                 characters: [
@@ -497,6 +453,50 @@ export const updateDb = async () => {
     filterCharacterBuilds(characterBuilds);
     filterCharacterBuilds(mainCharacterBuilds);
 
+    const weaponStatsTotal = getTotal(allWeaponStats, min);
+    allWeaponStats = orderBy(
+      filter(
+        allWeaponStats,
+        (stat) => stat.count / weaponStatsTotal >= weaponThreshold && stat.count >= min,
+      ),
+      'count',
+      'desc',
+    );
+    allWeaponStats.forEach((stat, i) => {
+      const charCountsTotal = getTotal(values(stat.characters), min);
+      stat.characters = orderBy(
+        filter(
+          stat.characters,
+          (char) => char.count / charCountsTotal >= weaponCharsThreshold && char.count >= min,
+        ),
+        'count',
+        'desc',
+      );
+    });
+    allWeaponStats = filter(allWeaponStats, (stat) => stat.characters.length);
+    const artifactSetStatsTotal = getTotal(allWeaponStats, min);
+    allArtifactSetStats = orderBy(
+      filter(
+        allArtifactSetStats,
+        (stat) => stat.count / artifactSetStatsTotal >= artifactThreshold && stat.count >= min,
+      ),
+      'count',
+      'desc',
+    );
+    allArtifactSetStats.forEach((stat, i) => {
+      const charCountsTotal = getTotal(values(stat.characters), min);
+      stat.characters = orderBy(
+        filter(
+          stat.characters,
+          (char) => char.count / charCountsTotal >= artifactCharsThreshold && char.count >= min,
+        ),
+        'count',
+        'desc',
+      );
+    });
+    allArtifactSetStats = filter(allArtifactSetStats, (stat) => stat.characters.length);
+    allCharacterStats = orderBy(allCharacterStats, 'total', 'desc');
+
     await Promise.all([
       fs.writeFile(
         'data/db.json',
@@ -509,9 +509,19 @@ export const updateDb = async () => {
         cb,
       ),
       fs.writeFile('data/weapons/top-weapons.json', JSON.stringify(allWeaponStats), cb),
-      fs.writeFile('data/weapons/weapon-stats.json', JSON.stringify(weaponStats), cb),
+      ...map(weaponStats, (weaponStat) => {
+        const weapon = find(weaponData, { _id: weaponStat._id });
+        const fileName = getShortName(weapon);
+        return fs.writeFile(`data/weapons/${fileName}.json`, JSON.stringify(weaponStat), cb);
+      }),
       fs.writeFile('data/artifacts/top-artifactsets.json', JSON.stringify(allArtifactSetStats), cb),
-      fs.writeFile('data/artifacts/artifactset-stats.json', JSON.stringify(artifactSetStats), cb),
+      ...map(artifactSetStats, (artifactSetStat) => {
+        const artifactSets = filter(artifactSetData, (artifactSet) =>
+          includes(artifactSetStat._ids, artifactSet._id),
+        );
+        const fileName = map(artifactSets, (artifactSet) => getShortName(artifactSet)).join('-');
+        return fs.writeFile(`data/artifacts/${fileName}.json`, JSON.stringify(artifactSetStat), cb);
+      }),
       fs.writeFile('data/characters/top-characters.json', JSON.stringify(allCharacterStats), cb),
       fs.writeFile(
         'data/featured.json',
