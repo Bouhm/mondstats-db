@@ -37,7 +37,7 @@ import weaponModel from '../weapon/weapon.model';
 import { WeaponService } from '../weapon/weapon.service';
 import { updateRepo } from './githubApi';
 
-const playerCharacterService = new PlayerCharacterService(playerCharacterModel, abyssBattleModel);
+const playerCharacterService = new PlayerCharacterService(playerCharacterModel);
 const characterService = new CharacterService(characterModel);
 const abyssBattleService = new AbyssBattleService(abyssBattleModel);
 const artifactService = new ArtifactService(artifactModel);
@@ -206,18 +206,28 @@ export const updateDb = async () => {
 
   if (process.env.npm_config_mode !== 'test') {
     abyssData = await abyssBattleService.aggregate();
+    console.log('Done abyss battle aggregate');
     characterData = await characterService.aggregate();
+    console.log('Done character aggregate');
     artifactData = await artifactService.aggregate();
+    console.log('Done artifact aggregate');
     artifactSetData = await artifactSetService.aggregate();
+    console.log('Dont artifact set aggregate');
     weaponData = await weaponService.aggregate();
+    console.log('Done weapon aggregate');
     playerCount = await playerService.getStats();
+    console.log('Done player stats');
     playerCharacterCount = await playerCharacterService.getStats();
+    console.log('Done player character stats');
     abyssBattleCount = await abyssBattleService.getStats();
+    console.log('Done abyss battle stats');
     fs.writeFileSync(`test/abyssData.json`, JSON.stringify(abyssData));
 
     // eslint-disable-next-line prefer-const
     ({ allWeaponStats, allArtifactSetStats, characterBuilds, mainCharacterBuilds, allCharacterStats } =
-      await playerCharacterService.aggregate());
+      await playerCharacterService.aggregate(abyssData.charTeams, abyssData.abyssUsage));
+
+    console.log('Done player character aggregate');
   }
 
   if (process.env.npm_config_mode === 'test') {

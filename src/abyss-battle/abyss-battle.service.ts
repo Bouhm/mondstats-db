@@ -1,5 +1,6 @@
-import { difference, find, findIndex, forEach, includes, isEqual, map, sortBy } from 'lodash';
+import { difference, find, findIndex, forEach, forIn, includes, isEqual, map, omit, sortBy } from 'lodash';
 import { Model } from 'mongoose';
+import { Affix } from 'src/artifact-set/artifact-set.model';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -8,6 +9,19 @@ import { InjectModel } from '@nestjs/mongoose';
 import { PlayerCharacter } from '../player-character/player-character.model';
 import { ListAbyssBattleInput } from './abyss-battle.inputs';
 import { AbyssBattle, AbyssBattleDocument, AbyssStats } from './abyss-battle.model';
+
+function _getActivationNumber(count: number, affixes: Affix[]) {
+  const activations = map(affixes, (effect) => effect.activation_number);
+
+  let activation = 0;
+  forEach(activations, (activation_num) => {
+    if (count >= activation_num) {
+      activation = activation_num;
+    }
+  });
+
+  return activation;
+}
 
 @Injectable()
 export class AbyssBattleService {
@@ -105,6 +119,15 @@ export class AbyssBattleService {
     const battleIndices = 2;
     const abyssBattles: { [floor: string]: AbyssStats } = {};
     const abyssTeams = [];
+
+    const abyssUsageCounts = {
+      characters: {},
+      weapons: {},
+      artifactSets: [],
+    };
+
+    const teams = [];
+
     const battles = await this.abyssBattleModel
       .find()
       .lean()
@@ -112,20 +135,129 @@ export class AbyssBattleService {
         {
           path: 'party',
           model: PlayerCharacter.name,
-          select: 'character -_id',
-          populate: {
-            path: 'character',
-            select: '_id',
-          },
+          select: 'character artifacts weapon -_id',
+          populate: [
+            {
+              path: 'character',
+              select: '_id',
+            },
+            {
+              path: 'weapon',
+              select: '_id',
+            },
+            {
+              path: 'artifacts',
+              select: 'set',
+              populate: [
+                {
+                  path: 'set',
+                  select: 'affixes _id',
+                },
+              ],
+            },
+          ],
         },
       ])
       .exec();
-    // const battle_indexes = { 1: 0, 2: 0 };
 
-    forEach(battles, ({ floor_level, battle_index, party }) => {
-      // battle_indexes[battle_index]++;
+    forEach(battles, ({ party, floor_level, battle_index, star }) => {
+      forEach(party, ({ character, weapon, artifacts }: any) => {
+        // [abyssCount, abyssWins]
+        if (abyssUsageCounts.characters[character._id]) {
+          abyssUsageCounts.characters[character._id][0]++;
+        } else {
+          abyssUsageCounts.characters[character._id] = [1, 0];
+        }
+
+        if (abyssUsageCounts.weapons[weapon._id]) {
+          abyssUsageCounts.weapons[weapon._id][0]++;
+        } else {
+          abyssUsageCounts.weapons[weapon._id] = [1, 0];
+        }
+
+        const playerSets: any = {};
+
+        // Get artifact set combinations
+        forEach(artifacts, async (relic: any) => {
+          if (playerSets.hasOwnProperty(relic['set'].toString())) {
+            playerSets[relic.set._id.toString()].count++;
+          } else {
+            playerSets[relic.set._id.toString()] = {
+              count: 1,
+              affixes: map(relic.set.affixes, (affix) => omit(affix, ['_id'])),
+            };
+          }
+        });
+        // console.log(playerSets)
+
+        let artifactSetCombinations: { _id: string; activation_number: number }[] = [];
+        forIn(playerSets, (set, _id) => {
+          const activationNum = _getActivationNumber(set.count, set.affixes);
+          // console.log(activationNum)
+
+          if (activationNum > 1) {
+            artifactSetCombinations.push({
+              _id,
+              activation_number: activationNum,
+            });
+          }
+        });
+        artifactSetCombinations = sortBy(artifactSetCombinations, (set) => set._id.toString());
+
+        // console.log(artifactSetCombinations)
+        const artifactSetIdx = findIndex(abyssUsageCounts.artifactSets, (set) => {
+          // console.log(set.artifacts)
+          return artifactSetCombinations.length && isEqual(set.artifacts, artifactSetCombinations);
+        });
+
+        if (artifactSetIdx > -1) {
+          abyssUsageCounts.artifactSets[artifactSetIdx].count[0]++;
+
+          if (star > 2) {
+            abyssUsageCounts.artifactSets[artifactSetIdx].count[1]++;
+          }
+        } else {
+          abyssUsageCounts.artifactSets.push({
+            artifacts: artifactSetCombinations,
+            count: [1, star > 2 ? 1 : 0],
+          });
+        }
+
+        if (star > 2) {
+          abyssUsageCounts.characters[character._id][1]++;
+          abyssUsageCounts.weapons[weapon._id][1]++;
+        }
+
+        const buildIdx = findIndex(abyssUsageCounts.artifactSets, (build: any) =>
+          isEqual(build.artifacts, artifactSetCombinations),
+        );
+
+        if (buildIdx > 0) {
+          abyssUsageCounts.artifactSets[buildIdx].count++;
+        } else {
+          abyssUsageCounts.artifactSets.push({
+            artifacts: artifactSetCombinations,
+            count: 1,
+          });
+        }
+      });
+
       if (party.length < 4) return;
 
+      // TOP TEAMS
+      const charIds = map(party, ({ character }: any) => character._id.toString()).sort();
+      const teamIndex = findIndex(teams, (team) => isEqual(team.party, charIds));
+
+      if (teamIndex > -1) {
+        teams[teamIndex].count++;
+      } else {
+        teams.push({
+          party: charIds,
+          count: 1,
+        });
+      }
+
+      // ABYSS DATA
       const battleParty = map(party, ({ character }: any) => character._id.toString()).sort();
 
       // Aggregate teams
@@ -175,7 +307,7 @@ export class AbyssBattleService {
       }
     });
 
-    return { teams: abyssTeams, abyss: abyssBattles };
+    return { abyssUsage: abyssUsageCounts, charTeams: teams, teams: abyssTeams, abyss: abyssBattles };
   }
 
   aggregate() {

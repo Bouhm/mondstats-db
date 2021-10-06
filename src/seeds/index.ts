@@ -2,9 +2,9 @@
 import Axios from 'axios';
 import fs from 'fs';
 import https from 'https';
-import { clamp, every, filter, find, forEach, forIn, map, pick, shuffle, some } from 'lodash';
+import { clamp, filter, forEach, forIn, map, pick, shuffle, some } from 'lodash';
+import md5 from 'md5';
 import mongoose, { Schema } from 'mongoose';
-import { firefox } from 'playwright-firefox';
 import parallel from 'run-parallel';
 
 import AbyssBattleModel from '../abyss-battle/abyss-battle.model';
@@ -189,35 +189,48 @@ const updateDS = async (i: number) => {
   // const ltoken = cookieTokens[0].split('=')[1].slice(0, -1);
   // const ltuid = cookieTokens[1].split('=')[1];
 
-  const browser = await firefox.launch();
-  const Cookie = `ltoken=${currRefs[i].token.ltoken}; ltuid=${currRefs[i].token.ltuid}; mi18nLang=en-us; _MHYUUID=${currRefs[i].token._MHYUUID}`;
-  const context = await browser.newContext({
-    extraHTTPHeaders: {
-      Cookie,
-      'x-rpc-client_type': '4',
-      'x-rpc-app_version': '1.5.0',
-    },
-  });
+  // const browser = await firefox.launch();
+  // const Cookie = `ltoken=${currRefs[i].token.ltoken}; ltuid=${currRefs[i].token.ltuid}; mi18nLang=en-us; _MHYUUID=${currRefs[i].token._MHYUUID}`;
+  // const context = await browser.newContext({
+  //   extraHTTPHeaders: {
+  //     Cookie,
+  //     'x-rpc-client_type': '4',
+  //     'x-rpc-app_version': '1.5.0',
+  //   },
+  // });
 
-  // context.addCookies([
-  //   { name: 'ltoken', value: ltoken, domain: '.hoyolab.com', path: '/' },
-  //   { name: 'ltuid', value: ltuid, domain: '.hoyolab.com', path: '/'  },
-  // ]);
+  // const page = await context.newPage();
 
-  const page = await context.newPage();
+  // return new Promise<void>(async (resolve) => {
+  //   page.on('request', (req) => {
+  //     if (req.headers().ds) {
+  //       currRefs[i].DS = req.headers().ds;
+  //       resolve();
+  //       browser.close();
+  //     }
+  //   });
 
-  return new Promise<void>(async (resolve) => {
-    page.on('request', (req) => {
-      if (req.headers().ds) {
-        currRefs[i].DS = req.headers().ds;
-        resolve();
-        browser.close();
-      }
-    });
+  //   const url = 'https://www.hoyolab.com/accountCenter/postList?id=59349680';
+  //   await _retry(() => page.goto(url), 3);
+  // });
 
-    const url = 'https://www.hoyolab.com/accountCenter/postList?id=59349680';
-    await _retry(() => page.goto(url), 3);
-  });
+  const randomString = (length) => {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  };
+
+  // From Mimee on discord
+  const DS_SALT = '6s25p5ox5y14umn1p61aqyyvbvvl3lrt'
+  const randomStr = randomString(6);
+  const timestamp = Math.floor(Date.now() / 1000);
+  const sign = md5(`salt=${DS_SALT}&t=${timestamp}&r=${randomStr}`);
+
+  currRefs[i].DS = `${timestamp},${randomStr},${sign}`;
 };
 
 const getHeaders = (i: number) => {
