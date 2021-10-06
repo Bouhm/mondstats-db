@@ -225,7 +225,8 @@ const updateDS = async (i: number) => {
   };
 
   // From Mimee on discord
-  const DS_SALT = '6s25p5ox5y14umn1p61aqyyvbvvl3lrt'
+  // const DS_SALT = 'xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs';
+  const DS_SALT = '6s25p5ox5y14umn1p61aqyyvbvvl3lrt';
   const randomStr = randomString(6);
   const timestamp = Math.floor(Date.now() / 1000);
   const sign = md5(`salt=${DS_SALT}&t=${timestamp}&r=${randomStr}`);
@@ -239,12 +240,13 @@ const getHeaders = (i: number) => {
 
   return {
     Host: 'api-os-takumi.mihoyo.com',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
+    'User-Agent':
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36',
     Accept: 'application/json, text/plain, */*',
     'Accept-Language': 'en-US,en;q=0.5',
     'Accept-Encoding': 'gzip, deflate, br',
-    'x-rpc-client_type': '4',
     'x-rpc-app_version': '1.5.0',
+    'x-rpc-client_type': '5',
     'x-rpc-language': 'en-us',
     DS: currRefs[i].DS,
     Origin: 'https://webstatic-sea.hoyolab.com',
