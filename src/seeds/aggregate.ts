@@ -9,7 +9,6 @@ import {
   forEach,
   includes,
   intersection,
-  isEmpty,
   isEqual,
   map,
   omit,
@@ -45,7 +44,7 @@ const artifactSetService = new ArtifactSetService(artifactSetModel, artifactMode
 const weaponService = new WeaponService(weaponModel);
 const playerService = new PlayerService(playerModel);
 const charCounts = {};
-const db = JSON.parse(fs.readFileSync(`test/db.json`, 'utf-8'));
+// const db = JSON.parse(fs.readFileSync(`test/db.json`, 'utf-8'));
 
 type Flex = { charId: string; count: number };
 const cleanup = (dirPath, removeSelf = false) => {
@@ -60,15 +59,15 @@ const cleanup = (dirPath, removeSelf = false) => {
   if (removeSelf) fs.rmdirSync(dirPath);
 };
 
-const printTeam = (team: any) => {
-  let teamStr = '';
-  teamStr += map(team.core_party, (char) => getChar(char).name).join(', ');
-  teamStr += '; flex: ' + map(team.flex[0], ({ charId }) => getChar(charId).name).join(', ');
+// const printTeam = (team: any) => {
+//   let teamStr = '';
+//   teamStr += map(team.core_party, (char) => getChar(char).name).join(', ');
+//   teamStr += '; flex: ' + map(team.flex[0], ({ charId }) => getChar(charId).name).join(', ');
 
-  console.log(teamStr);
-};
+//   console.log(teamStr);
+// };
 
-const getChar = (_id: string) => find(db.characters, { _id });
+// const getChar = (_id: string) => find(db.characters, { _id });
 
 const getTotal = (stats: any, min = 0) => {
   return reduce(stats, (sum, curr) => sum + (curr.count >= min ? curr.count : 0), 0);
@@ -205,8 +204,6 @@ export const updateDb = async () => {
     allCharacterStats;
 
   if (process.env.npm_config_mode !== 'test') {
-    abyssData = await abyssBattleService.aggregate();
-    console.log('Done abyss battle aggregate');
     characterData = await characterService.aggregate();
     console.log('Done character aggregate');
     artifactData = await artifactService.aggregate();
@@ -221,6 +218,9 @@ export const updateDb = async () => {
     console.log('Done player character stats');
     abyssBattleCount = await abyssBattleService.getStats();
     console.log('Done abyss battle stats');
+    abyssData = await abyssBattleService.aggregate();
+    console.log('Done abyss battle aggregate');
+
     fs.writeFileSync(`test/abyssData.json`, JSON.stringify(abyssData));
 
     // eslint-disable-next-line prefer-const
