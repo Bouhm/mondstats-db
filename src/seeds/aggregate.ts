@@ -221,7 +221,7 @@ export const updateDb = async () => {
     abyssData = await abyssBattleService.aggregate();
     console.log('Done abyss battle aggregate');
 
-    fs.writeFileSync(`test/abyssData.json`, JSON.stringify(abyssData));
+    // fs.writeFileSync(`test/abyssData.json`, JSON.stringify(abyssData));
 
     // eslint-disable-next-line prefer-const
     ({ allWeaponStats, allArtifactSetStats, characterBuilds, mainCharacterBuilds, allCharacterStats } =
@@ -347,7 +347,7 @@ export const updateDb = async () => {
       builds.forEach((charBuildStats) => {
         forEach(charBuildStats.builds, (build) => {
           forEach(build.weapons, (weapon) => {
-            const allArtifactStat = find(allArtifactSetStats, (set) =>
+            const allArtifactStat = find(allArtifactSetStats.artifactSets, (set) =>
               isEqual(set.artifacts, build.artifacts),
             );
 
@@ -390,7 +390,10 @@ export const updateDb = async () => {
               });
             }
 
-            const allWeaponStat = find(allWeaponStats, (weaponStat) => weaponStat._id === weapon._id);
+            const allWeaponStat = find(
+              allWeaponStats.weapons,
+              (weaponStat) => weaponStat._id === weapon._id,
+            );
             const weaponStatsIdx = findIndex(weaponStats, (stat) => stat._id === weapon._id);
 
             if (weaponStatsIdx > -1) {
@@ -489,7 +492,8 @@ export const updateDb = async () => {
         'desc',
       );
     });
-    allWeaponStats = filter(allWeaponStats, (stat) => stat.characters.length);
+    allWeaponStats.weapons = filter(allWeaponStats.weapons, (stat) => stat.characters.length);
+    
     const artifactSetStatsTotal = getTotal(allWeaponStats, min);
     allArtifactSetStats = orderBy(
       filter(
@@ -510,8 +514,11 @@ export const updateDb = async () => {
         'desc',
       );
     });
-    allArtifactSetStats = filter(allArtifactSetStats, (stat) => stat.characters.length);
-    allCharacterStats = orderBy(allCharacterStats, 'total', 'desc');
+    allArtifactSetStats.artifactSets = filter(
+      allArtifactSetStats.artifactSets,
+      (stat) => stat.characters.length,
+    );
+    allCharacterStats.characters = orderBy(allCharacterStats.characters, 'total', 'desc');
 
     console.log('Done item stats');
 
