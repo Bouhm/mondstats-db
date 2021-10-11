@@ -333,6 +333,7 @@ const purgeOld = async () => {
   await PlayerCharacterModel.deleteMany({
     updatedAt: { $lt: lastPatchCycle },
   });
+  await AbyssBattleModel.deleteMany({ party: { $elemMatch: { $in: [null], $exists: true } } });
   await AbyssBattleModel.deleteMany({ updatedAt: { $lt: lastPatchCycle } });
 };
 
