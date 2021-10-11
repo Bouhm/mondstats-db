@@ -60,7 +60,8 @@ let weeklyUpdate;
 let collectedTotal = 0;
 let concurrent = 1;
 let existingUids = false;
-let maxUid = 0;
+let lastUpdatedUid = 0;
+let currSkip = 0;
 
 const options = {
   upsert: true,
@@ -140,8 +141,12 @@ const handleResponse = (
   }
 };
 
-const nextToken = async (i: number) => {
-  const newToken = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
+const nextToken = async (i: number, skip = false) => {
+  const newToken = await TokenModel.findOne()
+    .sort({ used: 1 })
+    .skip(skip ? i : 0)
+    .limit(1)
+    .lean();
   currRefs[i].token = { ...currRefs[i].token, ...newToken } as unknown as TokenDocument & { DS: string };
   _incrementProxyIdx();
 
@@ -604,8 +609,6 @@ const fetchPlayerData = async (server: string, curruid: number, characterIds: nu
             ),
           );
 
-          console.log(records.length)
-
           forEach(records, (record) => {
             if (record) {
               currRefs[i].playerCharRefMap[record.oid] = record._id;
@@ -630,14 +633,21 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
 
   const baseUid = _getBaseUid(server);
   const end = baseUid + 99999999;
-  uid = !!initUid ? initUid : baseUid;
+  uid = (!!initUid ? initUid : baseUid) + i;
   let currUid = uid;
 
   while (uid < end) {
-    if (existingUids && uid < maxUid) {
-      if (!(await PlayerModel.findOne({ uid }).lean())) {
+    if (existingUids) {
+      const nextPlayer = await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
+        .sort({ $natural: -1 })
+        .skip(currSkip++)
+        .limit(1)
+        .lean();
+
+      if (nextPlayer) {
+        uid = nextPlayer.uid;
+      } else {
         uid++;
-        continue;
       }
     }
 
@@ -645,6 +655,8 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
     currRefs[i].playerCharRefMap = {};
     areAllStillBlocked = true;
     // const now = new Date();
+
+    console.log(currUid, i, lastUpdatedUid);
 
     try {
       const shouldCollectData = await fetchAbyssData(server, currUid, abyssSchedule, i);
@@ -819,9 +831,9 @@ mongoose.connection.once('open', async () => {
             uid: { $gt: baseUid, $lt: baseUid + 99999999 },
           })
             .limit(1)
-            .sort({ $natural: -1 })
+            .sort({ $natural: 1 })
             .lean();
-          console.log(lastUpdatedPlayer.uid + 1);
+
           await runParallel(
             async (i: number) => await collectDataFromPlayer(lastUpdatedPlayer.uid + 1, i),
           );
@@ -834,20 +846,13 @@ mongoose.connection.once('open', async () => {
         case 'existing': {
           existingUids = true;
           console.log('Updating existing UIDs...');
-          const oldestUpdatedPlayer = await PlayerModel.findOne({
-            uid: { $gt: baseUid, $lt: baseUid + 99999999 },
-          })
-            .sort({ updatedAt: 1 })
-            .limit(1)
-            .lean();
-          maxUid = (
+          lastUpdatedUid = (
             await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
-              .sort({ uid: -1 })
               .limit(1)
+              .sort({ $natural: -1 })
               .lean()
           ).uid;
-          console.log(oldestUpdatedPlayer.uid);
-          await runParallel(async (i: number) => await collectDataFromPlayer(oldestUpdatedPlayer.uid, i));
+          await runParallel(async (i: number) => await collectDataFromPlayer(null, i));
           break;
         }
       }
