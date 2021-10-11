@@ -656,8 +656,6 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
     areAllStillBlocked = true;
     // const now = new Date();
 
-    console.log(currUid, i, lastUpdatedUid);
-
     try {
       const shouldCollectData = await fetchAbyssData(server, currUid, abyssSchedule, i);
 
