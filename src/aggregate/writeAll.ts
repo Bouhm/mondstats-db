@@ -1,8 +1,8 @@
 import fs from 'fs';
 import { map } from 'lodash';
 import mongoose from 'mongoose';
-import { cleanup } from 'src/util';
 
+import { cleanup } from '../util';
 import connectDb from '../util/connection';
 import { updateRepo } from './githubApi';
 import { aggregateDb } from './writeDb';

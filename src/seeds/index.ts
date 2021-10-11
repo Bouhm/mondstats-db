@@ -2,7 +2,7 @@
 import Axios from 'axios';
 import fs from 'fs';
 import https from 'https';
-import { clamp, filter, forEach, forIn, map, pick, shuffle, some } from 'lodash';
+import { clamp, every, filter, forEach, forIn, map, pick, shuffle, some } from 'lodash';
 import md5 from 'md5';
 import mongoose, { Schema } from 'mongoose';
 import parallel from 'run-parallel';
@@ -364,8 +364,8 @@ const fetchAbyssData = async (server: string, currUid: number, scheduleType = 1,
   }
 };
 
-// Get player's owned character ids
-const fetchPlayerCharacters = async (server: string, currUid: number, i = 0) => {
+// Get player's owned character ids (filtered by built characters)
+const fetchPlayerCharacters = async (server: string, currUid: number, i = 0, minLvl = 60) => {
   const apiUrl = `${userApiUrl}?server=os_${server}&role_id=${currUid}`;
 
   return axios
@@ -374,7 +374,11 @@ const fetchPlayerCharacters = async (server: string, currUid: number, i = 0) => 
       return handleResponse(
         resp.data,
         () => [],
-        () => map(resp.data.data.avatars, (char) => char.id),
+        () =>
+          map(
+            filter(resp.data.data.avatars, (char) => char.level >= minLvl),
+            (char) => char.id,
+          ),
       );
     })
     .catch((error) => {
@@ -491,6 +495,8 @@ const saveCharacterData = async (char: ICharacterResponse, i: number) => {
     }
   });
 
+  if (artifactSetCombinations.length < 1) return;
+
   // PlayerCharacters
   let cNum = 0;
   for (let i = 0; i < 6; i++) {
@@ -586,12 +592,19 @@ const fetchPlayerData = async (server: string, curruid: number, characterIds: nu
         () => false,
         async () => {
           const records = await Promise.all(
-            map(resp.data.data.avatars, (char) => {
-              if (char.reliquaries.length > 4) {
-                return saveCharacterData(char, i);
-              }
-            }),
+            map(
+              filter(resp.data.data.avatars, (char) => {
+                return (
+                  char.reliquaries.length > 4 &&
+                  every(char.reliquaries, (artifact) => artifact.rarity > 3) &&
+                  char.weapon.rarity > 2
+                );
+              }),
+              (char) => saveCharacterData(char, i),
+            ),
           );
+
+          console.log(records.length)
 
           forEach(records, (record) => {
             if (record) {

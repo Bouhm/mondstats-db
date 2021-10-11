@@ -170,8 +170,11 @@ export const aggregateStats = async () => {
   const min = 3;
   const charCountMin = 100;
 
-  const resetCharCounts = (characters: any) => {
-    forEach(characters, ({ _id }) => (charCounts[_id] = 0));
+  const resetCharCounts = () => {
+    forEach(
+      map(characterData, (char) => char._id),
+      ({ _id }) => (charCounts[_id] = 0),
+    );
   };
 
   const abyssData = await abyssBattleService.aggregate();
@@ -186,6 +189,7 @@ export const aggregateStats = async () => {
     mainCharacterBuilds,
   } = await playerCharacterService.aggregate(abyssData.charTeams, abyssData.abyssUsage));
 
+  resetCharCounts();
   const abyssTeamTotal = getTotal(abyssData.teams, min);
   const totalAbyssTeams = filter(orderBy(abyssData.teams, 'count', 'desc'), (team) => {
     let shouldCollectForChar = false;
@@ -199,6 +203,7 @@ export const aggregateStats = async () => {
   });
   const topAbyssTeams = aggregateCoreTeams(totalAbyssTeams);
 
+  resetCharCounts();
   forEach(abyssData.abyss, (floorData, floor_level) => {
     floorData.battle_parties.forEach((parties, i) => {
       const partyTotal = getTotal(parties, min);
@@ -385,8 +390,6 @@ export const aggregateStats = async () => {
 
   filterCharacterBuilds(characterBuilds);
   filterCharacterBuilds(mainCharacterBuilds);
-
-  console.log('Done character builds');
 
   const weaponStatsTotal = getTotal(allWeaponStats, min);
   allWeaponStats = orderBy(
