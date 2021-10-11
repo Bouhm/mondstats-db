@@ -1,10 +1,10 @@
 import { difference, find, findIndex, forEach, forIn, includes, isEqual, map, omit, sortBy } from 'lodash';
 import { Model } from 'mongoose';
-import { Affix } from 'src/artifact-set/artifact-set.model';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
+import { Affix } from '../artifact-set/artifact-set.model';
 // import { Character, CharacterDocument } from '../character/character.model';
 import { PlayerCharacter } from '../player-character/player-character.model';
 import { ListAbyssBattleInput } from './abyss-battle.inputs';

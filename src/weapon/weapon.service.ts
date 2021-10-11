@@ -40,8 +40,15 @@ export class WeaponService {
       const { attack, specialized } = dbWeapon.stats(90);
 
       weapon.baseAtk = `${baseatk}-${Math.round(attack)}`;
-      weapon.subStat = `${substat}-${Math.round(specialized * 1000) / 1000}`;
-      weapon.subValue = subvalue;
+      weapon.subStat = substat;
+      if (specialized < 0) {
+        weapon.subValue = `${parseFloat(subvalue).toFixed(1)}-${(
+          (Math.round(specialized * 1000) / 1000) *
+          100
+        ).toFixed(1)}`;
+      } else {
+        weapon.subValue = `${subvalue}-${Math.round(specialized * 1000) / 1000}`;
+      }
       weapon.effectName = effectname;
       let modEffect = effect;
       for (let i = 0; i < r1.length; i++) {

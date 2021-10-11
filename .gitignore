@@ -35,5 +35,5 @@ lerna-debug.log*
 .build
 .serverless
 
-/data
-/test
+data
+test
