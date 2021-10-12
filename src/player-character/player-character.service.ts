@@ -2,6 +2,7 @@ import { count } from 'console';
 import {
   countBy,
   filter,
+  find,
   findIndex,
   forEach,
   forIn,
@@ -52,6 +53,7 @@ function addCharacterBuild(
   artifactSetCombinations: any,
   charWeapon: any,
   parties: any,
+  buildsAbyssUsageCounts: any,
 ) {
   const charIdx = findIndex(data, { char_id: character._id });
 
@@ -61,11 +63,17 @@ function addCharacterBuild(
     const buildIdx = findIndex(data[charIdx].builds, (build: any) =>
       isEqual(build.artifacts, artifactSetCombinations),
     );
+
+    const buildCounts = find(buildsAbyssUsageCounts, (build) =>
+      isEqual(build.artifactSetCombinations, artifactSetCombinations),
+    );
+
     if (buildIdx > -1) {
       // Update weapons
       const weaponIdx = findIndex(data[charIdx].builds[buildIdx].weapons, {
         _id: charWeapon._id,
       });
+
       if (weaponIdx < 0) {
         data[charIdx].builds[buildIdx].weapons.push({ _id: charWeapon._id, count: 1 });
       } else {
@@ -76,10 +84,29 @@ function addCharacterBuild(
       data[charIdx].builds[buildIdx].count++;
     } else {
       data[charIdx].builds.push({
-        weapons: [{ _id: charWeapon._id, count: 1 }],
+        weapons: [
+          {
+            _id: charWeapon._id,
+            count: 1,
+          },
+        ],
         artifacts: artifactSetCombinations,
         count: 1,
       });
+
+      if (buildCounts) {
+        const buildWeaponIdx = findIndex(
+          buildCounts.weapons,
+          (weapon: any) => weapon._id === charWeapon._id,
+        );
+
+        if (buildWeaponIdx > -1) {
+          const currIdx = data[charIdx].builds[buildIdx].weapons.length - 1;
+          data[charIdx].builds[buildIdx].weapons[currIdx].abyssCount =
+            buildCounts[buildWeaponIdx].count[0];
+          data[charIdx].builds[buildIdx].weapons[currIdx].abyssWins = buildCounts[buildWeaponIdx].count[1];
+        }
+      }
     }
 
     // data[charIdx].avg_level = Math.floor(
@@ -205,43 +232,9 @@ export class PlayerCharacterService {
 
     const characterBuilds: CharacterBuildStats[] = [];
     const mainCharacterBuilds: CharacterBuildStats[] = [];
-    const allWeaponStats = [];
-    const weaponStatsTotals = {
-      all: {
-        owned: 0,
-        abyssTotal: 0,
-      },
-      bow: {
-        owned: 0,
-        abyssTotal: 0,
-      },
-      sword: {
-        owned: 0,
-        abyssTotal: 0,
-      },
-      catalyst: {
-        owned: 0,
-        abyssTotal: 0,
-      },
-      claymore: {
-        owned: 0,
-        abyssTotal: 0,
-      },
-      polearm: {
-        owned: 0,
-        abyssTotal: 0,
-      },
-    };
-    const allArtifactSetStats = [];
-    const artifactSetStatsTotals = {
-      owned: 0,
-      abyssTotal: 0,
-    };
-    const allCharacterStats = [];
-    const characterStatsTotals = {
-      owned: 0,
-      abyssTotal: 0,
-    };
+    const topWeaponStats = [];
+    const topArtifactSetStats = [];
+    const topCharacterStats = [];
 
     forEach(playerCharacters, ({ _id, character, weapon, artifacts, constellation, level }: any) => {
       const charWeapon = <WeaponDocument>weapon;
@@ -285,6 +278,7 @@ export class PlayerCharacterService {
         artifactSetCombinations,
         charWeapon,
         parties,
+        abyssUsageCounts.builds,
       );
 
       if (level >= 90) {
@@ -295,19 +289,20 @@ export class PlayerCharacterService {
           artifactSetCombinations,
           charWeapon,
           parties,
+          abyssUsageCounts.builds,
         );
       }
 
       // ===== CHARACTER STATS ====
-      const charStatIdx = findIndex(allCharacterStats, { _id: character._id });
+      const charStatIdx = findIndex(topCharacterStats, { _id: character._id });
       if (charStatIdx > -1) {
-        allCharacterStats[charStatIdx].total++;
+        topCharacterStats[charStatIdx].total++;
       } else {
         const abyssCount = abyssUsageCounts.characters[character._id]
           ? abyssUsageCounts.characters[character._id][0]
           : 0;
 
-        allCharacterStats.push({
+        topCharacterStats.push({
           _id: character._id,
           total: 1,
           abyssCount,
@@ -315,33 +310,31 @@ export class PlayerCharacterService {
             ? abyssUsageCounts.characters[character._id][1]
             : 0,
         });
-        characterStatsTotals.abyssTotal += abyssCount;
       }
-      characterStatsTotals.owned++;
 
       // ===== WEAPON STATS =====
-      const weaponStatIdx = findIndex(allWeaponStats, { _id: charWeapon._id });
+      const weaponStatIdx = findIndex(topWeaponStats, { _id: charWeapon._id });
       if (weaponStatIdx > -1) {
-        const charIdx = findIndex(allWeaponStats[weaponStatIdx].characters, {
+        const charIdx = findIndex(topWeaponStats[weaponStatIdx].characters, {
           _id: character._id.toString(),
         });
 
         if (charIdx > -1) {
-          allWeaponStats[weaponStatIdx].characters[charIdx].count++;
+          topWeaponStats[weaponStatIdx].characters[charIdx].count++;
         } else {
-          allWeaponStats[weaponStatIdx].characters.push({
+          topWeaponStats[weaponStatIdx].characters.push({
             _id: character._id.toString(),
             count: 1,
           });
         }
 
-        allWeaponStats[weaponStatIdx].count++;
+        topWeaponStats[weaponStatIdx].count++;
       } else {
         const abyssCount = abyssUsageCounts.weapons[charWeapon._id]
           ? abyssUsageCounts.weapons[charWeapon._id][0]
           : 0;
 
-        allWeaponStats.push({
+        topWeaponStats.push({
           _id: charWeapon._id,
           characters: [
             {
@@ -357,31 +350,27 @@ export class PlayerCharacterService {
             ? abyssUsageCounts.weapons[charWeapon._id][1]
             : 0,
         });
-        weaponStatsTotals[weapon.type_name.toLowerCase()].abyssTotal += abyssCount;
-        weaponStatsTotals.all.abyssTotal += abyssCount;
       }
-      weaponStatsTotals[weapon.type_name.toLowerCase()].owned++;
-      weaponStatsTotals.all.owned++;
 
       // ===== ARTIFACT SET STATS =====
-      const artifactStatIdx = findIndex(allArtifactSetStats, ({ artifacts }) =>
+      const artifactStatIdx = findIndex(topArtifactSetStats, ({ artifacts }) =>
         isEqual(artifacts, artifactSetCombinations),
       );
       if (artifactStatIdx > -1) {
-        const charIdx = findIndex(allArtifactSetStats[artifactStatIdx].characters, {
+        const charIdx = findIndex(topArtifactSetStats[artifactStatIdx].characters, {
           _id: character._id.toString(),
         });
 
         if (charIdx > -1) {
-          allArtifactSetStats[artifactStatIdx].characters[charIdx].count++;
+          topArtifactSetStats[artifactStatIdx].characters[charIdx].count++;
         } else {
-          allArtifactSetStats[artifactStatIdx].characters.push({
+          topArtifactSetStats[artifactStatIdx].characters.push({
             _id: character._id.toString(),
             count: 1,
           });
         }
 
-        allArtifactSetStats[artifactStatIdx].count++;
+        topArtifactSetStats[artifactStatIdx].count++;
       } else {
         const abyssSetIdx = findIndex(abyssUsageCounts.artifactSets, ({ artifacts }) =>
           isEqual(artifacts, artifactSetCombinations),
@@ -389,7 +378,7 @@ export class PlayerCharacterService {
 
         const abyssCount = abyssSetIdx > -1 ? abyssUsageCounts.artifactSets[abyssSetIdx].count[0] : 0;
         const abyssWins = abyssSetIdx > -1 ? abyssUsageCounts.artifactSets[abyssSetIdx].count[1] : 0;
-        allArtifactSetStats.push({
+        topArtifactSetStats.push({
           artifacts: artifactSetCombinations,
           characters: [
             {
@@ -401,20 +390,15 @@ export class PlayerCharacterService {
           abyssCount,
           abyssWins,
         });
-        artifactSetStatsTotals.abyssTotal += abyssCount;
       }
-      artifactSetStatsTotals.owned++;
     });
 
     return {
-      allWeaponStats,
-      weaponStatsTotals,
-      allArtifactSetStats,
-      artifactSetStatsTotals,
+      topWeaponStats,
+      topArtifactSetStats,
       characterBuilds,
       mainCharacterBuilds,
-      allCharacterStats,
-      characterStatsTotals,
+      topCharacterStats,
     };
   }
 

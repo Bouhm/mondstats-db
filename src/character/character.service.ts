@@ -31,7 +31,7 @@ export class CharacterService {
     return this.characterModel.find(queryFilter).lean().exec();
   }
 
-  async aggregate() {
+  async db() {
     const characters = await this.characterModel.find().lean().exec();
 
     forEach(characters, (character: any) => {

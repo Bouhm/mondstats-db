@@ -27,6 +27,7 @@ import { PlayerCharacterService } from '../player-character/player-character.ser
 import { getShortName, getTotal } from '../util';
 import weaponModel from '../weapon/weapon.model';
 import { WeaponService } from '../weapon/weapon.service';
+import { artifactSetDb, characterDb, weaponDb } from './writeDb';
 
 type Flex = { charId: string; count: number };
 
@@ -148,17 +149,7 @@ const artifactSetService = new ArtifactSetService(artifactSetModel, artifactMode
 const weaponService = new WeaponService(weaponModel);
 
 export const aggregateStats = async () => {
-  const characterData = await characterService.aggregate();
-  const artifactSetData = await artifactSetService.aggregate();
-  const weaponData = await weaponService.aggregate();
-  let allWeaponStats,
-    weaponStatsTotals,
-    allArtifactSetStats,
-    artifactSetStatsTotals,
-    allCharacterStats,
-    characterStatsTotals,
-    characterBuilds,
-    mainCharacterBuilds;
+  let topWeaponStats, topArtifactSetStats, topCharacterStats, characterBuilds, mainCharacterBuilds;
 
   const charCounts = {};
   const abyssThreshold = 0.0003;
@@ -172,22 +163,14 @@ export const aggregateStats = async () => {
 
   const resetCharCounts = () => {
     forEach(
-      map(characterData, (char) => char._id),
+      map(characterDb, (char) => char._id),
       ({ _id }) => (charCounts[_id] = 0),
     );
   };
 
   const abyssData = await abyssBattleService.aggregate();
-  ({
-    allWeaponStats,
-    weaponStatsTotals,
-    allArtifactSetStats,
-    artifactSetStatsTotals,
-    allCharacterStats,
-    characterStatsTotals,
-    characterBuilds,
-    mainCharacterBuilds,
-  } = await playerCharacterService.aggregate(abyssData.charTeams, abyssData.abyssUsage));
+  ({ topWeaponStats, topArtifactSetStats, topCharacterStats, characterBuilds, mainCharacterBuilds } =
+    await playerCharacterService.aggregate(abyssData.charTeams, abyssData.abyssUsage));
 
   resetCharCounts();
   const abyssTeamTotal = getTotal(abyssData.teams, min);
@@ -232,7 +215,7 @@ export const aggregateStats = async () => {
 
   const weaponStats: {
     _id: string;
-    total: number;
+    count: number;
     abyssCount: number;
     abyssWins: number;
     characters: {
@@ -249,12 +232,11 @@ export const aggregateStats = async () => {
   }[] = [];
 
   const artifactSetStats: {
-    _ids: string[];
     artifacts: {
       _id: string;
       activation_number: number;
     }[];
-    total: number;
+    count: number;
     abyssCount: number;
     abyssWins: number;
     characters: {
@@ -271,7 +253,7 @@ export const aggregateStats = async () => {
     builds.forEach((charBuildStats) => {
       forEach(charBuildStats.builds, (build) => {
         forEach(build.weapons, (weapon) => {
-          const allArtifactStat = find(allArtifactSetStats, (set) =>
+          const allArtifactStat = find(topArtifactSetStats, (set) =>
             isEqual(set.artifacts, build.artifacts),
           );
 
@@ -294,9 +276,8 @@ export const aggregateStats = async () => {
             }
           } else {
             artifactSetStats.push({
-              _ids: map(build.artifacts, ({ _id }) => _id),
               artifacts: build.artifacts,
-              total: build.count,
+              count: build.count,
               characters: [
                 {
                   _id: charBuildStats.char_id,
@@ -314,7 +295,7 @@ export const aggregateStats = async () => {
             });
           }
 
-          const allWeaponStat = find(allWeaponStats, (weaponStat) => weaponStat._id === weapon._id);
+          const allWeaponStat = find(topWeaponStats, (weaponStat) => weaponStat._id === weapon._id);
           const weaponStatsIdx = findIndex(weaponStats, (stat) => stat._id === weapon._id);
 
           if (weaponStatsIdx > -1) {
@@ -333,7 +314,7 @@ export const aggregateStats = async () => {
           } else {
             weaponStats.push({
               _id: weapon._id,
-              total: weapon.count,
+              count: weapon.count,
               characters: [
                 {
                   _id: charBuildStats.char_id,
@@ -391,16 +372,16 @@ export const aggregateStats = async () => {
   filterCharacterBuilds(characterBuilds);
   filterCharacterBuilds(mainCharacterBuilds);
 
-  const weaponStatsTotal = getTotal(allWeaponStats, min);
-  allWeaponStats = orderBy(
+  const weaponStatsTotal = getTotal(topWeaponStats, min);
+  topWeaponStats = orderBy(
     filter(
-      allWeaponStats,
+      topWeaponStats,
       (stat) => stat.count / weaponStatsTotal >= weaponThreshold && stat.count >= min,
     ),
     'count',
     'desc',
   );
-  allWeaponStats.forEach((stat, i) => {
+  topWeaponStats.forEach((stat, i) => {
     const charCountsTotal = getTotal(values(stat.characters), min);
     stat.characters = orderBy(
       filter(
@@ -411,18 +392,18 @@ export const aggregateStats = async () => {
       'desc',
     );
   });
-  allWeaponStats = filter(allWeaponStats, (stat) => stat.characters.length);
+  topWeaponStats = filter(topWeaponStats, (stat) => stat.characters.length);
 
-  const artifactSetStatsTotal = getTotal(allArtifactSetStats, min);
-  allArtifactSetStats = orderBy(
+  const artifactSetStatsTotal = getTotal(topArtifactSetStats, min);
+  topArtifactSetStats = orderBy(
     filter(
-      allArtifactSetStats,
+      topArtifactSetStats,
       (stat) => stat.count / artifactSetStatsTotal >= artifactThreshold && stat.count >= min,
     ),
     'count',
     'desc',
   );
-  allArtifactSetStats.forEach((stat, i) => {
+  topArtifactSetStats.forEach((stat, i) => {
     const charCountsTotal = getTotal(values(stat.characters), min);
     stat.characters = orderBy(
       filter(
@@ -433,21 +414,40 @@ export const aggregateStats = async () => {
       'desc',
     );
   });
-  allArtifactSetStats = filter(allArtifactSetStats, (stat) => stat.characters.length);
-  allCharacterStats = orderBy(allCharacterStats, 'total', 'desc');
+  topArtifactSetStats = filter(topArtifactSetStats, (stat) => stat.characters.length);
+  topCharacterStats = orderBy(topCharacterStats, 'total', 'desc');
+
+  const weaponStatsTotals: any = {};
+  const artifactSetStatsTotals: any = {};
+  // const characterStatsTotals: any = {};
+
+  forEach(weaponStats, (weaponStat) => {
+    const weapon = find(weaponDb, { _id: weaponStat._id });
+    if (!weapon) return;
+
+    weaponStatsTotals.all.total += weaponStat.count;
+    weaponStatsTotals.all.abyssTotal += weaponStat.abyssCount;
+    weaponStatsTotals[weapon.type_name.toLowerCase()].total += weaponStat.count;
+    weaponStatsTotals[weapon.type_name.toLowerCase()].abyssTotal += weaponStat.abyssCount;
+  });
+
+  forEach(artifactSetStats, (artifactSetStat) => {
+    artifactSetStatsTotals.total += artifactSetStat.count;
+    artifactSetStatsTotals.abyssTotal += artifactSetStat.abyssCount;
+  });
 
   await Promise.all([
-    fs.writeFile('data/weapons/stats/top-weapons.json', JSON.stringify(allWeaponStats), (e) => e),
+    fs.writeFile('data/weapons/stats/top-weapons.json', JSON.stringify(topWeaponStats), (e) => e),
     fs.writeFile('data/weapons/stats/weapon-totals.json', JSON.stringify(weaponStatsTotals), (e) => e),
     ...map(weaponStats, (weaponStat) => {
-      const weapon = find(weaponData, { _id: weaponStat._id });
+      const weapon = find(weaponDb, { _id: weaponStat._id });
       if (!weapon) return;
       const fileName = getShortName(weapon);
       return fs.writeFile(`data/weapons/${fileName}.json`, JSON.stringify(weaponStat), (e) => e);
     }),
     fs.writeFile(
       'data/artifacts/stats/top-artifactsets.json',
-      JSON.stringify(allArtifactSetStats),
+      JSON.stringify(topArtifactSetStats),
       (e) => e,
     ),
     fs.writeFile(
@@ -456,29 +456,37 @@ export const aggregateStats = async () => {
       (e) => e,
     ),
     ...map(artifactSetStats, (artifactSetStat) => {
-      const artifactSets = filter(artifactSetData, (artifactSet) =>
-        includes(artifactSetStat._ids, artifactSet._id),
+      const artifactSets = filter(artifactSetDb, (artifactSet) =>
+        includes(
+          map(artifactSetStat.artifacts, (set) => set._id),
+          artifactSet._id,
+        ),
       );
-      const fileName = map(artifactSets, (artifactSet) => getShortName(artifactSet)).join('-');
+
+      const fileName = map(
+        artifactSets,
+        (artifactSet, i) =>
+          `${artifactSetStat.artifacts[i].activation_number}${getShortName(artifactSet)}`,
+      ).join('-');
       return fs.writeFile(`data/artifacts/${fileName}.json`, JSON.stringify(artifactSetStat), (e) => e);
     }),
-    fs.writeFile('data/characters/stats/top-characters.json', JSON.stringify(allCharacterStats), (e) => e),
-    fs.writeFile(
-      'data/characters/stats/character-totals.json',
-      JSON.stringify(characterStatsTotals),
-      (e) => e,
-    ),
+    fs.writeFile('data/characters/stats/top-characters.json', JSON.stringify(topCharacterStats), (e) => e),
+    // fs.writeFile(
+    //   'data/characters/stats/character-totals.json',
+    //   JSON.stringify(characterStatsTotals),
+    //   (e) => e,
+    // ),
     ...map(characterBuilds, (charBuild) => {
-      const character = find(characterData, { _id: charBuild.char_id });
+      const character = find(characterDb, { _id: charBuild.char_id });
       const fileName = getShortName(character);
       return fs.writeFile(`data/characters/${fileName}.json`, JSON.stringify(charBuild), (e) => e);
     }),
     ...map(mainCharacterBuilds, (charBuild) => {
-      const character = find(characterData, { _id: charBuild.char_id });
+      const character = find(characterDb, { _id: charBuild.char_id });
       const fileName = getShortName(character);
       return fs.writeFile(`data/characters/mains/${fileName}.json`, JSON.stringify(charBuild), (e) => e);
     }),
-    fs.writeFile('data/abyss/stats/top-teams.json', JSON.stringify(topAbyssTeams), (e) => e),
+    fs.writeFile('data/abyss/stats/top-abyss-teams.json', JSON.stringify(topAbyssTeams), (e) => e),
     ...map(allAbyssTeams, (floorData) => {
       return fs.writeFile(`data/abyss/${floorData.floor_level}.json`, JSON.stringify(floorData), (e) => e);
     }),

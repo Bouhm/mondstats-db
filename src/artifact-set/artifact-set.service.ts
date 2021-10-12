@@ -1,6 +1,7 @@
 import genshindb from 'genshin-db';
 import { filter, forEach, map, maxBy } from 'lodash';
 import { Model } from 'mongoose';
+import { of } from 'rxjs';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -32,7 +33,7 @@ export class ArtifactSetService {
     return this.artifactSetModel.find(queryFilter).lean().exec();
   }
 
-  async aggregate() {
+  async db() {
     const artifactSets = await this.artifactSetModel.find().lean().exec();
     const filteredSets = [];
     artifactSets.forEach((set: any) => {
@@ -42,7 +43,7 @@ export class ArtifactSetService {
         delete set.createdAt;
         delete set.updatedAt;
 
-        forEach(set, (o) => forEach(o.affixes, (affix, i) => delete o.affixes[i]._id));
+        set.forEach((o) => o.affixes.forEach((affix, i) => delete o.affixes[i]._id));
         filteredSets.push(set);
       }
     });

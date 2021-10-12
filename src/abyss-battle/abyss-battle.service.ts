@@ -124,6 +124,7 @@ export class AbyssBattleService {
       characters: {},
       weapons: {},
       artifactSets: [],
+      builds: [],
     };
 
     const teams = [];
@@ -228,21 +229,55 @@ export class AbyssBattleService {
           abyssUsageCounts.weapons[weapon._id][1]++;
         }
 
-        const buildIdx = findIndex(abyssUsageCounts.artifactSets, (build: any) =>
+        const setIdx = findIndex(abyssUsageCounts.artifactSets, (set: any) =>
+          isEqual(set.artifacts, artifactSetCombinations),
+        );
+
+        if (setIdx > 0) {
+          abyssUsageCounts.artifactSets[setIdx].count++;
+        } else {
+          abyssUsageCounts.artifactSets.push({
+            artifacts: artifactSetCombinations,
+            count: [1, star > 2 ? 1 : 0],
+          });
+        }
+
+        const buildIdx = findIndex(abyssUsageCounts.builds, (build: any) =>
           isEqual(build.artifacts, artifactSetCombinations),
         );
 
         if (buildIdx > 0) {
-          abyssUsageCounts.artifactSets[buildIdx].count++;
+          const buildWeaponIdx = findIndex(
+            abyssUsageCounts.builds[buildIdx].weapons,
+            (buildWeapon: any) => buildWeapon._id === weapon._id,
+          );
+
+          if (buildWeaponIdx > -1) {
+            abyssUsageCounts.builds[buildIdx].weapons[buildWeaponIdx].count[0]++;
+
+            if (star > 2) {
+              abyssUsageCounts.builds[buildIdx].weapons[buildWeaponIdx].count[1]++;
+            }
+          } else {
+            abyssUsageCounts.builds[buildIdx].weapons.push({
+              _id: weapon._id,
+              count: [1, star > 2 ? 1 : 0],
+            });
+          }
         } else {
-          abyssUsageCounts.artifactSets.push({
+          abyssUsageCounts.builds.push({
             artifacts: artifactSetCombinations,
-            count: 1,
+            weapons: [
+              {
+                _id: weapon._id,
+                count: [1, star > 2 ? 1 : 0],
+              },
+            ],
           });
         }
       });
 
-      if (party.length < 4) return;
+      // if (party.length < 4) return;
 
       // TOP TEAMS
       const charIds = map(party, ({ character }: any) => character._id.toString()).sort();

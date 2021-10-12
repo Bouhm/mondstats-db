@@ -28,7 +28,7 @@ export class WeaponService {
     return this.weaponModel.find(queryFilter).lean().exec();
   }
 
-  async aggregate() {
+  async db() {
     const weapons = await this.weaponModel
       .find({ rarity: { $gte: 3 } })
       .lean()

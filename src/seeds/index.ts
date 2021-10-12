@@ -48,8 +48,7 @@ let currRefs: {
 let proxyIdx = 0;
 let uid = 0;
 const iterationStart = Date.now();
-let areAllStillBlocked = true;
-let abyssSchedule = 1;
+let areAllStillBlocked = true;let abyssSchedule = 1;
 const blockedLevel = 0;
 const dayMs = 24 * 60 * 60 * 1000;
 const maxRest = dayMs / 30;
@@ -57,10 +56,7 @@ const lastPatchCycle = new Date(Date.now() - 6 * 7 * dayMs);
 const delayMs = 200;
 let dailyUpdate;
 let weeklyUpdate;
-let collectedTotal = 0;
-let concurrent = 1;
-let existingUids = false;
-let lastUpdatedUid = 0;
+let collectedTotal = 0;let concurrent = 1;let existingUids = false;let lastUpdatedUid = 0;
 let currSkip = 0;
 
 const options = {
@@ -263,9 +259,7 @@ const getHeaders = (i: number) => {
     'X-Forwarded-For': PROXIES[proxyIdx].ip,
     'X-Forwarded-Port': PROXIES[proxyIdx].port,
   };
-};
-
-let server = 'usa';
+};let server = 'usa';
 
 function _getBaseUid(server: string, start = 0) {
   let uidBase = 100000000;

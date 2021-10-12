@@ -27,7 +27,7 @@ export class ArtifactService {
     return this.artifactModel.find(queryFilter).lean().exec();
   }
 
-  async aggregate() {
+  async db() {
     const artifacts = await this.artifactModel.find().lean().exec();
     _.forEach(artifacts, (artifact: any) => {
       delete artifact.__v;
