@@ -9,17 +9,21 @@ import { CharacterService } from '../character/character.service';
 import weaponModel from '../weapon/weapon.model';
 import { WeaponService } from '../weapon/weapon.service';
 
-export const characterDb = await characterService.db();
-export const artifactDb = await artifactService.db();
-export const artifactSetDb = await artifactSetService.db();
-export const weaponDb = await weaponService.db();
+const characterService = new CharacterService(characterModel);
+const weaponService = new WeaponService(weaponModel);
+const artifactService = new ArtifactService(artifactModel);
+const artifactSetService = new ArtifactSetService(artifactSetModel, artifactModel);
+
+export const getDb = async () => {
+  const characterDb = await characterService.db();
+  const artifactDb = await artifactService.db();
+  const artifactSetDb = await artifactSetService.db();
+  const weaponDb = await weaponService.db();
+  return { characterDb, artifactDb, artifactSetDb, weaponDb };
+};
 
 export const aggregateDb = async () => {
-  const characterService = new CharacterService(characterModel);
-  const weaponService = new WeaponService(weaponModel);
-  const artifactService = new ArtifactService(artifactModel);
-  const artifactSetService = new ArtifactSetService(artifactSetModel, artifactModel);
-
+  const { characterDb, weaponDb, artifactDb, artifactSetDb } = await getDb();
 
   fs.writeFile(
     'data/db.json',

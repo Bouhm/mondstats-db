@@ -16,7 +16,7 @@ export const aggregateFeatured = async () => {
   const playerCharacterCount = await playerCharacterService.getStats();
   const abyssBattleCount = await abyssBattleService.getStats();
 
-  const bannerChars = ['Sangonomiya Kokomi', 'Xingqiu', 'Beidou', 'Rosaria'];
+  const bannerChars = ['Tartaglia', 'Yanfei', 'Ningguang', 'Chongyun', 'Aloy'];
 
   fs.writeFile(
     'data/featured.json',
@@ -28,4 +28,4 @@ export const aggregateFeatured = async () => {
     }),
     (e) => e,
   );
-}
+};

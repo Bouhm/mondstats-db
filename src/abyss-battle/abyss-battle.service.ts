@@ -1,5 +1,6 @@
 import { difference, find, findIndex, forEach, forIn, includes, isEqual, map, omit, sortBy } from 'lodash';
 import { Model } from 'mongoose';
+import { Character } from 'src/character/character.model';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -114,6 +115,69 @@ export class AbyssBattleService {
     });
     return filteredBattles;
   }
+
+  async getTopParties() {
+    /*
+     {
+    "$group": {
+      "_id": {
+        level: "$floor_level",
+        party: "$party.character",
+        index: "$battle_index"
+      },
+      "count": {
+        "$sum": 1
+      }
+    }
+  },
+  {
+    "$group": {
+      "_id": {
+        "level": "$_id.level",
+        "index": "$_id.index"
+      },
+      "parties": {
+        "$push": {
+          party: "$_id.party",
+          count: "$count"
+        }
+      }
+    }
+  },
+  {
+    $addFields: {
+      floor: {
+        "$concat": [
+          "$_id.level",
+          "-",
+          {
+            $toString: "$_id.index"
+          }
+        ]
+      },
+      _id: "$$REMOVE",
+      index: "$$REMOVE"
+    }
+  }*/
+    
+    const battles = await this.abyssBattleModel.aggregate([
+      {
+        $lookup: {
+          from: PlayerCharacter.name,
+          foreignField: '_id',
+          localField: 'party',
+          as: 'partyChars',
+        },
+      },
+      {
+        $limit: 5
+      }
+    ]);
+
+    return battles;
+  }
+
+  // async getTopFloorParties() {}
 
   async aggregateBattles() {
     const battleIndices = 2;

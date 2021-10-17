@@ -17,17 +17,10 @@ import {
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
 import { AbyssBattleService } from '../abyss-battle/abyss-battle.service';
-import artifactSetModel from '../artifact-set/artifact-set.model';
-import { ArtifactSetService } from '../artifact-set/artifact-set.service';
-import artifactModel from '../artifact/artifact.model';
-import characterModel from '../character/character.model';
-import { CharacterService } from '../character/character.service';
 import playerCharacterModel, { CharacterBuildStats } from '../player-character/player-character.model';
 import { PlayerCharacterService } from '../player-character/player-character.service';
 import { getShortName, getTotal } from '../util';
-import weaponModel from '../weapon/weapon.model';
-import { WeaponService } from '../weapon/weapon.service';
-import { artifactSetDb, characterDb, weaponDb } from './writeDb';
+import { getDb } from './writeDb';
 
 type Flex = { charId: string; count: number };
 
@@ -134,6 +127,7 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
 
     if (teamIdx > -1) {
       mergedTeams[teamIdx].flex.push(team.flex[0]);
+      mergedTeams[teamIdx].count += team.count;
     } else {
       mergedTeams.push(team);
     }
@@ -144,21 +138,18 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
 
 const abyssBattleService = new AbyssBattleService(abyssBattleModel);
 const playerCharacterService = new PlayerCharacterService(playerCharacterModel);
-const characterService = new CharacterService(characterModel);
-const artifactSetService = new ArtifactSetService(artifactSetModel, artifactModel);
-const weaponService = new WeaponService(weaponModel);
 
 export const aggregateStats = async () => {
   let topWeaponStats, topArtifactSetStats, topCharacterStats, characterBuilds, mainCharacterBuilds;
-
+  const { characterDb, weaponDb, artifactSetDb } = await getDb();
   const charCounts = {};
-  const abyssThreshold = 0.0003;
-  const weaponThreshold = 0.003;
-  const weaponCharsThreshold = 0.009;
-  const artifactThreshold = 0.001;
-  const artifactCharsThreshold = 0.009;
-  const buildThreshold = 0.003;
-  const min = 3;
+  const abyssThreshold = 0.0005;
+  const weaponThreshold = 0.005;
+  const weaponCharsThreshold = 0.01;
+  const artifactThreshold = 0.003;
+  const artifactCharsThreshold = 0.01;
+  const buildThreshold = 0.005;
+  const min = 10;
   const charCountMin = 100;
 
   const resetCharCounts = () => {
@@ -169,8 +160,11 @@ export const aggregateStats = async () => {
   };
 
   const abyssData = await abyssBattleService.aggregate();
+  console.log('Done abyss aggregation');
+
   ({ topWeaponStats, topArtifactSetStats, topCharacterStats, characterBuilds, mainCharacterBuilds } =
     await playerCharacterService.aggregate(abyssData.charTeams, abyssData.abyssUsage));
+  console.log('Done player character aggregation');
 
   resetCharCounts();
   const abyssTeamTotal = getTotal(abyssData.teams, min);
@@ -212,6 +206,7 @@ export const aggregateStats = async () => {
       allAbyssTeams[floor_level].battle_parties[i] = aggregateCoreTeams(parties);
     });
   });
+  console.log('Done abyss team aggregation');
 
   const weaponStats: {
     _id: string;
@@ -368,6 +363,7 @@ export const aggregateStats = async () => {
       );
     });
   };
+  console.log('Done character builds');
 
   filterCharacterBuilds(characterBuilds);
   filterCharacterBuilds(mainCharacterBuilds);

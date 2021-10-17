@@ -43,7 +43,7 @@ export class ArtifactSetService {
         delete set.createdAt;
         delete set.updatedAt;
 
-        set.forEach((o) => o.affixes.forEach((affix, i) => delete o.affixes[i]._id));
+        set.affixes.forEach((affix, i) => delete set.affixes[i]._id);
         filteredSets.push(set);
       }
     });
