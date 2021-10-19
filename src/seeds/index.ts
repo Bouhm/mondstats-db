@@ -129,7 +129,7 @@ const handleResponse = (
     case 10103: // Cookies correct but not bound to account
       return null;
     case -10001: // Invalid request (DS)
-      console.log(resp.message, resp.retcode);
+      // console.log(resp.message, resp.retcode);
       return undefined;
     case 0:
       return ok();
@@ -138,6 +138,7 @@ const handleResponse = (
     case -1: // Could not find user with UID
       return notOk();
     default:
+      console.log(resp.message, resp.retcode);
       return null;
   }
 };
