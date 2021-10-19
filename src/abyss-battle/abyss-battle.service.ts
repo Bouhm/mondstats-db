@@ -1,4 +1,16 @@
-import { difference, find, findIndex, forEach, forIn, includes, isEqual, map, omit, sortBy } from 'lodash';
+import {
+  difference,
+  find,
+  findIndex,
+  forEach,
+  forIn,
+  includes,
+  isEqual,
+  map,
+  omit,
+  sortBy,
+  times,
+} from 'lodash';
 import { Model } from 'mongoose';
 import { Character } from 'src/character/character.model';
 
@@ -117,57 +129,110 @@ export class AbyssBattleService {
   }
 
   async getTopParties() {
-    const battles = await this.abyssBattleModel.aggregate([
-      {
-        $lookup: {
-          from: 'playercharacters',
-          foreignField: '_id',
-          localField: 'party',
-          as: 'party',
-        }
-      },
-      {
-        $group: {
-          _id: {
-            floor: {
-              $concat: [
-                '$floor_level',
-                '-',
-                {
-                  $toString: '$battle_index'
-                },
-                
-              ]
+    return (
+      this.abyssBattleModel
+        .aggregate([
+          {
+            $group: {
+              _id: '$party',
+              count: {
+                $sum: 1,
+              },
             },
-            party: '$party.character',
           },
-          count: {
-            $sum: 1
-          }
-        }
-      },
-      {
-        $group: {
-          _id: '$_id.floor',
-          parties: {
-            $push: {
-              party: '$_id.party',
-              count: '$count'
-            }
-          }
-        }
-      },
-      {
-        $limit: 5
-      },
-    ],
-    
-  )
-  .allowDiskUse(true)
-  .exec();
+          {
+            $lookup: {
+              from: 'playercharacters',
+              foreignField: '_id',
+              localField: 'party',
+              as: 'party',
+            },
+          },
+          {
+            $group: {
+              _id: '$party.character',
+              count: {
+                $sum: 1,
+              },
+            },
+          },
+          {
+            $sort: {
+              count: -1,
+            },
+          },
+          {
+            $limit: 100,
+          },
+        ])
+        // .allowDiskUse(true)
+        .exec()
+    );
+  }
 
-  return battles;
-}
+  async getTopFloorParties(floorLevel: string) {
+    return await Promise.all(
+      times(2, (i) => {
+        return (
+          this.abyssBattleModel
+            .aggregate([
+              {
+                $match: {
+                  floor_level: floorLevel,
+                  battle_index: i + 1,
+                },
+              },
+              {
+                $lookup: {
+                  from: 'playercharacters',
+                  localField: 'party',
+                  foreignField: '_id',
+                  as: 'party',
+                },
+              },
+              {
+                $lookup: {
+                  from: 'characters',
+                  localField: 'party.character',
+                  foreignField: '_id',
+                  as: 'party',
+                },
+              },
+              {
+                $project: {
+                  _id: 0,
+                  party: {
+                    $map: {
+                      input: '$party',
+                      as: 'pc',
+                      in: '$$pc._id',
+                    },
+                  },
+                },
+              },
+              {
+                $group: {
+                  _id: '$party',
+                  count: {
+                    $sum: 1,
+                  },
+                },
+              },
+              {
+                $sort: {
+                  count: -1,
+                },
+              },
+              {
+                $limit: 100,
+              },
+            ])
+            // .allowDiskUse(true)
+            .exec()
+        );
+      }),
+    );
+  }
 
   // async getTopFloorParties() {}
 

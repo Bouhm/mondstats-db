@@ -1,3 +1,4 @@
+import { flatten, forEach, map, range } from 'lodash';
 import mongoose from 'mongoose';
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
@@ -13,8 +14,17 @@ const playerCharacterService = new PlayerCharacterService(playerCharacterModel);
   await connectDb();
 
   try {
-    const a = await abyssBattleService.getTopParties();
-    console.log(a);
+    // const topAbyss = await abyssBattleService.getTopParties();
+    const abyssData = await Promise.all(
+      flatten(
+        map(range(9, 13), (floor) => {
+          return map(range(1, 4), (stage) => {
+            return abyssBattleService.getTopFloorParties(`${floor}-${stage}`);
+          });
+        }),
+      ),
+    );
+    console.log(abyssData)
   } catch (err) {
     console.log(err);
   }
