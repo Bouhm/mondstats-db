@@ -1,7 +1,5 @@
 import genshindb from 'genshin-db';
-import { filter, forEach, map, maxBy } from 'lodash';
 import { Model } from 'mongoose';
-import { of } from 'rxjs';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';

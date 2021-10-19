@@ -11,7 +11,7 @@ import {
   sortBy,
   times,
 } from 'lodash';
-import { Model } from 'mongoose';
+import { Model, ObjectId } from 'mongoose';
 import { Character } from 'src/character/character.model';
 
 import { Injectable } from '@nestjs/common';
@@ -128,113 +128,123 @@ export class AbyssBattleService {
     return filteredBattles;
   }
 
-  async getTopParties() {
-    return (
-      this.abyssBattleModel
-        .aggregate([
-          {
-            $group: {
-              _id: '$party',
-              count: {
-                $sum: 1,
+  async getTopParties(match: any = {}, limit = 20) {
+    return this.abyssBattleModel
+      .aggregate([
+        {
+          $match: match,
+        },
+        {
+          $lookup: {
+            from: 'playercharacters',
+            localField: 'party',
+            foreignField: '_id',
+            as: 'party',
+          },
+        },
+        {
+          $lookup: {
+            from: 'characters',
+            localField: 'party.character',
+            foreignField: '_id',
+            as: 'party',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            party: {
+              $map: {
+                input: '$party',
+                as: 'pc',
+                in: '$$pc._id',
               },
             },
           },
-          {
-            $lookup: {
-              from: 'playercharacters',
-              foreignField: '_id',
-              localField: 'party',
-              as: 'party',
+        },
+        {
+          $group: {
+            _id: '$party',
+            count: {
+              $sum: 1,
             },
           },
-          {
-            $group: {
-              _id: '$party.character',
-              count: {
-                $sum: 1,
-              },
-            },
+        },
+        {
+          $sort: {
+            count: -1,
           },
-          {
-            $sort: {
-              count: -1,
-            },
-          },
-          {
-            $limit: 100,
-          },
-        ])
-        // .allowDiskUse(true)
-        .exec()
-    );
+        },
+        {
+          $limit: limit,
+        },
+      ])
+      .allowDiskUse(true)
+      .exec();
   }
 
-  async getTopFloorParties(floorLevel: string) {
+  async getTopFloorParties(floorLevel: string, match: any = {}, limit = 20) {
     return await Promise.all(
       times(2, (i) => {
-        return (
-          this.abyssBattleModel
-            .aggregate([
-              {
-                $match: {
-                  floor_level: floorLevel,
-                  battle_index: i + 1,
-                },
+        return this.abyssBattleModel
+          .aggregate([
+            {
+              $match: {
+                ...match,
+                floor_level: floorLevel,
+                battle_index: i + 1,
               },
-              {
-                $lookup: {
-                  from: 'playercharacters',
-                  localField: 'party',
-                  foreignField: '_id',
-                  as: 'party',
-                },
+            },
+            {
+              $lookup: {
+                from: 'playercharacters',
+                localField: 'party',
+                foreignField: '_id',
+                as: 'party',
               },
-              {
-                $lookup: {
-                  from: 'characters',
-                  localField: 'party.character',
-                  foreignField: '_id',
-                  as: 'party',
-                },
+            },
+            {
+              $lookup: {
+                from: 'characters',
+                localField: 'party.character',
+                foreignField: '_id',
+                as: 'party',
               },
-              {
-                $project: {
-                  _id: 0,
-                  party: {
-                    $map: {
-                      input: '$party',
-                      as: 'pc',
-                      in: '$$pc._id',
-                    },
+            },
+            {
+              $project: {
+                _id: 0,
+                party: {
+                  $map: {
+                    input: '$party',
+                    as: 'pc',
+                    in: '$$pc._id',
                   },
                 },
               },
-              {
-                $group: {
-                  _id: '$party',
-                  count: {
-                    $sum: 1,
-                  },
+            },
+            {
+              $group: {
+                _id: '$party',
+                count: {
+                  $sum: 1,
                 },
               },
-              {
-                $sort: {
-                  count: -1,
-                },
+            },
+            {
+              $sort: {
+                count: -1,
               },
-              {
-                $limit: 100,
-              },
-            ])
-            // .allowDiskUse(true)
-            .exec()
-        );
+            },
+            {
+              $limit: limit,
+            },
+          ])
+          .allowDiskUse(true)
+          .exec();
       }),
     );
   }
-
-  // async getTopFloorParties() {}
 
   async aggregateBattles() {
     const battleIndices = 2;

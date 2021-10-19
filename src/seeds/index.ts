@@ -136,8 +136,9 @@ const handleResponse = (
     case 10102: // Data not public
     case 1009: // Could not find user with UID
     case -1: // Could not find user with UID
-    default:
       return notOk();
+    default:
+      return null;
   }
 };
 
