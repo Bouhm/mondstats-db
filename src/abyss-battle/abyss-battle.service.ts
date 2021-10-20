@@ -129,7 +129,7 @@ export class AbyssBattleService {
   }
 
   async getTopParties(match: any = {}, limit = 20) {
-    console.log(match)
+    console.log(match);
     return this.abyssBattleModel
       .aggregate([
         {
@@ -155,7 +155,9 @@ export class AbyssBattleService {
               $map: {
                 input: '$party',
                 as: 'pc',
-                in: '$$pc._id',
+                in: {
+                  $toString: '$$pc._id',
+                },
               },
             },
           },
