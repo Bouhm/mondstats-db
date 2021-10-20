@@ -129,11 +129,9 @@ export class AbyssBattleService {
   }
 
   async getTopParties(match: any = {}, limit = 20) {
+    console.log(match)
     return this.abyssBattleModel
       .aggregate([
-        {
-          $match: match,
-        },
         {
           $lookup: {
             from: 'playercharacters',
@@ -161,6 +159,9 @@ export class AbyssBattleService {
               },
             },
           },
+        },
+        {
+          $match: match,
         },
         {
           $group: {

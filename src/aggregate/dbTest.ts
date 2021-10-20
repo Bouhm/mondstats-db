@@ -20,27 +20,29 @@ const characterService = new CharacterService(characterModel);
     // const abyssTopTeams = await abyssBattleService.getTopParties();
     const abyssFloorTeams: any = {};
 
-    map(
-      map(range(9, 13), (floor) => {
-        map(range(1, 4), async (stage) => {
-          abyssFloorTeams[`${floor}-${stage}`] = await abyssBattleService.getTopFloorParties(
-            `${floor}-${stage}`,
-          );
-        });
-      }),
-    );
+    // map(
+    //   map(range(9, 13), (floor) => {
+    //     map(range(1, 4), async (stage) => {
+    //       abyssFloorTeams[`${floor}-${stage}`] = await abyssBattleService.getTopFloorParties(
+    //         `${floor}-${stage}`,
+    //       );
+    //     });
+    //   }),
+    // );
 
-    const characterIds = map(await characterService.list(), ({ _id }) => _id.toString());
+    const characters = await await characterService.list();
+    const characterIds = map(characters, ({ _id }) => _id );
     const abyssTopCharTeams: any = {};
     const abyssFloorCharTeams: any = {};
 
-    for (const charId in characterIds) {
+    for (const charId of [characterIds[0]]) {
+      console.log(charId)
       abyssTopCharTeams[charId] = await abyssBattleService.getTopParties({
         party: { $all: [charId] },
       });
       console.log(abyssTopCharTeams[charId]);
-      for (const floor in range(9, 13)) {
-        for (const stage in range(1, 4)) {
+      for (const floor of range(9, 13)) {
+        for (const stage of range(1, 4)) {
           if (!abyssFloorCharTeams[`${floor}-${stage}`])
             abyssFloorCharTeams[`${floor}-${stage}`] = { [charId]: [] };
 
@@ -53,7 +55,7 @@ const characterService = new CharacterService(characterModel);
       }
     }
 
-    console.log(abyssFloorTeams, abyssTopCharTeams, abyssFloorCharTeams);
+    console.log(abyssTopCharTeams, abyssFloorCharTeams);
   } catch (err) {
     console.log(err);
   }
