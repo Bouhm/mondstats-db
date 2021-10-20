@@ -36,6 +36,8 @@ function _getActivationNumber(count: number, affixes: Affix[]) {
   return activation;
 }
 
+const options = { maxTimeMS: 21600000, allowDiskUse: true, noCursorTimeout: true }
+
 @Injectable()
 export class AbyssBattleService {
   constructor(
@@ -128,8 +130,7 @@ export class AbyssBattleService {
     return filteredBattles;
   }
 
-  async getTopParties(match: any = {}, limit = 20) {
-    console.log(match);
+  async getTopParties(match: any = {}, limit = 100) {
     return this.abyssBattleModel
       .aggregate([
         {
@@ -173,31 +174,24 @@ export class AbyssBattleService {
             },
           },
         },
-        {
-          $sort: {
-            count: -1,
-          },
-        },
+        // {
+        //   $sort: {
+        //     count: -1,
+        //   },
+        // },
         {
           $limit: limit,
         },
       ])
-      .allowDiskUse(true)
+      .option(options)
       .exec();
   }
 
-  async getTopFloorParties(floorLevel: string, match: any = {}, limit = 20) {
+  async getTopFloorParties(floorLevel: string, match: any = {}, limit = 100) {
     return await Promise.all(
       times(2, (i) => {
         return this.abyssBattleModel
           .aggregate([
-            {
-              $match: {
-                ...match,
-                floor_level: floorLevel,
-                battle_index: i + 1,
-              },
-            },
             {
               $lookup: {
                 from: 'playercharacters',
@@ -227,6 +221,13 @@ export class AbyssBattleService {
               },
             },
             {
+              $match: {
+                ...match,
+                floor_level: floorLevel,
+                battle_index: i + 1,
+              },
+            },
+            {
               $group: {
                 _id: '$party',
                 count: {
@@ -234,16 +235,16 @@ export class AbyssBattleService {
                 },
               },
             },
-            {
-              $sort: {
-                count: -1,
-              },
-            },
+            // {
+            //   $sort: {
+            //     count: -1,
+            //   },
+            // },
             {
               $limit: limit,
             },
           ])
-          .allowDiskUse(true)
+          .option(options)
           .exec();
       }),
     );
