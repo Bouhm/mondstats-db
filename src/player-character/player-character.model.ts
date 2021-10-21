@@ -15,7 +15,12 @@ export class BuildWeapon {
 @ObjectType('BuildSet')
 export class BuildSet {
   @Field(() => String)
-  _id: string;
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'ArtifactSet',
+    required: true,
+  })
+  _id: MongooseSchema.Types.ObjectId;
 
   @Field(() => Number)
   activation_number: number;
@@ -86,9 +91,13 @@ export class PlayerCharacter {
   @Prop({
     type: [MongooseSchema.Types.ObjectId],
     ref: 'Artifact',
-    required: true,
+    // required: true,
   })
   artifacts: MongooseSchema.Types.ObjectId[];
+
+  @Field(() => [String])
+  @Prop({ required: true })
+  artifactSets: BuildSet[];
 
   @Field(() => Number)
   @Prop({ required: true })

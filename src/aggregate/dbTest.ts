@@ -44,7 +44,7 @@ type TeamStat = { party: string[]; count: number };
       }),
     );
 
-    const characters = await await characterService.list();
+    const characters = await characterService.list();
     const characterIds = map(characters, ({ _id }) => _id);
 
     const abyssTopCharTeams: { [charId: string]: TeamStat[] } = {};

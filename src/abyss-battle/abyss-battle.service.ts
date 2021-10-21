@@ -36,7 +36,7 @@ function _getActivationNumber(count: number, affixes: Affix[]) {
   return activation;
 }
 
-const options = { maxTimeMS: 21600000, allowDiskUse: true, noCursorTimeout: true }
+const options = { maxTimeMS: 21600000, allowDiskUse: true, noCursorTimeout: true };
 
 @Injectable()
 export class AbyssBattleService {
@@ -142,14 +142,6 @@ export class AbyssBattleService {
           },
         },
         {
-          $lookup: {
-            from: 'characters',
-            localField: 'party.character',
-            foreignField: '_id',
-            as: 'party',
-          },
-        },
-        {
           $project: {
             _id: 0,
             party: {
@@ -157,7 +149,7 @@ export class AbyssBattleService {
                 input: '$party',
                 as: 'pc',
                 in: {
-                  $toString: '$$pc._id',
+                  $toString: '$$pc.character',
                 },
               },
             },
@@ -174,11 +166,11 @@ export class AbyssBattleService {
             },
           },
         },
-        // {
-        //   $sort: {
-        //     count: -1,
-        //   },
-        // },
+        {
+          $sort: {
+            count: -1,
+          },
+        },
         {
           $limit: limit,
         },
@@ -201,21 +193,13 @@ export class AbyssBattleService {
               },
             },
             {
-              $lookup: {
-                from: 'characters',
-                localField: 'party.character',
-                foreignField: '_id',
-                as: 'party',
-              },
-            },
-            {
               $project: {
                 _id: 0,
                 party: {
                   $map: {
                     input: '$party',
                     as: 'pc',
-                    in: '$$pc._id',
+                    in: '$$pc.character',
                   },
                 },
               },
@@ -235,11 +219,11 @@ export class AbyssBattleService {
                 },
               },
             },
-            // {
-            //   $sort: {
-            //     count: -1,
-            //   },
-            // },
+            {
+              $sort: {
+                count: -1,
+              },
+            },
             {
               $limit: limit,
             },

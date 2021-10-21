@@ -14,6 +14,7 @@ import {
   orderBy,
   values,
 } from 'lodash';
+import { ObjectId } from 'mongoose';
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
 import { AbyssBattleService } from '../abyss-battle/abyss-battle.service';
@@ -219,7 +220,7 @@ export const aggregateStats = async () => {
     }[];
     artifactSets: {
       artifacts: {
-        _id: string;
+        _id: ObjectId;
         activation_number: number;
       }[];
       count: number;
@@ -228,7 +229,7 @@ export const aggregateStats = async () => {
 
   const artifactSetStats: {
     artifacts: {
-      _id: string;
+      _id: ObjectId;
       activation_number: number;
     }[];
     count: number;
