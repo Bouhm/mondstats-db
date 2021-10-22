@@ -21,7 +21,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { AbyssBattle, AbyssBattleDocument } from '../abyss-battle/abyss-battle.model';
 import { Affix, ArtifactSet, ArtifactSetDocument } from '../artifact-set/artifact-set.model';
 // import abyssBattles from '../data/abyssBattles.json';
-import { WeaponDocument } from '../weapon/weapon.model';
+import weaponModel, { WeaponDocument } from '../weapon/weapon.model';
 import { ListPlayerCharacterInput } from './player-character.inputs';
 import { CharacterBuildStats, PlayerCharacter, PlayerCharacterDocument } from './player-character.model';
 
@@ -133,6 +133,8 @@ function addCharacterBuild(
   }
 }
 
+const options = { maxTimeMS: 21600000, allowDiskUse: true, noCursorTimeout: true };
+
 @Injectable()
 export class PlayerCharacterService {
   constructor(
@@ -202,12 +204,48 @@ export class PlayerCharacterService {
     return filteredCharacters;
   }
 
-  async getTopBuilds(match = {}) {
-    return await this.playerCharacterModel.aggregate([
-      {
-        $project: {},
-      },
-    ]);
+  async getTopBuilds(match = {}, limit = 100) {
+    return await this.playerCharacterModel
+      .aggregate([
+        {
+          $match: match,
+        },
+        {
+          $group: {
+            _id: {
+              weapon: '$weapon',
+              artifactSets: '$artifactSets',
+            },
+            count: {
+              $sum: 1,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: '$_id.artifactSets',
+            weapons: {
+              $push: {
+                _id: '$_id.weapon',
+                count: '$count',
+              },
+            },
+            count: {
+              $sum: '$count',
+            },
+          },
+        },
+        {
+          $sort: {
+            count: -1,
+          },
+        },
+        {
+          $limit: limit,
+        },
+      ])
+      .option(options)
+      .exec();
   }
 
   async aggregateAll(teams: any, abyssUsageCounts: any) {
@@ -413,11 +451,9 @@ export class PlayerCharacterService {
   async aggregateBuilds(filter: ListPlayerCharacterInput = {}) {
     // const playerCharacters = await this.list(filter);
     // const characterData: CharacterBuildStats[] = [];
-
     // forEach(playerCharacters, ({ character, weapon, artifacts, constellation, level }: any) => {
     //   const charWeapon = <WeaponDocument>weapon;
     //   const playerSets: any = {};
-
     //   // Get artifact set combinations
     //   forEach(artifacts, (relic: any) => {
     //     if (playerSets.hasOwnProperty(relic['set']._id.toString())) {
@@ -429,14 +465,10 @@ export class PlayerCharacterService {
     //       };
     //     }
     //   });
-
     //   if (keys(playerSets).length > 2) return;
-
     //   let artifactSetCombinations: { _id: string; activation_number: number }[] = [];
-
     //   forIn(playerSets, (set, _id) => {
     //     const activationNum = _getActivationNumber(set.count, set.affixes);
-
     //     if (activationNum > 1) {
     //       artifactSetCombinations.push({
     //         _id,
@@ -444,14 +476,10 @@ export class PlayerCharacterService {
     //       });
     //     }
     //   });
-
     //   artifactSetCombinations = sortBy(artifactSetCombinations, (set) => set._id.toString());
-
     //   const charIdx = findIndex(characterData, { char_id: character._id.toString() });
-
     //   if (charIdx > -1) {
     //     characterData[charIdx].constellations[constellation]++;
-
     //     const buildIdx = findIndex(characterData[charIdx].builds, (build) =>
     //       isEqual(build.artifacts, artifactSetCombinations),
     //     );
@@ -474,11 +502,9 @@ export class PlayerCharacterService {
     //       } else {
     //         characterData[charIdx].builds[buildIdx].weapons[weaponIdx].count++;
     //       }
-
     //       // Update artifact set count
     //       characterData[charIdx].builds[buildIdx].count++;
     //     }
-
     //     // characterData[charIdx].avg_level = Math.floor(
     //     //   characterData[charIdx].avg_level +
     //     //     (level - characterData[charIdx].avg_level) / characterData[charIdx].total,
@@ -486,7 +512,6 @@ export class PlayerCharacterService {
     //   } else {
     //     const constellations = new Array(7).fill(0);
     //     constellations[constellation] = 1;
-
     //     // characterData.push({
     //     //   char_id: character._id,
     //     //   constellations,
@@ -502,7 +527,6 @@ export class PlayerCharacterService {
     //     // });
     //   }
     // });
-
     // return characterData;
   }
 

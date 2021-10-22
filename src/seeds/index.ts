@@ -398,7 +398,7 @@ function _getActivationNumber(count: number, affixes: any[]) {
 
   let activation = 0;
   forEach(activations, (activation_num) => {
-    if (count >= activation_num && activation_num > 1) {
+    if (count >= activation_num) {
       activation = activation_num;
     }
   });
@@ -493,7 +493,7 @@ const saveCharacterData = async (char: ICharacterResponse, i: number) => {
 
   forEach(artifactSets, (setData) => {
     const activationNum = _getActivationNumber(setData.count, setData.affixes);
-    if (activationNum > 0) {
+    if (activationNum > 1) {
       artifactSetCombinations.push({
         _id: setData._id,
         activation_number: activationNum,

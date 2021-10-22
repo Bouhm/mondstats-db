@@ -31,82 +31,86 @@ type TeamStat = { party: string[]; count: number };
   await connectDb();
 
   try {
-    const abyssTopTeams: TeamStat[] = await abyssBattleService.getTopParties();
-    const abyssFloorTeams: { [floor: string]: TeamStat[][] } = {};
-
-    map(
-      map(range(9, 13), (floor) => {
-        map(range(1, 4), async (stage) => {
-          abyssFloorTeams[`${floor}-${stage}`] = await abyssBattleService.getTopFloorParties(
-            `${floor}-${stage}`,
-          );
-        });
-      }),
-    );
-
     const characters = await characterService.list();
     const characterIds = map(characters, ({ _id }) => _id);
 
-    const abyssTopCharTeams: { [charId: string]: TeamStat[] } = {};
-    const abyssFloorCharTeams: { [floor: string]: { [charId: string]: TeamStat[][] } } = {};
+    const a = await playerCharacterService.getTopBuilds({ character: characterIds[0] });
+    console.log(a)
+    
+    // const abyssTopTeams: TeamStat[] = await abyssBattleService.getTopParties();
+    // const abyssFloorTeams: { [floor: string]: TeamStat[][] } = {};
 
-    for (const charId of characterIds) {
-      abyssTopCharTeams[charId] = await abyssBattleService.getTopParties({
-        party: { $all: [charId] },
-      });
+    // map(
+    //   map(range(9, 13), (floor) => {
+    //     map(range(1, 4), async (stage) => {
+    //       abyssFloorTeams[`${floor}-${stage}`] = await abyssBattleService.getTopFloorParties(
+    //         `${floor}-${stage}`,
+    //       );
+    //     });
+    //   }),
+    // );
 
-      for (const floor of range(9, 13)) {
-        for (const stage of range(1, 4)) {
-          if (!abyssFloorCharTeams[`${floor}-${stage}`])
-            abyssFloorCharTeams[`${floor}-${stage}`] = { [charId]: [] };
 
-          abyssFloorCharTeams[`${floor}-${stage}`][charId] = await abyssBattleService.getTopFloorParties(
-            `${floor}-${stage}`,
-            { party: { $all: [charId] } },
-            100,
-          );
-        }
-      }
-    }
+    // const abyssTopCharTeams: { [charId: string]: TeamStat[] } = {};
+    // const abyssFloorCharTeams: { [floor: string]: { [charId: string]: TeamStat[][] } } = {};
 
-    forEach(abyssTopCharTeams, (teams) => {
-      forEach(teams, (team) => {
-        const abyssTeam = find(abyssTopTeams, (_team) => isEqual(_team.party.sort(), team.party.sort()));
+    // for (const charId of characterIds) {
+    //   abyssTopCharTeams[charId] = await abyssBattleService.getTopParties({
+    //     party: { $all: [charId] },
+    //   });
 
-        if (!abyssTeam) {
-          abyssTopTeams.push(team);
-        }
-      });
-    });
+    //   for (const floor of range(9, 13)) {
+    //     for (const stage of range(1, 4)) {
+    //       if (!abyssFloorCharTeams[`${floor}-${stage}`])
+    //         abyssFloorCharTeams[`${floor}-${stage}`] = { [charId]: [] };
 
-    forEach(abyssFloorCharTeams, (chars, floor) => {
-      forEach(chars, (half, i) => {
-        forEach(half, (teams) => {
-          forEach(teams, (team) => {
-            const abyssTeam = find(abyssTopTeams, (_team) =>
-              isEqual(_team.party.sort(), team.party.sort()),
-            );
+    //       abyssFloorCharTeams[`${floor}-${stage}`][charId] = await abyssBattleService.getTopFloorParties(
+    //         `${floor}-${stage}`,
+    //         { party: { $all: [charId] } },
+    //         100,
+    //       );
+    //     }
+    //   }
+    // }
 
-            if (!abyssTeam) {
-              abyssFloorTeams[floor][i].push(team);
-            }
-          });
-        });
-      });
-    });
+    // forEach(abyssTopCharTeams, (teams) => {
+    //   forEach(teams, (team) => {
+    //     const abyssTeam = find(abyssTopTeams, (_team) => isEqual(_team.party.sort(), team.party.sort()));
 
-    const abyssTopCoreTeams: any = map(abyssTopCharTeams, (parties) =>
-      aggregateCoreTeams(orderBy(parties, 'count', 'desc')),
-    );
-    const abyssFloorCoreTeams: any = {};
+    //     if (!abyssTeam) {
+    //       abyssTopTeams.push(team);
+    //     }
+    //   });
+    // });
 
-    forEach(abyssFloorTeams, (half, floor) => {
-      forEach(half, (parties) => {
-        abyssFloorCoreTeams[floor] = aggregateCoreTeams(orderBy(parties, 'count', 'desc'));
-      });
-    });
+    // forEach(abyssFloorCharTeams, (chars, floor) => {
+    //   forEach(chars, (half, i) => {
+    //     forEach(half, (teams) => {
+    //       forEach(teams, (team) => {
+    //         const abyssTeam = find(abyssTopTeams, (_team) =>
+    //           isEqual(_team.party.sort(), team.party.sort()),
+    //         );
 
-    console.log(abyssTopCoreTeams, abyssFloorCoreTeams);
+    //         if (!abyssTeam) {
+    //           abyssFloorTeams[floor][i].push(team);
+    //         }
+    //       });
+    //     });
+    //   });
+    // });
+
+    // const abyssTopCoreTeams: any = map(abyssTopCharTeams, (parties) =>
+    //   aggregateCoreTeams(orderBy(parties, 'count', 'desc')),
+    // );
+    // const abyssFloorCoreTeams: any = {};
+
+    // forEach(abyssFloorTeams, (half, floor) => {
+    //   forEach(half, (parties) => {
+    //     abyssFloorCoreTeams[floor] = aggregateCoreTeams(orderBy(parties, 'count', 'desc'));
+    //   });
+    // });
+
+    // console.log(abyssTopCoreTeams, abyssFloorCoreTeams);
   } catch (err) {
     console.log(err);
   }
