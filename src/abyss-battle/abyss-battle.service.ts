@@ -153,6 +153,7 @@ export class AbyssBattleService {
                 },
               },
             },
+            star: 1,
           },
         },
         {
@@ -163,6 +164,14 @@ export class AbyssBattleService {
             _id: '$party',
             count: {
               $sum: 1,
+            },
+            avgStar: {
+              $avg: '$star',
+            },
+            winCount: {
+              $sum: {
+                $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
+              },
             },
           },
         },
@@ -202,6 +211,7 @@ export class AbyssBattleService {
                     in: '$$pc.character',
                   },
                 },
+                star: 1,
               },
             },
             {
@@ -216,6 +226,14 @@ export class AbyssBattleService {
                 _id: '$party',
                 count: {
                   $sum: 1,
+                },
+                avgStar: {
+                  $avg: '$star',
+                },
+                winCount: {
+                  $sum: {
+                    $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
+                  },
                 },
               },
             },

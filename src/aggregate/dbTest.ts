@@ -35,9 +35,9 @@ type TeamStat = { party: string[]; count: number };
     const characterIds = map(characters, ({ _id }) => _id);
 
     const a = await playerCharacterService.getTopBuilds({ character: characterIds[0] });
-    console.log(a)
     
-    // const abyssTopTeams: TeamStat[] = await abyssBattleService.getTopParties();
+    const abyssTopTeams: TeamStat[] = await abyssBattleService.getTopParties();
+    console.log(abyssTopTeams)
     // const abyssFloorTeams: { [floor: string]: TeamStat[][] } = {};
 
     // map(

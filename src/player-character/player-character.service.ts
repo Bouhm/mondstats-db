@@ -230,11 +230,11 @@ export class PlayerCharacterService {
                 count: '$count',
               },
             },
-            count: {
-              $sum: '$count',
-            },
           },
         },
+        { $unwind: '$weapons' },
+        { $sort: { 'weapons.count': -1 } },
+        { $group: { _id: '$_id', count: { $sum: '$weapons.count' }, weapons: { $push: '$weapons' } } },
         {
           $sort: {
             count: -1,
