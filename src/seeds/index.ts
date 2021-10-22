@@ -533,8 +533,6 @@ const saveCharacterData = async (char: ICharacterResponse, i: number) => {
       {
         character: characterRef._id,
         player: currRefs[i].playerRef._id,
-        $set: { artifactSets: artifactSetCombinations },
-        $unset: { artifacts: 1 },
       },
       { $setOnInsert: playerCharacter },
       options,
