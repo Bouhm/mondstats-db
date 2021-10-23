@@ -34,85 +34,8 @@ type TeamStat = { party: string[]; count: number };
     const characters = await characterService.list();
     const characterIds = map(characters, ({ _id }) => _id);
 
-    // const a = await playerCharacterService.getTopBuilds({ character: characterIds[0] });
-    
-    // const abyssTopTeams: TeamStat[] = await abyssBattleService.getTopParties();
-    // const abyssFloorTeams: { [floor: string]: TeamStat[][] } = {};
-
-    const b = await abyssBattleService.getBuildAbyssStats(characterIds[0])
-    console.log(b)
-
-    // map(
-    //   map(range(9, 13), (floor) => {
-    //     map(range(1, 4), async (stage) => {
-    //       abyssFloorTeams[`${floor}-${stage}`] = await abyssBattleService.getTopFloorParties(
-    //         `${floor}-${stage}`,
-    //       );
-    //     });
-    //   }),
-    // );
-
-
-    // const abyssTopCharTeams: { [charId: string]: TeamStat[] } = {};
-    // const abyssFloorCharTeams: { [floor: string]: { [charId: string]: TeamStat[][] } } = {};
-
-    // for (const charId of characterIds) {
-    //   abyssTopCharTeams[charId] = await abyssBattleService.getTopParties({
-    //     [charId],
-    //   });
-
-    //   for (const floor of range(9, 13)) {
-    //     for (const stage of range(1, 4)) {
-    //       if (!abyssFloorCharTeams[`${floor}-${stage}`])
-    //         abyssFloorCharTeams[`${floor}-${stage}`] = { [charId]: [] };
-
-    //       abyssFloorCharTeams[`${floor}-${stage}`][charId] = await abyssBattleService.getTopFloorParties(
-    //         `${floor}-${stage}`,
-    //         [charId],
-    //         100,
-    //       );
-    //     }
-    //   }
-    // }
-
-    // forEach(abyssTopCharTeams, (teams) => {
-    //   forEach(teams, (team) => {
-    //     const abyssTeam = find(abyssTopTeams, (_team) => isEqual(_team.party.sort(), team.party.sort()));
-
-    //     if (!abyssTeam) {
-    //       abyssTopTeams.push(team);
-    //     }
-    //   });
-    // });
-
-    // forEach(abyssFloorCharTeams, (chars, floor) => {
-    //   forEach(chars, (half, i) => {
-    //     forEach(half, (teams) => {
-    //       forEach(teams, (team) => {
-    //         const abyssTeam = find(abyssTopTeams, (_team) =>
-    //           isEqual(_team.party.sort(), team.party.sort()),
-    //         );
-
-    //         if (!abyssTeam) {
-    //           abyssFloorTeams[floor][i].push(team);
-    //         }
-    //       });
-    //     });
-    //   });
-    // });
-
-    // const abyssTopCoreTeams: any = map(abyssTopCharTeams, (parties) =>
-    //   aggregateCoreTeams(orderBy(parties, 'count', 'desc')),
-    // );
-    // const abyssFloorCoreTeams: any = {};
-
-    // forEach(abyssFloorTeams, (half, floor) => {
-    //   forEach(half, (parties) => {
-    //     abyssFloorCoreTeams[floor] = aggregateCoreTeams(orderBy(parties, 'count', 'desc'));
-    //   });
-    // });
-
-    // console.log(abyssTopCoreTeams, abyssFloorCoreTeams);
+    const topBuildStats = await abyssBattleService.getBuildAbyssStats([], '', '', 1000)
+    console.log(topBuildStats)
   } catch (err) {
     console.log(err);
   }
@@ -123,8 +46,8 @@ type TeamStat = { party: string[]; count: number };
 type Flex = { charId: string; count: number };
 
 const aggregateCoreTeams = (parties: TeamStat[]) => {
-  const allIndexes = [0, 1, 2, 3];
-  const permIndexes = [
+  const partyIndexes = [0, 1, 2, 3];
+  const allIndexes = [
     [0, 1, 2],
     [0, 1, 3],
     [0, 2, 3],
@@ -134,7 +57,7 @@ const aggregateCoreTeams = (parties: TeamStat[]) => {
   let coreTeams: { core_party: string[]; count: number; flex: Flex[][] }[] = [];
 
   forEach(parties, ({ party, count }) => {
-    forEach(permIndexes, (coreIndexes) => {
+    forEach(allIndexes, (coreIndexes) => {
       const coreParty = [party[coreIndexes[0]], party[coreIndexes[1]], party[coreIndexes[2]]].sort();
       const partyIdx = findIndex(coreTeams, (team) => {
         return (
@@ -142,7 +65,7 @@ const aggregateCoreTeams = (parties: TeamStat[]) => {
           intersection(map(team.flex[0], (flex) => flex.charId)).length > 0
         );
       });
-      const flexIdx = difference(allIndexes, coreIndexes)[0];
+      const flexIdx = difference(partyIndexes, coreIndexes)[0];
 
       if (partyIdx > -1) {
         coreTeams[partyIdx].count += count;

@@ -130,7 +130,7 @@ export class AbyssBattleService {
     return filteredBattles;
   }
 
-  async getTopParties(characterIds: string[], limit = 100) {
+  async getTopParties(characterIds = [], limit = 100) {
     return this.abyssBattleModel
       .aggregate([
         {
@@ -159,8 +159,8 @@ export class AbyssBattleService {
         {
           $match: {
             party: {
-              $all: characterIds
-            }
+              $all: characterIds,
+            },
           },
         },
         {
@@ -192,7 +192,7 @@ export class AbyssBattleService {
       .exec();
   }
 
-  async getTopFloorParties(floorLevel: string, characterIds: string[], limit = 100) {
+  async getTopFloorParties(floorLevel: string, characterIds = [], limit = 100) {
     return await Promise.all(
       times(2, (i) => {
         return this.abyssBattleModel
@@ -256,7 +256,13 @@ export class AbyssBattleService {
     );
   }
 
-  async getBuildAbyssStats(characterId: string, build: any = {}, limit = 100) {
+  async getBuildAbyssStats(artifactSets: any = [], weaponId = '', characterId = '', limit = 100) {
+    const buildMatch: any = {};
+
+    if (characterId) buildMatch.character = { $all: [characterId] };
+    if (artifactSets.length) buildMatch.artifactSets = { $all: artifactSets };
+    if (weaponId) buildMatch.weapon = weaponId;
+
     return await this.abyssBattleModel
       .aggregate([
         {
@@ -277,7 +283,7 @@ export class AbyssBattleService {
                 in: {
                   artifactSets: '$$pc.artifactSets',
                   weapon: '$$pc.weapon',
-                  character: '$$pc.character'
+                  character: '$$pc.character',
                 },
               },
             },
@@ -289,20 +295,20 @@ export class AbyssBattleService {
             party: {
               $elemMatch: {
                 character: {
-                  $all: [characterId]
-                }
-              }
-            }
+                  $all: [characterId],
+                },
+              },
+            },
           },
         },
         {
-          $unwind: '$party'
+          $unwind: '$party',
         },
         {
           $group: {
             _id: {
               weapon: '$party.weapon',
-              artifactSets: '$party.artifactSets'
+              artifactSets: '$party.artifactSets',
             },
             count: {
               $sum: 1,
@@ -319,12 +325,12 @@ export class AbyssBattleService {
         },
         {
           $sort: {
-            count: -1
-          }
+            count: -1,
+          },
         },
         {
-          $limit: limit
-        }
+          $limit: limit,
+        },
       ])
       .option(options)
       .exec();

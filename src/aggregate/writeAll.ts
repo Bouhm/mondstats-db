@@ -7,7 +7,7 @@ import connectDb from '../util/connection';
 import { updateRepo } from './githubApi';
 import { aggregateDb } from './writeDb';
 import { aggregateFeatured } from './writeFeatured';
-import { aggregateStats } from './writeStats';
+import { aggregateBuildsAndTeams } from './writeStats';
 
 (async () => {
   await connectDb();
@@ -40,7 +40,7 @@ import { aggregateStats } from './writeStats';
 
   try {
     await aggregateDb();
-    await aggregateStats();
+    await aggregateBuildsAndTeams();
     await aggregateFeatured();
   } catch (err) {
     console.log(err);
