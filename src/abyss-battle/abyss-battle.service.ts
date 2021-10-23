@@ -130,7 +130,7 @@ export class AbyssBattleService {
     return filteredBattles;
   }
 
-  async getTopParties(match: any = {}, limit = 100) {
+  async getTopParties(characterIds: string[], limit = 100) {
     return this.abyssBattleModel
       .aggregate([
         {
@@ -157,7 +157,11 @@ export class AbyssBattleService {
           },
         },
         {
-          $match: match,
+          $match: {
+            party: {
+              $all: characterIds
+            }
+          },
         },
         {
           $group: {
@@ -188,7 +192,7 @@ export class AbyssBattleService {
       .exec();
   }
 
-  async getTopFloorParties(floorLevel: string, match: any = {}, limit = 100) {
+  async getTopFloorParties(floorLevel: string, characterIds: string[], limit = 100) {
     return await Promise.all(
       times(2, (i) => {
         return this.abyssBattleModel
@@ -216,7 +220,7 @@ export class AbyssBattleService {
             },
             {
               $match: {
-                ...match,
+                party: { $all: characterIds },
                 floor_level: floorLevel,
                 battle_index: i + 1,
               },
@@ -252,42 +256,75 @@ export class AbyssBattleService {
     );
   }
 
-  async getBuildAbyssStats(match = {}) {
+  async getBuildAbyssStats(characterId: string, build: any = {}, limit = 100) {
     return await this.abyssBattleModel
       .aggregate([
-        {
-          $unwind: '$party',
-        },
         {
           $lookup: {
             from: 'playercharacters',
             localField: 'party',
             foreignField: '_id',
-            as: 'character',
+            as: 'party',
           },
         },
-        // {
-        //   $match: match,
-        // },
-        // {
-        //   $group: {
-        //     _id: '$character',
-        //     count: {
-        //       $sum: 1,
-        //     },
-        //     avgStar: {
-        //       $avg: '$star',
-        //     },
-        //     winCount: {
-        //       $sum: {
-        //         $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
-        //       },
-        //     },
-        //   },
-        // },
         {
-          $limit: 5,
+          $project: {
+            _id: 0,
+            party: {
+              $map: {
+                input: '$party',
+                as: 'pc',
+                in: {
+                  artifactSets: '$$pc.artifactSets',
+                  weapon: '$$pc.weapon',
+                  character: '$$pc.character'
+                },
+              },
+            },
+            star: 1,
+          },
         },
+        {
+          $match: {
+            party: {
+              $elemMatch: {
+                character: {
+                  $all: [characterId]
+                }
+              }
+            }
+          },
+        },
+        {
+          $unwind: '$party'
+        },
+        {
+          $group: {
+            _id: {
+              weapon: '$party.weapon',
+              artifactSets: '$party.artifactSets'
+            },
+            count: {
+              $sum: 1,
+            },
+            avgStar: {
+              $avg: '$star',
+            },
+            winCount: {
+              $sum: {
+                $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
+              },
+            },
+          },
+        },
+        {
+          $sort: {
+            count: -1
+          }
+        },
+        {
+          $limit: limit
+        }
       ])
       .option(options)
       .exec();

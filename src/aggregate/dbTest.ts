@@ -39,7 +39,7 @@ type TeamStat = { party: string[]; count: number };
     // const abyssTopTeams: TeamStat[] = await abyssBattleService.getTopParties();
     // const abyssFloorTeams: { [floor: string]: TeamStat[][] } = {};
 
-    const b = await abyssBattleService.getBuildAbyssStats({ character: characterIds[0] })
+    const b = await abyssBattleService.getBuildAbyssStats(characterIds[0])
     console.log(b)
 
     // map(
@@ -58,7 +58,7 @@ type TeamStat = { party: string[]; count: number };
 
     // for (const charId of characterIds) {
     //   abyssTopCharTeams[charId] = await abyssBattleService.getTopParties({
-    //     party: { $all: [charId] },
+    //     [charId],
     //   });
 
     //   for (const floor of range(9, 13)) {
@@ -68,7 +68,7 @@ type TeamStat = { party: string[]; count: number };
 
     //       abyssFloorCharTeams[`${floor}-${stage}`][charId] = await abyssBattleService.getTopFloorParties(
     //         `${floor}-${stage}`,
-    //         { party: { $all: [charId] } },
+    //         [charId],
     //         100,
     //       );
     //     }
