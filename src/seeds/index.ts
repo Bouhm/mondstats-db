@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 'use strict';
 import Axios from 'axios';
 import fs from 'fs';
@@ -788,130 +789,130 @@ mongoose.connection.once('open', async () => {
   try {
     // await purgeOld();
 
-    // const pcs = await playerCharacterModel.find({ artifacts: { $exists: true } }).lean();
-    // let count = 0;
+    const pcs = await playerCharacterModel.find({ artifacts: { $exists: true } }).lean();
+    let count = 0;
 
-    // for (const pc of pcs) {
-    //   const artifactSets = [];
-    //   const artifactSetCombinations: BuildSet[] = [];
+    for (const pc of pcs) {
+      const artifactSets = [];
+      const artifactSetCombinations: BuildSet[] = [];
 
-    //   for (const relic of pc.artifacts) {
-    //     const artifact = await artifactModel.findById(relic);
-    //     const set = await artifactSetModel.findById(artifact.set);
+      for (const relic of pc.artifacts) {
+        const artifact = await artifactModel.findById(relic);
+        const set = await artifactSetModel.findById(artifact.set);
 
-    //     if (set) {
-    //       const setIdx = findIndex(artifactSets, (set) => set._id.toString() === set._id.toString());
+        if (set) {
+          const setIdx = findIndex(artifactSets, (set) => set._id.toString() === set._id.toString());
 
-    //       if (setIdx > -1) {
-    //         artifactSets[setIdx].count++;
-    //       } else {
-    //         artifactSets.push({
-    //           _id: set._id,
-    //           count: 1,
-    //           affixes: omit(set.affixes, ['_id']),
-    //         });
-    //       }
-    //     }
-    //   }
-
-    //   forEach(artifactSets, (setData) => {
-    //     const activationNum = _getActivationNumber(setData.count, setData.affixes);
-    //     if (activationNum > 0) {
-    //       artifactSetCombinations.push({
-    //         _id: setData._id,
-    //         activation_number: activationNum,
-    //       });
-    //     }
-    //   });
-    //   // console.log(artifactSetCombinations)
-
-    //   try {
-    //     await playerCharacterModel.findByIdAndUpdate(
-    //       pc._id,
-    //       { $set: { artifactSets: artifactSetCombinations }, $unset: { artifacts: 1 } },
-    //       { runValidators: true },
-    //     );
-    //     if (++count % 500 === 0) {
-    //       console.log(`${count}/${pcs.length}`);
-    //     }
-    //   } catch (err) {
-    //     console.log(err);
-    //   }
-    // }
-
-    loadFromJson();
-    // blockedIndices = new Array(TOKENS.length).fill(false);
-    const now = new Date();
-    dailyUpdate = getNextDay(now);
-    weeklyUpdate = getNextMonday(now);
-
-    concurrent = parseInt(process.env.npm_config_concurrent);
-    server = process.env.npm_config_server ? process.env.npm_config_server : 'usa';
-    currRefs = concurrent ? Array(concurrent).fill({}) : [{}];
-    const baseUid = _getBaseUid(server);
-
-    switch (process.env.npm_config_abyss) {
-      case 'prev':
-        console.log('Using last abyss data...');
-        abyssSchedule = 2;
-        break;
-      default:
-      case 'current':
-        console.log('Using current abyss data...');
-        abyssSchedule = 1;
-        break;
-    }
-
-    if (parseInt(process.env.npm_config_uid)) {
-      console.log('Starting from ' + process.env.npm_config_uid);
-      await runParallel(
-        async (i: number) => await collectDataFromPlayer(parseInt(process.env.npm_config_uid), i),
-      );
-    } else {
-      switch (process.env.npm_config_uid) {
-        default:
-        case 'last': {
-          console.log('Starting after last UID...');
-          const lastPlayer = await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
-            .sort({ uid: -1 })
-            .limit(1)
-            .lean();
-          console.log(lastPlayer.uid + 1);
-          await runParallel(async (i: number) => await collectDataFromPlayer(lastPlayer.uid + 1, i));
-          break;
-        }
-        case 'resume': {
-          console.log('Starting after last upated UID...');
-          const lastUpdatedPlayer = await PlayerModel.findOne({
-            uid: { $gt: baseUid, $lt: baseUid + 99999999 },
-          })
-            .limit(1)
-            .sort({ $natural: 1 })
-            .lean();
-
-          await runParallel(
-            async (i: number) => await collectDataFromPlayer(lastUpdatedPlayer.uid + 1, i),
-          );
-          break;
-        }
-        case 'all':
-          console.log('Starting from base UID...');
-          await runParallel(async (i: number) => await collectDataFromPlayer(null, i));
-          break;
-        case 'existing': {
-          existingUids = true;
-          console.log('Updating existing UIDs...');
-          lastUpdatedUid = (
-            await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
-              .limit(1)
-              .sort({ $natural: -1 })
-              .lean()
-          ).uid;
-          await runParallel(async (i: number) => await collectDataFromPlayer(null, i));
-          break;
+          if (setIdx > -1) {
+            artifactSets[setIdx].count++;
+          } else {
+            artifactSets.push({
+              _id: set._id,
+              count: 1,
+              affixes: omit(set.affixes, ['_id']),
+            });
+          }
         }
       }
+
+      forEach(artifactSets, (setData) => {
+        const activationNum = _getActivationNumber(setData.count, setData.affixes);
+        if (activationNum > 1) {
+          artifactSetCombinations.push({
+            _id: setData._id,
+            activation_number: activationNum,
+          });
+        }
+      });
+      // console.log(artifactSetCombinations)
+
+      try {
+        await playerCharacterModel.findByIdAndUpdate(
+          pc._id,
+          { $set: { artifactSets: artifactSetCombinations }, $unset: { artifacts: 1 } },
+          { runValidators: true },
+        );
+        if (++count % 500 === 0) {
+          console.log(`${count}/${pcs.length}`);
+        }
+      } catch (err) {
+        console.log(err);
+      }
     }
+
+    // loadFromJson();
+    // // blockedIndices = new Array(TOKENS.length).fill(false);
+    // const now = new Date();
+    // dailyUpdate = getNextDay(now);
+    // weeklyUpdate = getNextMonday(now);
+
+    // concurrent = parseInt(process.env.npm_config_concurrent);
+    // server = process.env.npm_config_server ? process.env.npm_config_server : 'usa';
+    // currRefs = concurrent ? Array(concurrent).fill({}) : [{}];
+    // const baseUid = _getBaseUid(server);
+
+    // switch (process.env.npm_config_abyss) {
+    //   case 'prev':
+    //     console.log('Using last abyss data...');
+    //     abyssSchedule = 2;
+    //     break;
+    //   default:
+    //   case 'current':
+    //     console.log('Using current abyss data...');
+    //     abyssSchedule = 1;
+    //     break;
+    // }
+
+    // if (parseInt(process.env.npm_config_uid)) {
+    //   console.log('Starting from ' + process.env.npm_config_uid);
+    //   await runParallel(
+    //     async (i: number) => await collectDataFromPlayer(parseInt(process.env.npm_config_uid), i),
+    //   );
+    // } else {
+    //   switch (process.env.npm_config_uid) {
+    //     default:
+    //     case 'last': {
+    //       console.log('Starting after last UID...');
+    //       const lastPlayer = await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
+    //         .sort({ uid: -1 })
+    //         .limit(1)
+    //         .lean();
+    //       console.log(lastPlayer.uid + 1);
+    //       await runParallel(async (i: number) => await collectDataFromPlayer(lastPlayer.uid + 1, i));
+    //       break;
+    //     }
+    //     case 'resume': {
+    //       console.log('Starting after last upated UID...');
+    //       const lastUpdatedPlayer = await PlayerModel.findOne({
+    //         uid: { $gt: baseUid, $lt: baseUid + 99999999 },
+    //       })
+    //         .limit(1)
+    //         .sort({ $natural: 1 })
+    //         .lean();
+
+    //       await runParallel(
+    //         async (i: number) => await collectDataFromPlayer(lastUpdatedPlayer.uid + 1, i),
+    //       );
+    //       break;
+    //     }
+    //     case 'all':
+    //       console.log('Starting from base UID...');
+    //       await runParallel(async (i: number) => await collectDataFromPlayer(null, i));
+    //       break;
+    //     case 'existing': {
+    //       existingUids = true;
+    //       console.log('Updating existing UIDs...');
+    //       lastUpdatedUid = (
+    //         await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
+    //           .limit(1)
+    //           .sort({ $natural: -1 })
+    //           .lean()
+    //       ).uid;
+    //       await runParallel(async (i: number) => await collectDataFromPlayer(null, i));
+    //       break;
+    //     }
+    //   }
+    // }
   } finally {
     await mongoose.connection.close();
   }

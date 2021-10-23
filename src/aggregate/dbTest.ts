@@ -34,11 +34,13 @@ type TeamStat = { party: string[]; count: number };
     const characters = await characterService.list();
     const characterIds = map(characters, ({ _id }) => _id);
 
-    const a = await playerCharacterService.getTopBuilds({ character: characterIds[0] });
+    // const a = await playerCharacterService.getTopBuilds({ character: characterIds[0] });
     
-    const abyssTopTeams: TeamStat[] = await abyssBattleService.getTopParties();
-    console.log(abyssTopTeams)
+    // const abyssTopTeams: TeamStat[] = await abyssBattleService.getTopParties();
     // const abyssFloorTeams: { [floor: string]: TeamStat[][] } = {};
+
+    const b = await abyssBattleService.getBuildAbyssStats({ character: characterIds[0] })
+    console.log(b)
 
     // map(
     //   map(range(9, 13), (floor) => {

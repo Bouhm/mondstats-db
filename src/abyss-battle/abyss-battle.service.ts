@@ -252,6 +252,47 @@ export class AbyssBattleService {
     );
   }
 
+  async getBuildAbyssStats(match = {}) {
+    return await this.abyssBattleModel
+      .aggregate([
+        {
+          $unwind: '$party',
+        },
+        {
+          $lookup: {
+            from: 'playercharacters',
+            localField: 'party',
+            foreignField: '_id',
+            as: 'character',
+          },
+        },
+        // {
+        //   $match: match,
+        // },
+        // {
+        //   $group: {
+        //     _id: '$character',
+        //     count: {
+        //       $sum: 1,
+        //     },
+        //     avgStar: {
+        //       $avg: '$star',
+        //     },
+        //     winCount: {
+        //       $sum: {
+        //         $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
+        //       },
+        //     },
+        //   },
+        // },
+        {
+          $limit: 5,
+        },
+      ])
+      .option(options)
+      .exec();
+  }
+
   async aggregateBattles() {
     const battleIndices = 2;
     const abyssBattles: { [floor: string]: AbyssStats } = {};
