@@ -257,9 +257,19 @@ export class AbyssBattleService {
   }
 
   async getBuildAbyssStats(artifactSets: any = [], weaponId = '', characterId = '', limit = 100) {
+    const partyMatch: any = {}; 
     const buildMatch: any = {};
 
-    if (characterId) buildMatch.character = { $all: [characterId] };
+    if (characterId) {
+      partyMatch.party = {
+        $elemMatch: {
+          character: {
+            $all: [characterId],
+          },
+        },
+      };
+      buildMatch.character = { $all: [characterId] };
+    } 
     if (artifactSets.length) buildMatch.artifactSets = { $all: artifactSets };
     if (weaponId) buildMatch.weapon = weaponId;
 
@@ -291,15 +301,7 @@ export class AbyssBattleService {
           },
         },
         {
-          $match: {
-            party: {
-              $elemMatch: {
-                character: {
-                  $all: [characterId],
-                },
-              },
-            },
-          },
+          $match: partyMatch
         },
         {
           $unwind: '$party',
@@ -336,238 +338,149 @@ export class AbyssBattleService {
       .exec();
   }
 
-  async aggregateBattles() {
-    const battleIndices = 2;
-    const abyssBattles: { [floor: string]: AbyssStats } = {};
-    const abyssTeams = [];
-
-    const abyssUsageCounts = {
-      characters: {},
-      weapons: {},
-      artifactSets: [],
-      builds: [],
-    };
-
-    const teams = [];
-
-    const battles = await this.abyssBattleModel
-      .find()
-      .lean()
-      .populate([
+  async getWeaponAbyssStats(limit = 100) {
+    return await this.abyssBattleModel
+      .aggregate([
         {
-          path: 'party',
-          model: PlayerCharacter.name,
-          select: 'character artifacts weapon -_id',
-          populate: [
-            {
-              path: 'character',
-              select: '_id',
-            },
-            {
-              path: 'weapon',
-              select: '_id',
-            },
-            {
-              path: 'artifacts',
-              select: 'set',
-              populate: [
-                {
-                  path: 'set',
-                  select: 'affixes _id',
+          $lookup: {
+            from: 'playercharacters',
+            localField: 'party',
+            foreignField: '_id',
+            as: 'party',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            party: {
+              $map: {
+                input: '$party',
+                as: 'pc',
+                in: {
+                  artifactSets: '$$pc.artifactSets',
+                  weapon: '$$pc.weapon',
+                  character: '$$pc.character',
                 },
-              ],
+              },
             },
-          ],
+            star: 1,
+          },
+        },
+        {
+          $unwind: '$party',
+        },
+        {
+          $lookup: {
+            from: 'weapons',
+            localField: 'party.weapon',
+            foreignField: '_id',
+            as: 'weapon',
+          },
+        },
+        { 
+          $group: {
+            _id: '$weapon.type_name'
+          },
+          weapons: {
+            $map: {
+              $push: {
+                _id: '$weapon._id',
+                star: '$star'
+              }
+            }
+          }
+          total: {
+            $sum: 1
+          }
+        },
+        {
+          $group: {
+            _id: '$weapon._id',
+            count: {
+              $sum: 1,
+            },
+            avgStar: {
+              $avg: '$star',
+            },
+            winCount: {
+              $sum: {
+                $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
+              },
+            },
+            total: $total
+          },
+        },
+        {
+          $sort: {
+            count: -1,
+          },
+        },
+        {
+          $limit: limit,
         },
       ])
+      .option(options)
       .exec();
-
-    forEach(battles, ({ party, floor_level, battle_index, star }) => {
-      forEach(party, ({ character, weapon, artifacts }: any) => {
-        // [abyssCount, abyssWins]
-        if (abyssUsageCounts.characters[character._id]) {
-          abyssUsageCounts.characters[character._id][0]++;
-        } else {
-          abyssUsageCounts.characters[character._id] = [1, 0];
-        }
-
-        if (abyssUsageCounts.weapons[weapon._id]) {
-          abyssUsageCounts.weapons[weapon._id][0]++;
-        } else {
-          abyssUsageCounts.weapons[weapon._id] = [1, 0];
-        }
-
-        const playerSets: any = {};
-
-        // Get artifact set combinations
-        forEach(artifacts, async (relic: any) => {
-          if (playerSets.hasOwnProperty(relic['set'].toString())) {
-            playerSets[relic.set._id.toString()].count++;
-          } else {
-            playerSets[relic.set._id.toString()] = {
-              count: 1,
-              affixes: map(relic.set.affixes, (affix) => omit(affix, ['_id'])),
-            };
-          }
-        });
-        // console.log(playerSets)
-
-        let artifactSetCombinations: { _id: string; activation_number: number }[] = [];
-        forIn(playerSets, (set, _id) => {
-          const activationNum = _getActivationNumber(set.count, set.affixes);
-          // console.log(activationNum)
-
-          if (activationNum > 1) {
-            artifactSetCombinations.push({
-              _id,
-              activation_number: activationNum,
-            });
-          }
-        });
-        artifactSetCombinations = sortBy(artifactSetCombinations, (set) => set._id.toString());
-
-        // console.log(artifactSetCombinations)
-        const artifactSetIdx = findIndex(abyssUsageCounts.artifactSets, (set) => {
-          // console.log(set.artifacts)
-          return artifactSetCombinations.length && isEqual(set.artifacts, artifactSetCombinations);
-        });
-
-        if (artifactSetIdx > -1) {
-          abyssUsageCounts.artifactSets[artifactSetIdx].count[0]++;
-
-          if (star > 2) {
-            abyssUsageCounts.artifactSets[artifactSetIdx].count[1]++;
-          }
-        } else {
-          abyssUsageCounts.artifactSets.push({
-            artifacts: artifactSetCombinations,
-            count: [1, star > 2 ? 1 : 0],
-          });
-        }
-
-        if (star > 2) {
-          abyssUsageCounts.characters[character._id][1]++;
-          abyssUsageCounts.weapons[weapon._id][1]++;
-        }
-
-        const setIdx = findIndex(abyssUsageCounts.artifactSets, (set: any) =>
-          isEqual(set.artifacts, artifactSetCombinations),
-        );
-
-        if (setIdx > 0) {
-          abyssUsageCounts.artifactSets[setIdx].count++;
-        } else {
-          abyssUsageCounts.artifactSets.push({
-            artifacts: artifactSetCombinations,
-            count: [1, star > 2 ? 1 : 0],
-          });
-        }
-
-        const buildIdx = findIndex(abyssUsageCounts.builds, (build: any) =>
-          isEqual(build.artifacts, artifactSetCombinations),
-        );
-
-        if (buildIdx > 0) {
-          const buildWeaponIdx = findIndex(
-            abyssUsageCounts.builds[buildIdx].weapons,
-            (buildWeapon: any) => buildWeapon._id === weapon._id,
-          );
-
-          if (buildWeaponIdx > -1) {
-            abyssUsageCounts.builds[buildIdx].weapons[buildWeaponIdx].count[0]++;
-
-            if (star > 2) {
-              abyssUsageCounts.builds[buildIdx].weapons[buildWeaponIdx].count[1]++;
-            }
-          } else {
-            abyssUsageCounts.builds[buildIdx].weapons.push({
-              _id: weapon._id,
-              count: [1, star > 2 ? 1 : 0],
-            });
-          }
-        } else {
-          abyssUsageCounts.builds.push({
-            artifacts: artifactSetCombinations,
-            weapons: [
-              {
-                _id: weapon._id,
-                count: [1, star > 2 ? 1 : 0],
-              },
-            ],
-          });
-        }
-      });
-
-      // if (party.length < 4) return;
-
-      // TOP TEAMS
-      const charIds = map(party, ({ character }: any) => character._id.toString()).sort();
-      const teamIndex = findIndex(teams, (team) => isEqual(team.party, charIds));
-
-      if (teamIndex > -1) {
-        teams[teamIndex].count++;
-      } else {
-        teams.push({
-          party: charIds,
-          count: 1,
-        });
-      }
-
-      // ABYSS DATA
-      const battleParty = map(party, ({ character }: any) => character._id.toString()).sort();
-
-      // Aggregate teams
-      const teamIdx = findIndex(abyssTeams, (team) => isEqual(team.party, battleParty));
-      if (teamIdx > -1) {
-        abyssTeams[teamIdx].count++;
-      } else {
-        abyssTeams.push({
-          party: battleParty,
-          count: 1,
-        });
-      }
-
-      // Aggregate abyss battles
-      if (abyssBattles[floor_level]) {
-        const partyData = abyssBattles[floor_level]['battle_parties'];
-
-        const partyIdx = findIndex(partyData[battle_index - 1], (battle: any) =>
-          isEqual(battle.party, battleParty),
-        );
-
-        if (partyIdx > -1) {
-          partyData[battle_index - 1][partyIdx].count++;
-        } else {
-          if (partyData[battle_index - 1]) {
-            partyData[battle_index - 1].push({
-              party: battleParty,
-              count: 1,
-            });
-          } else {
-            partyData[battle_index - 1] = [
-              {
-                party: battleParty,
-                count: 1,
-              },
-            ];
-          }
-        }
-      } else {
-        const battle_parties = [[], []];
-        battle_parties[battle_index - 1] = [{ party: battleParty, count: 1 }];
-
-        abyssBattles[floor_level] = {
-          battle_parties,
-          floor_level,
-        };
-      }
-    });
-
-    return { abyssUsage: abyssUsageCounts, charTeams: teams, teams: abyssTeams, abyss: abyssBattles };
   }
 
-  aggregate() {
-    return this.aggregateBattles();
+  async getArtifactSetsAbyssStats(limit = 100) {
+    return await this.abyssBattleModel
+      .aggregate([
+        {
+          $lookup: {
+            from: 'playercharacters',
+            localField: 'party',
+            foreignField: '_id',
+            as: 'party',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            party: {
+              $map: {
+                input: '$party',
+                as: 'pc',
+                in: {
+                  artifactSets: '$$pc.artifactSets',
+                  weapon: '$$pc.weapon',
+                  character: '$$pc.character',
+                },
+              },
+            },
+            star: 1,
+          },
+        },
+        {
+          $unwind: '$party',
+        },
+        {
+          $group: {
+            _id: '$party.artifactSets',
+            count: {
+              $sum: 1,
+            },
+            avgStar: {
+              $avg: '$star',
+            },
+            winCount: {
+              $sum: {
+                $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
+              },
+            },
+          },
+        },
+        {
+          $sort: {
+            count: -1,
+          },
+        },
+        {
+          $limit: limit,
+        },
+      ])
+      .option(options)
+      .exec();
   }
 
   getStats() {

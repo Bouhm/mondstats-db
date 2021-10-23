@@ -34,8 +34,9 @@ type TeamStat = { party: string[]; count: number };
     const characters = await characterService.list();
     const characterIds = map(characters, ({ _id }) => _id);
 
-    const topBuildStats = await abyssBattleService.getBuildAbyssStats([], '', '', 1000)
-    console.log(topBuildStats)
+    const weaponAbyssStats = await abyssBattleService.getWeaponAbyssStats(1000);
+    const artifactSetsAbyssStats = await abyssBattleService.getArtifactSetsAbyssStats(1000);
+    console.log(weaponAbyssStats, artifactSetsAbyssStats)
   } catch (err) {
     console.log(err);
   }
