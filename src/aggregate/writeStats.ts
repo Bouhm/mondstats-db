@@ -16,11 +16,11 @@ import {
   values,
 } from 'lodash';
 import { ObjectId } from 'mongoose';
-import characterModel from 'src/character/character.model';
-import { CharacterService } from 'src/character/character.service';
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
 import { AbyssBattleService } from '../abyss-battle/abyss-battle.service';
+import characterModel from '../character/character.model';
+import { CharacterService } from '../character/character.service';
 import playerCharacterModel, { CharacterBuildStats } from '../player-character/player-character.model';
 import { PlayerCharacterService } from '../player-character/player-character.service';
 import { getShortName, getTotal } from '../util';
@@ -36,13 +36,8 @@ export const aggregateBuildsAndTeams = async () => {
   const characters = await characterService.list();
   const characterIds = map(characters, ({ _id }) => _id);
 
-  const a = await playerCharacterService.getTopBuilds({ character: characterIds[0] });
-
   const abyssTopTeams: TeamStat[] = await abyssBattleService.getTopParties();
   const abyssFloorTeams: { [floor: string]: TeamStat[][] } = {};
-
-  const b = await abyssBattleService.getBuildAbyssStats(characterIds[0]);
-  console.log(b);
 
   map(
     map(range(9, 13), (floor) => {
@@ -98,9 +93,7 @@ export const aggregateBuildsAndTeams = async () => {
     });
   });
 
-  const abyssTopCoreTeams: any = map(abyssTopCharTeams, (parties) =>
-    aggregateCoreTeams(orderBy(parties, 'count', 'desc')),
-  );
+  const abyssTopCoreTeams = aggregateCoreTeams(abyssTopTeams);
   const abyssFloorCoreTeams: any = {};
 
   forEach(abyssFloorTeams, (half, floor) => {
@@ -109,7 +102,16 @@ export const aggregateBuildsAndTeams = async () => {
     });
   });
 
-  const topBuildStats = await abyssBattleService.getBuildAbyssStats([], '', '', 1000)
+  const topWeaponStats = await abyssBattleService.getWeaponAbyssStats();
+  const weaponStatTotals = await abyssBattleService.getWeaponTypeTotals();
+  const topArtifactSetStats = await abyssBattleService.getArtifactSetsAbyssStats();
+  const artifactSetTotals = await abyssBattleService.getArtifactSetTotals();
+
+  // forEach(topWeaponStats, weaponStat => {
+  //   const typeIdx = findIndex(weaponStatTotals, statTotal => statTotal.type === weaponStat.type_name)
+  //   top
+  // })
+  console.log();
 
   // await Promise.all([
   //   fs.writeFile('data/weapons/stats/top-weapons.json', JSON.stringify(topWeaponStats), (e) => e),
@@ -167,6 +169,9 @@ export const aggregateBuildsAndTeams = async () => {
   //   }),
   // ]);
 };
+
+
+aggregateBuildsAndTeams();
 
 type Flex = { charId: string; count: number };
 

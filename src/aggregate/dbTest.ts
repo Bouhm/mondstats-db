@@ -34,9 +34,87 @@ type TeamStat = { party: string[]; count: number };
     const characters = await characterService.list();
     const characterIds = map(characters, ({ _id }) => _id);
 
-    const weaponAbyssStats = await abyssBattleService.getWeaponAbyssStats(1000);
-    const artifactSetsAbyssStats = await abyssBattleService.getArtifactSetsAbyssStats(1000);
-    console.log(weaponAbyssStats, artifactSetsAbyssStats)
+    const abyssTopTeams: TeamStat[] = await abyssBattleService.getTopParties();
+    const abyssFloorTeams: { [floor: string]: TeamStat[][] } = {};
+
+    console.log('Done top teams');
+    map(
+      map(range(9, 13), (floor) => {
+        map(range(1, 4), async (stage) => {
+          abyssFloorTeams[`${floor}-${stage}`] = await abyssBattleService.getTopFloorParties(
+            `${floor}-${stage}`,
+          );
+        });
+      }),
+    );
+
+    console.log('Done top floor teams');
+
+    const abyssTopCharTeams: { [charId: string]: TeamStat[] } = {};
+    const abyssFloorCharTeams: { [floor: string]: { [charId: string]: TeamStat[][] } } = {};
+
+    for (const charId of characterIds) {
+      abyssTopCharTeams[charId] = await abyssBattleService.getTopParties([charId]);
+
+      for (const floor of range(9, 13)) {
+        for (const stage of range(1, 4)) {
+          if (!abyssFloorCharTeams[`${floor}-${stage}`])
+            abyssFloorCharTeams[`${floor}-${stage}`] = { [charId]: [] };
+
+          abyssFloorCharTeams[`${floor}-${stage}`][charId] = await abyssBattleService.getTopFloorParties(
+            `${floor}-${stage}`,
+            [charId],
+            100,
+          );
+        }
+      }
+    }
+
+    console.log('Done character floor teams');
+
+    forEach(abyssTopCharTeams, (teams) => {
+      forEach(teams, (team) => {
+        const abyssTeam = find(abyssTopTeams, (_team) => isEqual(_team.party.sort(), team.party.sort()));
+
+        if (!abyssTeam) {
+          abyssTopTeams.push(team);
+        }
+      });
+    });
+
+    forEach(abyssFloorCharTeams, (chars, floor) => {
+      forEach(chars, (half, i) => {
+        forEach(half, (teams) => {
+          forEach(teams, (team) => {
+            const abyssTeam = find(abyssTopTeams, (_team) =>
+              isEqual(_team.party.sort(), team.party.sort()),
+            );
+
+            if (!abyssTeam) {
+              abyssFloorTeams[floor][i].push(team);
+            }
+          });
+        });
+      });
+    });
+
+    const abyssTopCoreTeams = aggregateCoreTeams(abyssTopTeams);
+    const abyssFloorCoreTeams: any = {};
+
+    forEach(abyssFloorTeams, (half, floor) => {
+      forEach(half, (parties) => {
+        abyssFloorCoreTeams[floor] = aggregateCoreTeams(orderBy(parties, 'count', 'desc'));
+      });
+    });
+
+    console.log('Done merging teams');
+
+    const topWeaponStats = await abyssBattleService.getWeaponAbyssStats();
+    const weaponStatTotals = await abyssBattleService.getWeaponTypeTotals();
+    const topArtifactSetStats = await abyssBattleService.getArtifactSetsAbyssStats();
+    const artifactSetTotals = await abyssBattleService.getArtifactSetTotals();
+
+    console.log();
   } catch (err) {
     console.log(err);
   }
