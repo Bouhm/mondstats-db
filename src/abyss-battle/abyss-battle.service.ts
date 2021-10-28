@@ -130,7 +130,7 @@ export class AbyssBattleService {
     return filteredBattles;
   }
 
-  async getTopParties(characterIds = [], limit = 100) {
+  getTopParties(characterIds = [], limit = 100) {
     return this.abyssBattleModel
       .aggregate([
         {
@@ -148,9 +148,7 @@ export class AbyssBattleService {
               $map: {
                 input: '$party',
                 as: 'pc',
-                in: {
-                  $toString: '$$pc.character',
-                },
+                in: '$$pc.character',
               },
             },
             star: 1,
@@ -158,9 +156,7 @@ export class AbyssBattleService {
         },
         {
           $match: {
-            party: {
-              $all: characterIds,
-            },
+            party: { $all: characterIds },
           },
         },
         {
@@ -180,6 +176,15 @@ export class AbyssBattleService {
           },
         },
         {
+          $project: {
+            _id: 0,
+            party: '$_id',
+            count: 1,
+            avgStar: 1,
+            winCount: 1,
+          },
+        },
+        {
           $sort: {
             count: -1,
           },
@@ -192,71 +197,88 @@ export class AbyssBattleService {
       .exec();
   }
 
-  async getTopFloorParties(floorLevel: string, characterIds = [], limit = 100) {
-    return await Promise.all(
-      times(2, (i) => {
-        return this.abyssBattleModel
-          .aggregate([
-            {
-              $lookup: {
-                from: 'playercharacters',
-                localField: 'party',
-                foreignField: '_id',
-                as: 'party',
+  async getTopFloorParties(floorLevel: string, battleIndex: number, characterIds = [], limit = 100) {
+    return this.abyssBattleModel
+      .aggregate([
+        {
+          $match: {
+            floor_level: floorLevel,
+            battle_index: battleIndex,
+          },
+        },
+        {
+          $lookup: {
+            from: 'playercharacters',
+            localField: 'party',
+            foreignField: '_id',
+            as: 'party',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            party: {
+              $map: {
+                input: '$party',
+                as: 'pc',
+                in: '$$pc.character',
               },
             },
-            {
-              $project: {
-                _id: 0,
-                party: {
-                  $map: {
-                    input: '$party',
-                    as: 'pc',
-                    in: '$$pc.character',
-                  },
-                },
-                star: 1,
+            floor_level: 1,
+            battle_index: 1,
+            star: 1,
+          },
+        },
+        {
+          $match: {
+            party: { $all: characterIds },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              party: '$party',
+              floorLevel: '$floor_level',
+              battleIndex: '$battle_index',
+            },
+            count: {
+              $sum: 1,
+            },
+            avgStar: {
+              $avg: '$star',
+            },
+            winCount: {
+              $sum: {
+                $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
               },
             },
-            {
-              $match: {
-                party: { $all: characterIds },
-                floor_level: floorLevel,
-                battle_index: i + 1,
-              },
-            },
-            {
-              $group: {
-                _id: '$party',
-                count: {
-                  $sum: 1,
-                },
-                avgStar: {
-                  $avg: '$star',
-                },
-                winCount: {
-                  $sum: {
-                    $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
-                  },
-                },
-              },
-            },
-            {
-              $sort: {
-                count: -1,
-              },
-            },
-            {
-              $limit: limit,
-            },
-          ])
-          .option(options)
-          .exec();
-      }),
-    );
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            party: '$_id.party',
+            floorLevel: '$_id.floorLevel',
+            battleIndex: '$_id.battleIndex',
+            count: 1,
+            avgStar: 1,
+            winCount: 1,
+          },
+        },
+        {
+          $sort: {
+            count: -1,
+          },
+        },
+        {
+          $limit: limit,
+        },
+      ])
+      .option(options)
+      .exec();
   }
 
-  async getBuildAbyssStats(artifactSets: any = [], weaponId = '', characterId = '', limit = 100) {
+  getBuildAbyssStats(artifactSets: any = [], weaponId = '', characterId = '', limit = 100) {
     const partyMatch: any = {};
     const buildMatch: any = {};
 
@@ -273,7 +295,7 @@ export class AbyssBattleService {
     if (artifactSets.length) buildMatch.artifactSets = { $all: artifactSets };
     if (weaponId) buildMatch.weapon = weaponId;
 
-    return await this.abyssBattleModel
+    return this.abyssBattleModel
       .aggregate([
         {
           $lookup: {
@@ -338,8 +360,8 @@ export class AbyssBattleService {
       .exec();
   }
 
-  async getArtifactSetsAbyssStats(limit = 100) {
-    return await this.abyssBattleModel
+  getArtifactSetsAbyssStats(limit = 100) {
+    return this.abyssBattleModel
       .aggregate([
         {
           $lookup: {
@@ -399,7 +421,7 @@ export class AbyssBattleService {
   }
 
   async getArtifactSetTotals() {
-    this.abyssBattleModel
+    return this.abyssBattleModel
       .aggregate([
         {
           $unwind: '$party',
@@ -417,8 +439,8 @@ export class AbyssBattleService {
       .exec();
   }
 
-  async getWeaponAbyssStats(limit = 100) {
-    return await this.abyssBattleModel
+  getWeaponAbyssStats(limit = 100) {
+    return this.abyssBattleModel
       .aggregate([
         {
           $lookup: {
@@ -484,8 +506,8 @@ export class AbyssBattleService {
       .exec();
   }
 
-  async getWeaponTypeTotals() {
-    return await this.abyssBattleModel
+  getWeaponTypeTotals() {
+    return this.abyssBattleModel
       .aggregate([
         {
           $lookup: {
