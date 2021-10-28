@@ -90,26 +90,6 @@ type TeamStat = { party: string[]; floorLevel?: string; battleIndex?: number; co
       });
     });
 
-    // forEach(charFloorTeams, (team) => {
-    //   const party = map(team, (charId) => charId.toString()).sort();
-
-    //   const teamIdx = findIndex(allFloorTeams[team.floorLevel], (_team) => {
-    //     return (
-    //       isEqual(_team.party.sort(), team.party.sort()) &&
-    //       _team.floorLevel === team.floorLevel &&
-    //       _team.battleIndex === team.battleIndex
-    //     );
-    //   });
-
-    //   if (teamIdx < 0) {
-    //     if (!allFloorTeams[team.floorLevel]) {
-    //       allFloorTeams[team.floorLevel] = [abyssTeam];
-    //     } else {
-    //       allFloorTeams[team.floorLevel].push(abyssTeam);
-    //     }
-    //   }
-    // });
-
     allTopTeams = aggregateCoreTeams(allTopTeams);
 
     forEach(allFloorTeams, (parties, floor) => {
