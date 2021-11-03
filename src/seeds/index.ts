@@ -558,10 +558,7 @@ const saveAbyssData = (abyssData: IAbyssResponse, i: number) => {
               battle_index: battle.index,
               star: level.star,
               player: currRefs[i].playerRef._id,
-              party: map(
-                battle.avatars,
-                (char) => currRefs[i].playerCharRefMap[char.id.toString()],
-              ).sort(),
+              party: map(battle.avatars, (char) => currRefs[i].playerCharRefMap[char.id.toString()]),
             };
 
             if (
@@ -569,6 +566,8 @@ const saveAbyssData = (abyssData: IAbyssResponse, i: number) => {
               abyssBattle.party.length < 4
             )
               return;
+
+            abyssBattle.party = abyssBattle.party.sort();
 
             const battleUpdate = abyssBattleModel.findOneAndUpdate(
               {
