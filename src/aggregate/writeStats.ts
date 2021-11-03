@@ -6,13 +6,16 @@ import {
   filter,
   find,
   findIndex,
+  flatten,
   forEach,
+  groupBy,
   includes,
   intersection,
   isEqual,
   map,
   orderBy,
   range,
+  uniqWith,
   values,
 } from 'lodash';
 import { ObjectId } from 'mongoose';
@@ -30,162 +33,38 @@ const abyssBattleService = new AbyssBattleService(abyssBattleModel);
 const characterService = new CharacterService(characterModel);
 const playerCharacterService = new PlayerCharacterService(playerCharacterModel);
 
-type TeamStat = { party: string[]; count: number };
-
-export const aggregateBuildsAndTeams = async () => {
-  const characters = await characterService.list();
-  const characterIds = map(characters, ({ _id }) => _id);
-
-  const abyssTopTeams: TeamStat[] = await abyssBattleService.getTopParties();
-  const abyssFloorTeams: { [floor: string]: TeamStat[][] } = {};
-
-  const abyssTopCharTeams: { [charId: string]: TeamStat[] } = {};
-  const abyssFloorCharTeams: { [floor: string]: { [charId: string]: TeamStat[][] } } = {};
-
-  // for (const charId of characterIds) {
-  //   abyssTopCharTeams[charId] = await abyssBattleService.getTopParties([charId]);
-
-  //   for (const floor of range(9, 13)) {
-  //     for (const stage of range(1, 4)) {
-  //       if (!abyssFloorCharTeams[`${floor}-${stage}`])
-  //         abyssFloorCharTeams[`${floor}-${stage}`] = { [charId]: [] };
-
-  //       abyssFloorCharTeams[`${floor}-${stage}`][charId] = await abyssBattleService.getTopFloorParties(
-  //         `${floor}-${stage}`,
-  //         [charId],
-  //         100,
-  //       );
-  //     }
-  //   }
-  // }
-
-  forEach(abyssTopCharTeams, (teams) => {
-    forEach(teams, (team) => {
-      const abyssTeam = find(abyssTopTeams, (_team) => isEqual(_team.party.sort(), team.party.sort()));
-
-      if (!abyssTeam) {
-        abyssTopTeams.push(team);
-      }
-    });
-  });
-
-  forEach(abyssFloorCharTeams, (chars, floor) => {
-    forEach(chars, (half, i) => {
-      forEach(half, (teams) => {
-        forEach(teams, (team) => {
-          const abyssTeam = find(abyssTopTeams, (_team) => isEqual(_team.party.sort(), team.party.sort()));
-
-          if (!abyssTeam) {
-            abyssFloorTeams[floor][i].push(team);
-          }
-        });
-      });
-    });
-  });
-
-  const abyssTopCoreTeams = aggregateCoreTeams(abyssTopTeams);
-  const abyssFloorCoreTeams: any = {};
-
-  forEach(abyssFloorTeams, (half, floor) => {
-    forEach(half, (parties) => {
-      abyssFloorCoreTeams[floor] = aggregateCoreTeams(orderBy(parties, 'count', 'desc'));
-    });
-  });
-
-  const topWeaponStats = await abyssBattleService.getWeaponAbyssStats();
-  const weaponStatTotals = await abyssBattleService.getWeaponTypeTotals();
-  const topArtifactSetStats = await abyssBattleService.getArtifactSetsAbyssStats();
-  const artifactSetTotals = await abyssBattleService.getArtifactSetTotals();
-
-  // forEach(topWeaponStats, weaponStat => {
-  //   const typeIdx = findIndex(weaponStatTotals, statTotal => statTotal.type === weaponStat.type_name)
-  //   top
-  // })
-  console.log();
-
-  // await Promise.all([
-  //   fs.writeFile('data/weapons/stats/top-weapons.json', JSON.stringify(topWeaponStats), (e) => e),
-  //   fs.writeFile('data/weapons/stats/weapon-totals.json', JSON.stringify(weaponStatsTotals), (e) => e),
-  //   ...map(weaponStats, (weaponStat) => {
-  //     const weapon = find(weaponDb, { _id: weaponStat._id });
-  //     if (!weapon) return;
-  //     const fileName = getShortName(weapon);
-  //     return fs.writeFile(`data/weapons/${fileName}.json`, JSON.stringify(weaponStat), (e) => e);
-  //   }),
-  //   fs.writeFile(
-  //     'data/artifacts/stats/top-artifactsets.json',
-  //     JSON.stringify(topArtifactSetStats),
-  //     (e) => e,
-  //   ),
-  //   fs.writeFile(
-  //     'data/artifacts/stats/artifactset-totals.json',
-  //     JSON.stringify(artifactSetStatsTotals),
-  //     (e) => e,
-  //   ),
-  //   ...map(artifactSetStats, (artifactSetStat) => {
-  //     const artifactSets = filter(artifactSetDb, (artifactSet) =>
-  //       includes(
-  //         map(artifactSetStat.artifacts, (set) => set._id),
-  //         artifactSet._id,
-  //       ),
-  //     );
-
-  //     const fileName = map(
-  //       artifactSets,
-  //       (artifactSet, i) =>
-  //         `${artifactSetStat.artifacts[i].activation_number}${getShortName(artifactSet)}`,
-  //     ).join('-');
-  //     return fs.writeFile(`data/artifacts/${fileName}.json`, JSON.stringify(artifactSetStat), (e) => e);
-  //   }),
-  //   fs.writeFile('data/characters/stats/top-characters.json', JSON.stringify(topCharacterStats), (e) => e),
-  //   // fs.writeFile(
-  //   //   'data/characters/stats/character-totals.json',
-  //   //   JSON.stringify(characterStatsTotals),
-  //   //   (e) => e,
-  //   // ),
-  //   ...map(characterBuilds, (charBuild) => {
-  //     const character = find(characterDb, { _id: charBuild.char_id });
-  //     const fileName = getShortName(character);
-  //     return fs.writeFile(`data/characters/${fileName}.json`, JSON.stringify(charBuild), (e) => e);
-  //   }),
-  //   ...map(mainCharacterBuilds, (charBuild) => {
-  //     const character = find(characterDb, { _id: charBuild.char_id });
-  //     const fileName = getShortName(character);
-  //     return fs.writeFile(`data/characters/mains/${fileName}.json`, JSON.stringify(charBuild), (e) => e);
-  //   }),
-  //   fs.writeFile('data/abyss/stats/top-abyss-teams.json', JSON.stringify(topAbyssTeams), (e) => e),
-  //   ...map(allAbyssTeams, (floorData) => {
-  //     return fs.writeFile(`data/abyss/${floorData.floor_level}.json`, JSON.stringify(floorData), (e) => e);
-  //   }),
-  // ]);
+type TeamStat = {
+  party: string[];
+  floorLevel?: string;
+  battleIndex?: number;
+  count: number;
+  winCount: number;
+  avgStar: number;
 };
-
-
-aggregateBuildsAndTeams();
 
 type Flex = { charId: string; count: number };
 
-const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
-  const allIndexes = [0, 1, 2, 3];
-  const permIndexes = [
+const aggregateCoreTeams = (parties: TeamStat[]) => {
+  const partyIndexes = [0, 1, 2, 3];
+  const allIndexes = [
     [0, 1, 2],
     [0, 1, 3],
     [0, 2, 3],
     [1, 2, 3],
   ];
 
-  let coreTeams: { core_party: string[]; count: number; flex: Flex[][] }[] = [];
+  let coreTeams: { coreParty: string[]; count: number; flex: Flex[][] }[] = [];
 
   forEach(parties, ({ party, count }) => {
-    forEach(permIndexes, (coreIndexes) => {
+    forEach(allIndexes, (coreIndexes) => {
       const coreParty = [party[coreIndexes[0]], party[coreIndexes[1]], party[coreIndexes[2]]].sort();
       const partyIdx = findIndex(coreTeams, (team) => {
         return (
-          isEqual(team.core_party, coreParty) &&
+          isEqual(team.coreParty, coreParty) &&
           intersection(map(team.flex[0], (flex) => flex.charId)).length > 0
         );
       });
-      const flexIdx = difference(allIndexes, coreIndexes)[0];
+      const flexIdx = difference(partyIndexes, coreIndexes)[0];
 
       if (partyIdx > -1) {
         coreTeams[partyIdx].count += count;
@@ -198,7 +77,7 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
         }
       } else {
         coreTeams.push({
-          core_party: coreParty,
+          coreParty: coreParty,
           count,
           flex: [[{ charId: party[flexIdx], count }]],
         });
@@ -222,8 +101,8 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
     while (i < compareTeams.length) {
       if (
         difference(
-          [...compareTeams[i].core_party, compareTeams[i].flex[0][0].charId],
-          [...team1.core_party, team1.flex[0][0].charId],
+          [...compareTeams[i].coreParty, compareTeams[i].flex[0][0].charId],
+          [...team1.coreParty, team1.flex[0][0].charId],
         ).length === 1
       ) {
         coreTeams2.push(compareTeams[i]);
@@ -261,8 +140,8 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
       if ((team.flex[0] && !team.flex[0].length) || (_team.flex[0] && !_team.flex[0].length)) return false;
 
       return isEqual(
-        [...team.core_party, team.flex[0][0].charId].sort(),
-        [..._team.core_party, _team.flex[0][0].charId].sort(),
+        [...team.coreParty, team.flex[0][0].charId].sort(),
+        [..._team.coreParty, _team.flex[0][0].charId].sort(),
       );
     });
 
@@ -275,4 +154,121 @@ const aggregateCoreTeams = (parties: { party: string[]; count: number }[]) => {
   });
 
   return orderBy(mergedTeams, 'count', 'desc');
+};
+
+export const aggregateBuildsAndTeams = async () => {
+  try {
+    const characters = await characterService.list();
+    const characterIds = map(characters, ({ _id }) => _id);
+    const allFloors = [];
+
+    forEach(range(9, 13), (floor) => {
+      forEach(range(1, 4), (stage) => {
+        forEach(range(1, 3), (battle) => {
+          // forEach(characterIds, (charId) => {
+          allFloors.push({
+            floorLevel: `${floor}-${stage}`,
+            battleIndex: battle,
+            // characterIds: [charId],
+          });
+          // });
+        });
+      });
+    });
+
+    const compareParties = (src, other) =>
+      isEqual(
+        map(src.party, (charId) => charId.toString()),
+        map(other.party, (charId) => charId.toString()),
+      );
+
+    const floorTeams = await Promise.all(
+      flatten(
+        map(allFloors, (floor) => {
+          const { floorLevel, battleIndex } = floor;
+
+          return map(characterIds, (charId) =>
+            abyssBattleService.getTopFloorParties(floorLevel, battleIndex, [charId]),
+          );
+        }),
+      ),
+    );
+
+    const topTeams = uniqWith(
+      await Promise.all(map(characterIds, (charId) => abyssBattleService.getTopParties([charId]))),
+      compareParties,
+    );
+
+    console.log('Done character floor teams');
+
+    const allTopTeams = aggregateCoreTeams(topTeams);
+    const allFloorTeams = {};
+
+    forEach(groupBy(allFloorTeams, 'floorLevel'), (battleData: TeamStat[], floorLevel: string) => {
+      forEach(battleData, (teamStat) => {
+        allFloorTeams[`${floorLevel}-${teamStat.battleIndex}`] = aggregateCoreTeams(
+          orderBy(battleData, 'count', 'desc'),
+        );
+      });
+    });
+
+    console.log('Done merging teams');
+
+    await Promise.all([
+      // fs.writeFile('data/weapons/stats/top-weapons.json', JSON.stringify(topWeaponStats), (e) => e),
+      // fs.writeFile('data/weapons/stats/weapon-totals.json', JSON.stringify(weaponStatsTotals), (e) => e),
+      // ...map(weaponStats, (weaponStat) => {
+      //   const weapon = find(weaponDb, { _id: weaponStat._id });
+      //   if (!weapon) return;
+      //   const fileName = getShortName(weapon);
+      //   return fs.writeFile(`data/weapons/${fileName}.json`, JSON.stringify(weaponStat), (e) => e);
+      // }),
+      // fs.writeFile(
+      //   'data/artifacts/stats/top-artifactsets.json',
+      //   JSON.stringify(topArtifactSetStats),
+      //   (e) => e,
+      // ),
+      // fs.writeFile(
+      //   'data/artifacts/stats/artifactset-totals.json',
+      //   JSON.stringify(artifactSetStatsTotals),
+      //   (e) => e,
+      // ),
+      // ...map(artifactSetStats, (artifactSetStat) => {
+      //   const artifactSets = filter(artifactSetDb, (artifactSet) =>
+      //     includes(
+      //       map(artifactSetStat.artifacts, (set) => set._id),
+      //       artifactSet._id,
+      //     ),
+      //   );
+      //   const fileName = map(
+      //     artifactSets,
+      //     (artifactSet, i) =>
+      //       `${artifactSetStat.artifacts[i].activation_number}${getShortName(artifactSet)}`,
+      //   ).join('-');
+      //   return fs.writeFile(`data/artifacts/${fileName}.json`, JSON.stringify(artifactSetStat), (e) => e);
+      // }),
+      // fs.writeFile('data/characters/stats/top-characters.json', JSON.stringify(topCharacterStats), (e) => e),
+      // // fs.writeFile(
+      // //   'data/characters/stats/character-totals.json',
+      // //   JSON.stringify(characterStatsTotals),
+      // //   (e) => e,
+      // // ),
+      // ...map(characterBuilds, (charBuild) => {
+      //   const character = find(characterDb, { _id: charBuild.char_id });
+      //   const fileName = getShortName(character);
+      //   return fs.writeFile(`data/characters/${fileName}.json`, JSON.stringify(charBuild), (e) => e);
+      // }),
+      // ...map(mainCharacterBuilds, (charBuild) => {
+      //   const character = find(characterDb, { _id: charBuild.char_id });
+      //   const fileName = getShortName(character);
+      //   return fs.writeFile(`data/characters/mains/${fileName}.json`, JSON.stringify(charBuild), (e) => e);
+      // }),
+      // fs.writeFile('data/abyss/stats/top-abyss-teams.json', JSON.stringify(allTopTeams), (e) => e),
+      // ...map(allFloorTeams, (teamData, )) => {
+      //   return fs.writeFile(`data/abyss/${floorLevel}-${battleIndex}.json`, JSON.stringify({}), (e) => e);
+      // }),
+    ]);
+  } catch (err) {
+    console.log(err);
+  }
 };

@@ -144,20 +144,12 @@ export class AbyssBattleService {
         {
           $project: {
             _id: 0,
-            party: {
-              $map: {
-                input: '$party',
-                as: 'pc',
-                in: '$$pc.character',
-              },
-            },
+            party: '$party.character',
             star: 1,
           },
         },
         {
-          $match: {
-            party: { $all: characterIds },
-          },
+          $match: characterIds.length ? { party: { $all: characterIds } } : {},
         },
         {
           $group: {
@@ -178,7 +170,15 @@ export class AbyssBattleService {
         {
           $project: {
             _id: 0,
-            party: '$_id',
+            party: {
+              $map: {
+                input: '$_id.party',
+                as: 'charId',
+                in: {
+                  $toString: '$$charId',
+                },
+              },
+            },
             count: 1,
             avgStar: 1,
             winCount: 1,
@@ -217,22 +217,14 @@ export class AbyssBattleService {
         {
           $project: {
             _id: 0,
-            party: {
-              $map: {
-                input: '$party',
-                as: 'pc',
-                in: '$$pc.character',
-              },
-            },
+            party: '$party.character',
             floor_level: 1,
             battle_index: 1,
             star: 1,
           },
         },
         {
-          $match: {
-            party: { $all: characterIds },
-          },
+          $match: characterIds.length ? { party: { $all: characterIds } } : {},
         },
         {
           $group: {
@@ -257,9 +249,24 @@ export class AbyssBattleService {
         {
           $project: {
             _id: 0,
-            party: '$_id.party',
-            floorLevel: '$_id.floorLevel',
-            battleIndex: '$_id.battleIndex',
+            party: {
+              $map: {
+                input: '$_id.party',
+                as: 'charId',
+                in: {
+                  $toString: '$$charId',
+                },
+              },
+            },
+            battle: {
+              $concat: [
+                '$_id.floorLevel',
+                '-',
+                {
+                  $toString: '$_id.battleIndex',
+                },
+              ],
+            },
             count: 1,
             avgStar: 1,
             winCount: 1,

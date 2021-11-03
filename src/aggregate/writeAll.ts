@@ -39,9 +39,9 @@ import { aggregateBuildsAndTeams } from './writeStats';
   }
 
   try {
-    await aggregateDb();
+    // await aggregateDb();
     await aggregateBuildsAndTeams();
-    await aggregateFeatured();
+    // await aggregateFeatured();
   } catch (err) {
     console.log(err);
   } finally {

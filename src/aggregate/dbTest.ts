@@ -2,18 +2,21 @@ import {
   cloneDeep,
   difference,
   filter,
-  find,
   findIndex,
   flatten,
+  flattenDeep,
   forEach,
+  groupBy,
   intersection,
   isEqual,
   map,
+  omit,
   orderBy,
   range,
-  uniq,
+  reduce,
+  uniqWith,
 } from 'lodash';
-import mongoose, { ObjectId } from 'mongoose';
+import mongoose from 'mongoose';
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
 import { AbyssBattleService } from '../abyss-battle/abyss-battle.service';
@@ -27,9 +30,10 @@ const abyssBattleService = new AbyssBattleService(abyssBattleModel);
 const playerCharacterService = new PlayerCharacterService(playerCharacterModel);
 const characterService = new CharacterService(characterModel);
 
-type TeamStat = { party: string[]; floorLevel?: string; battleIndex?: number; count: number };
 (async () => {
   await connectDb();
+
+  // abyssBattleModel.createIndexes([{ floor_level: 1, battle_index: 1 }], { sparse: true });
 
   try {
     const characters = await characterService.list();
@@ -50,66 +54,124 @@ type TeamStat = { party: string[]; floorLevel?: string; battleIndex?: number; co
       });
     });
 
-    const allFloorTeams = uniq(
-      await Promise.all(
-        flatten(
-          map(allFloors, (floor) => {
-            const { floorLevel, battleIndex } = floor;
+    const compareParties = (src, other) => isEqual(src.party, other.party) && src.battle === other.battle;
 
-            return [
-              abyssBattleService.getTopFloorParties(floorLevel, battleIndex, [], 20),
-              ...map(characterIds, (charId) =>
+    const floorTeams = uniqWith(
+      flatten(
+        await Promise.all(
+          flattenDeep(
+            map(allFloors, (floor) => {
+              const { floorLevel, battleIndex } = floor;
+
+              return map(characterIds, (charId) =>
                 abyssBattleService.getTopFloorParties(floorLevel, battleIndex, [charId]),
-              ),
-            ];
-          }),
+              );
+            }),
+          ),
         ),
       ),
+      compareParties,
     );
 
-    console.log('Done top floor teams');
+    const topTeams = orderBy(
+      reduce(
+        floorTeams,
+        (combined, curr) => {
+          const partyIdx = findIndex(combined, ({ party }) => isEqual(party, curr.party));
+          const newCombined = combined;
+          const newCurr = omit(curr, 'battle');
 
-    let allTopTeams: TeamStat[] = await abyssBattleService.getTopParties();
-    const topCharTeams: TeamStat[][] = await Promise.all(
-      map(characterIds, (charId) => abyssBattleService.getTopParties([charId])),
+          if (partyIdx < 0) {
+            newCombined.push(newCurr);
+          }
+
+          return newCombined;
+        },
+        [],
+      ),
+      'count',
+      'desc',
     );
-
-    const topCharFloorTeams: { [floor: string]: TeamStat[] } = {};
 
     console.log('Done character floor teams');
 
-    // Merge character top teams into top teams
-    forEach(topCharTeams, (teams) => {
-      forEach(teams, (team) => {
-        const party = map(team, (charId) => charId.toString()).sort();
-        const teamIdx = findIndex(allTopTeams, (_team) => isEqual(_team.party, party));
+    const allTopTeams = aggregateCoreTeams(topTeams);
+    const allFloorTeams = {};
 
-        if (teamIdx < 0) {
-          allTopTeams.push(team);
-        }
-      });
-    });
-
-    allTopTeams = aggregateCoreTeams(allTopTeams);
-
-    forEach(allFloorTeams, (parties, floor) => {
-      allFloorTeams[floor] = aggregateCoreTeams(orderBy(parties, 'count', 'desc'));
+    forEach(groupBy(allFloorTeams, 'battle'), (battleData: TeamStat[], floorLevel: string) => {
+      allFloorTeams[floorLevel] = aggregateCoreTeams(orderBy(battleData, 'count', 'desc'));
     });
 
     console.log('Done merging teams');
 
-    const topWeaponStats = await abyssBattleService.getWeaponAbyssStats();
-    const weaponStatTotals = await abyssBattleService.getWeaponTypeTotals();
-    const topArtifactSetStats = await abyssBattleService.getArtifactSetsAbyssStats();
-    const artifactSetTotals = await abyssBattleService.getArtifactSetTotals();
-
-    console.log();
+    await Promise.all([
+      // fs.writeFile('data/weapons/stats/top-weapons.json', JSON.stringify(topWeaponStats), (e) => e),
+      // fs.writeFile('data/weapons/stats/weapon-totals.json', JSON.stringify(weaponStatsTotals), (e) => e),
+      // ...map(weaponStats, (weaponStat) => {
+      //   const weapon = find(weaponDb, { _id: weaponStat._id });
+      //   if (!weapon) return;
+      //   const fileName = getShortName(weapon);
+      //   return fs.writeFile(`data/weapons/${fileName}.json`, JSON.stringify(weaponStat), (e) => e);
+      // }),
+      // fs.writeFile(
+      //   'data/artifacts/stats/top-artifactsets.json',
+      //   JSON.stringify(topArtifactSetStats),
+      //   (e) => e,
+      // ),
+      // fs.writeFile(
+      //   'data/artifacts/stats/artifactset-totals.json',
+      //   JSON.stringify(artifactSetStatsTotals),
+      //   (e) => e,
+      // ),
+      // ...map(artifactSetStats, (artifactSetStat) => {
+      //   const artifactSets = filter(artifactSetDb, (artifactSet) =>
+      //     includes(
+      //       map(artifactSetStat.artifacts, (set) => set._id),
+      //       artifactSet._id,
+      //     ),
+      //   );
+      //   const fileName = map(
+      //     artifactSets,
+      //     (artifactSet, i) =>
+      //       `${artifactSetStat.artifacts[i].activation_number}${getShortName(artifactSet)}`,
+      //   ).join('-');
+      //   return fs.writeFile(`data/artifacts/${fileName}.json`, JSON.stringify(artifactSetStat), (e) => e);
+      // }),
+      // fs.writeFile('data/characters/stats/top-characters.json', JSON.stringify(topCharacterStats), (e) => e),
+      // // fs.writeFile(
+      // //   'data/characters/stats/character-totals.json',
+      // //   JSON.stringify(characterStatsTotals),
+      // //   (e) => e,
+      // // ),
+      // ...map(characterBuilds, (charBuild) => {
+      //   const character = find(characterDb, { _id: charBuild.char_id });
+      //   const fileName = getShortName(character);
+      //   return fs.writeFile(`data/characters/${fileName}.json`, JSON.stringify(charBuild), (e) => e);
+      // }),
+      // ...map(mainCharacterBuilds, (charBuild) => {
+      //   const character = find(characterDb, { _id: charBuild.char_id });
+      //   const fileName = getShortName(character);
+      //   return fs.writeFile(`data/characters/mains/${fileName}.json`, JSON.stringify(charBuild), (e) => e);
+      // }),
+      // fs.writeFile('data/abyss/stats/top-abyss-teams.json', JSON.stringify(allTopTeams), (e) => e),
+      // ...map(allFloorTeams, (teamData, )) => {
+      //   return fs.writeFile(`data/abyss/${floorLevel}-${battleIndex}.json`, JSON.stringify({}), (e) => e);
+      // }),
+    ]);
   } catch (err) {
     console.log(err);
   }
 
   await mongoose.connection.close();
 })();
+
+type TeamStat = {
+  party: string[];
+  battle?: string;
+  count: number;
+  winCount: number;
+  avgStar: number;
+};
 
 type Flex = { charId: string; count: number };
 

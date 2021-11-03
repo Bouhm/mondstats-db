@@ -8,12 +8,12 @@ import md5 from 'md5';
 import mongoose, { ObjectId } from 'mongoose';
 import parallel from 'run-parallel';
 
-import AbyssBattleModel from '../abyss-battle/abyss-battle.model';
+import abyssBattleModel from '../abyss-battle/abyss-battle.model';
 import artifactSetModel from '../artifact-set/artifact-set.model';
 import artifactModel from '../artifact/artifact.model';
-import CharacterModel from '../character/character.model';
+import characterModel from '../character/character.model';
 import playerCharacterModel, { BuildSet } from '../player-character/player-character.model';
-import PlayerModel, { PlayerDocument } from '../player/player.model';
+import playerModel, { PlayerDocument } from '../player/player.model';
 import TokenModel, { TokenDocument } from '../token/token.model';
 import connectDb from '../util/connection';
 import WeaponModel from '../weapon/weapon.model';
@@ -317,13 +317,13 @@ const handleBlock = async (i: number) => {
 };
 
 const purgePlayer = async (uid: number) => {
-  const oldPlayers = await PlayerModel.findOne({ uid }).lean();
+  const oldPlayers = await playerModel.findOne({ uid }).lean();
 
   await Promise.all(
     map(oldPlayers, (player) => {
       return Promise.all([
-        PlayerModel.deleteOne({ _id: player._id }),
-        AbyssBattleModel.deleteMany({ player: player._id }),
+        playerModel.deleteOne({ _id: player._id }),
+        abyssBattleModel.deleteMany({ player: player._id }),
         playerCharacterModel.deleteMany({ player: player._id }),
       ]);
     }),
@@ -334,8 +334,8 @@ const purgeOld = async () => {
   await playerCharacterModel.deleteMany({
     updatedAt: { $lt: lastPatchCycle },
   });
-  await AbyssBattleModel.deleteMany({ party: { $elemMatch: { $in: [null], $exists: true } } });
-  await AbyssBattleModel.deleteMany({ updatedAt: { $lt: lastPatchCycle } });
+  await abyssBattleModel.deleteMany({ party: { $elemMatch: { $in: [null], $exists: true } } });
+  await abyssBattleModel.deleteMany({ updatedAt: { $lt: lastPatchCycle } });
 };
 
 // fetch spiral abyss data
@@ -432,7 +432,7 @@ const saveCharacterData = async (char: ICharacterResponse, i: number) => {
   //   delete constellation.is_actived
   // })
 
-  const characterRef = await CharacterModel.findOneAndUpdate(
+  const characterRef = await characterModel.findOneAndUpdate(
     { oid: character.oid, element: character.element },
     { $setOnInsert: character },
     options,
@@ -558,7 +558,10 @@ const saveAbyssData = (abyssData: IAbyssResponse, i: number) => {
               battle_index: battle.index,
               star: level.star,
               player: currRefs[i].playerRef._id,
-              party: map(battle.avatars, (char) => currRefs[i].playerCharRefMap[char.id.toString()]),
+              party: map(
+                battle.avatars,
+                (char) => currRefs[i].playerCharRefMap[char.id.toString()],
+              ).sort(),
             };
 
             if (
@@ -567,7 +570,7 @@ const saveAbyssData = (abyssData: IAbyssResponse, i: number) => {
             )
               return;
 
-            const battleUpdate = AbyssBattleModel.findOneAndUpdate(
+            const battleUpdate = abyssBattleModel.findOneAndUpdate(
               {
                 floor_level: `${floor.index}-${level.index}`,
                 battle_index: battle.index,
@@ -589,7 +592,12 @@ const saveAbyssData = (abyssData: IAbyssResponse, i: number) => {
   return abyssBattlePromises;
 };
 
-const fetchPlayerData = async (server: string, curruid: number, characterIds: number[], i = 0) => {
+const fetchAndUpdatePlayerData = async (
+  server: string,
+  curruid: number,
+  characterIds: number[],
+  i = 0,
+) => {
   const reqBody = {
     character_ids: characterIds,
     server: `os_${server}`,
@@ -645,7 +653,8 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
 
   while (uid < end) {
     if (existingUids) {
-      const nextPlayer = await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
+      const nextPlayer = await playerModel
+        .findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
         .sort({ updatedAt: -1 })
         .skip(currSkip++)
         .limit(1)
@@ -687,7 +696,7 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
         await nextToken(i);
 
         try {
-          currRefs[i].playerRef = await PlayerModel.findOneAndUpdate(
+          currRefs[i].playerRef = await playerModel.findOneAndUpdate(
             { uid: currUid },
             {
               uid: currUid,
@@ -730,7 +739,7 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
             continue;
           } else {
             if (characterIds.length > 0) {
-              const result = await fetchPlayerData(server, currUid, characterIds, i);
+              const result = await fetchAndUpdatePlayerData(server, currUid, characterIds, i);
               await nextToken(i);
 
               if (result === null) {
@@ -822,7 +831,8 @@ mongoose.connection.once('open', async () => {
         default:
         case 'last': {
           console.log('Starting after last UID...');
-          const lastPlayer = await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
+          const lastPlayer = await playerModel
+            .findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
             .sort({ uid: -1 })
             .limit(1)
             .lean();
@@ -832,9 +842,10 @@ mongoose.connection.once('open', async () => {
         }
         case 'resume': {
           console.log('Starting after last upated UID...');
-          const lastUpdatedPlayer = await PlayerModel.findOne({
-            uid: { $gt: baseUid, $lt: baseUid + 99999999 },
-          })
+          const lastUpdatedPlayer = await playerModel
+            .findOne({
+              uid: { $gt: baseUid, $lt: baseUid + 99999999 },
+            })
             .limit(1)
             .sort({ $natural: 1 })
             .lean();
@@ -852,7 +863,8 @@ mongoose.connection.once('open', async () => {
           existingUids = true;
           console.log('Updating existing UIDs...');
           lastUpdatedUid = (
-            await PlayerModel.findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
+            await playerModel
+              .findOne({ uid: { $gt: baseUid, $lt: baseUid + 99999999 } })
               .limit(1)
               .sort({ $natural: -1 })
               .lean()

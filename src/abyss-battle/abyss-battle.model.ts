@@ -53,7 +53,7 @@ export class AbyssBattle {
   @Field(() => [String])
   @Prop({
     type: [MongooseSchema.Types.ObjectId],
-    ref: PlayerCharacter.name,
+    ref: 'PlayerCharacter',
     required: true,
   })
   party: MongooseSchema.Types.ObjectId[];
