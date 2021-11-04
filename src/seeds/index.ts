@@ -22,7 +22,7 @@ import { IAbyssResponse, IArtifactSet, ICharacterResponse } from './interfaces';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const spiralAbyssApiUrl = 'https://bbs-api-os-takumi.mihoyo.com/game_record/genshin/api/spiralAbyss';
+const spiralAbyssApiUrl = 'https://bbs-api-os.mihoyo.com/game_record/genshin/api/spiralAbyss';
 const userApiUrl = 'https://bbs-api-os.mihoyo.com/game_record/genshin/api/index';
 const charApiUrl = 'https://bbs-api-os.mihoyo.com/game_record/genshin/api/character';
 
@@ -247,7 +247,7 @@ const getHeaders = (i: number) => {
   const Cookie = `ltoken=${currRefs[i].token.ltoken}; ltuid=${currRefs[i].token.ltuid}; mi18nLang=en-us; _MHYUUID=${currRefs[i].token._MHYUUID}`;
 
   return {
-    Host: 'api-os-takumi.mihoyo.com',
+    Host: 'bbs-api-os.mihoyo.com',
     'User-Agent':
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36',
     Accept: 'application/json, text/plain, */*',
