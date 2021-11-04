@@ -1,3 +1,4 @@
+import fs from 'fs';
 import {
   cloneDeep,
   difference,
@@ -14,6 +15,7 @@ import {
   orderBy,
   range,
   reduce,
+  take,
   uniqWith,
 } from 'lodash';
 import mongoose from 'mongoose';
@@ -38,71 +40,12 @@ const characterService = new CharacterService(characterModel);
   try {
     const characters = await characterService.list();
     const characterIds = map(characters, ({ _id }) => _id);
-    const allFloors = [];
 
-    forEach(range(9, 13), (floor) => {
-      forEach(range(1, 4), (stage) => {
-        forEach(range(1, 3), (battle) => {
-          // forEach(characterIds, (charId) => {
-          allFloors.push({
-            floorLevel: `${floor}-${stage}`,
-            battleIndex: battle,
-            // characterIds: [charId],
-          });
-          // });
-        });
-      });
-    });
-
-    const compareParties = (src, other) => isEqual(src.party, other.party) && src.battle === other.battle;
-
-    const floorTeams = uniqWith(
-      flatten(
-        await Promise.all(
-          flattenDeep(
-            map(allFloors, (floor) => {
-              const { floorLevel, battleIndex } = floor;
-
-              return map(characterIds, (charId) =>
-                abyssBattleService.getTopFloorParties(floorLevel, battleIndex, [charId]),
-              );
-            }),
-          ),
-        ),
-      ),
-      compareParties,
+    const builds = await Promise.all(
+      flatten(map(characterIds, (charId) => playerCharacterService.getTopBuilds(charId))),
     );
 
-    const topTeams = orderBy(
-      reduce(
-        floorTeams,
-        (combined, curr) => {
-          const partyIdx = findIndex(combined, ({ party }) => isEqual(party, curr.party));
-          const newCombined = combined;
-          const newCurr = omit(curr, 'battle');
-
-          if (partyIdx < 0) {
-            newCombined.push(newCurr);
-          }
-
-          return newCombined;
-        },
-        [],
-      ),
-      'count',
-      'desc',
-    );
-
-    console.log('Done character floor teams');
-
-    const allTopTeams = aggregateCoreTeams(topTeams);
-    const allFloorTeams = {};
-
-    forEach(groupBy(allFloorTeams, 'battle'), (battleData: TeamStat[], floorLevel: string) => {
-      allFloorTeams[floorLevel] = aggregateCoreTeams(orderBy(battleData, 'count', 'desc'));
-    });
-
-    console.log('Done merging teams');
+    console.log(builds)
 
     await Promise.all([
       // fs.writeFile('data/weapons/stats/top-weapons.json', JSON.stringify(topWeaponStats), (e) => e),
@@ -153,9 +96,9 @@ const characterService = new CharacterService(characterModel);
       //   const fileName = getShortName(character);
       //   return fs.writeFile(`data/characters/mains/${fileName}.json`, JSON.stringify(charBuild), (e) => e);
       // }),
-      // fs.writeFile('data/abyss/stats/top-abyss-teams.json', JSON.stringify(allTopTeams), (e) => e),
-      // ...map(allFloorTeams, (teamData, )) => {
-      //   return fs.writeFile(`data/abyss/${floorLevel}-${battleIndex}.json`, JSON.stringify({}), (e) => e);
+      // fs.writeFile('data/abyss/stats/top-abyss-teams.json', JSON.stringify(topTeams), (e) => e),
+      // ...map(Object.entries(allFloorTeams), (teamData) => {
+      //   return fs.writeFile(`data/abyss/${teamData[0]}.json`, JSON.stringify(teamData[1]), (e) => e);
       // }),
     ]);
   } catch (err) {

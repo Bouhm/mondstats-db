@@ -316,15 +316,9 @@ export class AbyssBattleService {
           $project: {
             _id: 0,
             party: {
-              $map: {
-                input: '$party',
-                as: 'pc',
-                in: {
-                  artifactSets: '$$pc.artifactSets',
-                  weapon: '$$pc.weapon',
-                  character: '$$pc.character',
-                },
-              },
+              artifactSets: '$party.artifactSets',
+              weapon: '$party.weapon',
+              character: '$party.character',
             },
             star: 1,
           },
@@ -382,15 +376,9 @@ export class AbyssBattleService {
           $project: {
             _id: 0,
             party: {
-              $map: {
-                input: '$party',
-                as: 'pc',
-                in: {
-                  artifactSets: '$$pc.artifactSets',
-                  weapon: '$$pc.weapon',
-                  character: '$$pc.character',
-                },
-              },
+              artifactSets: '$party.artifactSets',
+              weapon: '$party.weapon',
+              character: '$party.character',
             },
             star: 1,
           },
@@ -460,15 +448,7 @@ export class AbyssBattleService {
         {
           $project: {
             _id: 0,
-            party: {
-              $map: {
-                input: '$party',
-                as: 'pc',
-                in: {
-                  weapon: '$$pc.weapon',
-                },
-              },
-            },
+            party: '$party.weapon',
             star: 1,
           },
         },

@@ -204,11 +204,11 @@ export class PlayerCharacterService {
     return filteredCharacters;
   }
 
-  async getTopBuilds(match = {}, limit = 100) {
+  async getTopBuilds(characterId = '', limit = 20) {
     return await this.playerCharacterModel
       .aggregate([
         {
-          $match: match,
+          $match: characterId ? { character: characterId } : {},
         },
         {
           $group: {

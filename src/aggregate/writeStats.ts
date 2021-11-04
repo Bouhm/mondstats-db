@@ -7,14 +7,18 @@ import {
   find,
   findIndex,
   flatten,
+  flattenDeep,
   forEach,
   groupBy,
   includes,
   intersection,
   isEqual,
   map,
+  omit,
   orderBy,
   range,
+  reduce,
+  take,
   uniqWith,
   values,
 } from 'lodash';
@@ -176,43 +180,67 @@ export const aggregateBuildsAndTeams = async () => {
       });
     });
 
-    const compareParties = (src, other) =>
-      isEqual(
-        map(src.party, (charId) => charId.toString()),
-        map(other.party, (charId) => charId.toString()),
-      );
+    const compareParties = (src, other) => isEqual(src.party, other.party) && src.battle === other.battle;
 
-    const floorTeams = await Promise.all(
+    const floorTeams: TeamStat[] = uniqWith(
       flatten(
-        map(allFloors, (floor) => {
-          const { floorLevel, battleIndex } = floor;
+        await Promise.all(
+          flattenDeep(
+            map(allFloors, (floor) => {
+              const { floorLevel, battleIndex } = floor;
 
-          return map(characterIds, (charId) =>
-            abyssBattleService.getTopFloorParties(floorLevel, battleIndex, [charId]),
-          );
-        }),
+              return map(characterIds, (charId) =>
+                abyssBattleService.getTopFloorParties(floorLevel, battleIndex, [charId]),
+              );
+            }),
+          ),
+        ),
       ),
-    );
-
-    const topTeams = uniqWith(
-      await Promise.all(map(characterIds, (charId) => abyssBattleService.getTopParties([charId]))),
       compareParties,
     );
 
-    console.log('Done character floor teams');
+    const topTeams = take(
+      orderBy(
+        reduce(
+          floorTeams,
+          (combined, curr) => {
+            const partyIdx = findIndex(combined, ({ party }) => isEqual(party, curr.party));
+            const newCombined = combined;
+            const newCurr = omit(curr, 'battle');
 
-    const allTopTeams = aggregateCoreTeams(topTeams);
+            if (partyIdx > -1) {
+              const { count, winCount, avgStar } = newCurr;
+              const currCombined = newCombined[partyIdx];
+
+              currCombined.count += count;
+              currCombined.winCount += winCount;
+              currCombined.avgStar =
+                (currCombined.avgStar * currCombined.count + avgStar * count) /
+                (currCombined.count + count);
+            } else {
+              newCombined.push(newCurr);
+            }
+
+            return newCombined;
+          },
+          [],
+        ),
+        ['count', 'winCount'],
+        ['desc', 'desc'],
+      ),
+      1000,
+    );
+
+    console.log('Done character floor teams', topTeams);
+
+    // const allTopTeams = aggregateCoreTeams(topTeams);
     const allFloorTeams = {};
 
-    forEach(groupBy(allFloorTeams, 'floorLevel'), (battleData: TeamStat[], floorLevel: string) => {
-      forEach(battleData, (teamStat) => {
-        allFloorTeams[`${floorLevel}-${teamStat.battleIndex}`] = aggregateCoreTeams(
-          orderBy(battleData, 'count', 'desc'),
-        );
-      });
+    forEach(groupBy(floorTeams, 'battle'), (battleData: TeamStat[], floorLevel: string) => {
+      allFloorTeams[floorLevel] = aggregateCoreTeams(
+        orderBy(battleData, ['count', 'winCount'], ['desc', 'desc']),
+      );
     });
-
-    console.log('Done merging teams');
 
     await Promise.all([
       // fs.writeFile('data/weapons/stats/top-weapons.json', JSON.stringify(topWeaponStats), (e) => e),
