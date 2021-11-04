@@ -45,6 +45,8 @@ const characterService = new CharacterService(characterModel);
       flatten(map(characterIds, (charId) => playerCharacterService.getTopBuilds(charId))),
     );
 
+    const getBuildAbyssStats = await abyssBattleService.getBuildAbyssStats();
+
     console.log(builds)
 
     await Promise.all([
