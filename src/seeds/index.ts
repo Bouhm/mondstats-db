@@ -22,9 +22,9 @@ import { IAbyssResponse, IArtifactSet, ICharacterResponse } from './interfaces';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const spiralAbyssApiUrl = 'https://api-os-takumi.mihoyo.com/game_record/genshin/api/spiralAbyss';
-const userApiUrl = 'https://api-os-takumi.mihoyo.com/game_record/genshin/api/index';
-const charApiUrl = 'https://api-os-takumi.mihoyo.com/game_record/genshin/api/character';
+const spiralAbyssApiUrl = 'https://bbs-api-os-takumi.mihoyo.com/game_record/genshin/api/spiralAbyss';
+const userApiUrl = 'https://bbs-api-os.mihoyo.com/game_record/genshin/api/index';
+const charApiUrl = 'https://bbs-api-os.mihoyo.com/game_record/genshin/api/character';
 
 const axios = Axios.create({
   httpsAgent: new https.Agent({
