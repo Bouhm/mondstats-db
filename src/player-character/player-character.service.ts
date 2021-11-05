@@ -215,6 +215,7 @@ export class PlayerCharacterService {
             _id: {
               weapon: '$weapon',
               artifactSets: '$artifactSets',
+              character: '$character',
             },
             count: {
               $sum: 1,
@@ -223,7 +224,10 @@ export class PlayerCharacterService {
         },
         {
           $group: {
-            _id: '$_id.artifactSets',
+            _id: {
+              artifactSets: '$_id.artifactSets',
+              character: '$_id.character',
+            },
             weapons: {
               $push: {
                 _id: '$_id.weapon',
@@ -238,6 +242,13 @@ export class PlayerCharacterService {
         {
           $sort: {
             count: -1,
+          },
+        },
+        {
+          $project: {
+            artifactSets: '$_id.artifactSets',
+            _id: '$_id.character',
+            weapons: 1,
           },
         },
         {

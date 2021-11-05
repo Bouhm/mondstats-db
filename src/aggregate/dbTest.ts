@@ -45,10 +45,16 @@ const characterService = new CharacterService(characterModel);
       flatten(map(characterIds, (charId) => playerCharacterService.getTopBuilds(charId))),
     );
 
-    const getBuildAbyssStats = await abyssBattleService.getBuildAbyssStats();
-
     console.log(builds)
+    // const buildAbyssStats = await Promise.all(
+    //   flatten(
+    //     map(builds, ({ artifactSets, weapons, _id }: any) =>
+    //       map(weapons, (weapon) => abyssBattleService.getBuildAbyssStats(artifactSets, weapon._id, _id)),
+    //     ),
+    //   ),
+    // );
 
+    // console.log(buildAbyssStats);
     await Promise.all([
       // fs.writeFile('data/weapons/stats/top-weapons.json', JSON.stringify(topWeaponStats), (e) => e),
       // fs.writeFile('data/weapons/stats/weapon-totals.json', JSON.stringify(weaponStatsTotals), (e) => e),
