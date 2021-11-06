@@ -41,20 +41,27 @@ const characterService = new CharacterService(characterModel);
     const characters = await characterService.list();
     const characterIds = map(characters, ({ _id }) => _id);
 
-    const builds = await Promise.all(
-      flatten(map(characterIds, (charId) => playerCharacterService.getTopBuilds(charId))),
+    const builds = flattenDeep(
+      await Promise.all(map([characterIds[0]], (charId) => playerCharacterService.getTopBuilds(charId))),
     );
 
-    console.log(builds)
-    // const buildAbyssStats = await Promise.all(
-    //   flatten(
-    //     map(builds, ({ artifactSets, weapons, _id }: any) =>
-    //       map(weapons, (weapon) => abyssBattleService.getBuildAbyssStats(artifactSets, weapon._id, _id)),
-    //     ),
-    //   ),
-    // );
+    // console.log(builds);
+    // console.log(builds[0])
+    // const { artifactSets, weapons, _id } = builds[0];
+    // const a = await abyssBattleService.getBuildAbyssStats(artifactSets, weapons[0]._id, _id)
+    // console.log(a)
 
-    // console.log(buildAbyssStats);
+    const buildAbyssStats = flattenDeep(
+      await Promise.all(
+        flattenDeep(
+          map(builds, ({ artifactSets, weapons, _id }: any) =>
+            map(weapons, (weapon) => abyssBattleService.getBuildAbyssStats(artifactSets, weapon._id, _id)),
+          ),
+        ),
+      ),
+    );
+
+    console.log(buildAbyssStats);
     await Promise.all([
       // fs.writeFile('data/weapons/stats/top-weapons.json', JSON.stringify(topWeaponStats), (e) => e),
       // fs.writeFile('data/weapons/stats/weapon-totals.json', JSON.stringify(weaponStatsTotals), (e) => e),
