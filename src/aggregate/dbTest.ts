@@ -50,16 +50,13 @@ const characterService = new CharacterService(characterModel);
     // const { artifactSets, weapons, _id } = builds[0];
     // const a = await abyssBattleService.getBuildAbyssStats(artifactSets, weapons[0]._id, _id)
     // console.log(a)
-
-    const buildAbyssStats = flattenDeep(
-      await Promise.all(
-        flattenDeep(
-          map(builds, ({ artifactSets, weapons, _id }: any) =>
-            map(weapons, (weapon) => abyssBattleService.getBuildAbyssStats(artifactSets, weapon._id, _id)),
-          ),
-        ),
-      ),
-    );
+    const buildAbyssStats = {};
+    for (const build of builds) {
+      const { artifactSets, weapons, _id } = build;
+      for (const weapon of weapons) {
+        buildAbyssStats[_id] = await abyssBattleService.getBuildAbyssStats(artifactSets, weapon._id, _id);
+      }
+    }
 
     console.log(buildAbyssStats);
     await Promise.all([
