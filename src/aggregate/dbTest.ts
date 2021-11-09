@@ -47,15 +47,15 @@ const characterService = new CharacterService(characterModel);
       ),
     );
 
-    const filteredBuilds = map(builds, ({ artifactSets, weapons, _id }: any) => ({
+    const filteredBuildStats = map(builds, ({ artifactSets, weapons, _id }: any) => ({
       artifactSets,
       _id,
       weapons: take(weapons, 10),
     }));
 
-    const allBuilds = unwindBy(
+    const allBuildStats = unwindBy(
       flatten(
-        map(builds, ({ artifactSets, weapons, _id }: any) => ({
+        map(filteredBuildStats, ({ artifactSets, weapons, _id }: any) => ({
           artifactSets,
           _id,
           weapons: take(weapons, 10),
@@ -64,7 +64,28 @@ const characterService = new CharacterService(characterModel);
       'weapons',
     );
 
-    
+    const chunkedBuildStats = chunk(allBuildStats, 100);
+    console.log(chunkedBuildStats);
+    let aggregatedBuildStats = [];
+
+    while (chunkedBuildStats.length) {
+      aggregatedBuildStats = [
+        ...aggregatedBuildStats,
+        ...flatten(
+          await Promise.all(
+            flattenDeep(
+              map(chunkedBuildStats.pop(), (builds: any) =>
+                map(builds, ({ artifactSets, weapons, _id }) =>
+                  abyssBattleService.getBuildAbyssStats(artifactSets, weapons._id, _id),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ];
+    }
+
+    console.log(aggregatedBuildStats);
 
     await Promise.all([
       // fs.writeFile('data/weapons/stats/top-weapons.json', JSON.stringify(topWeaponStats), (e) => e),
