@@ -64,7 +64,7 @@ const characterService = new CharacterService(characterModel);
       'weapons',
     );
 
-    const chunkedBuildStats = chunk(allBuildStats, 100);
+    const chunkedBuildStats = chunk(allBuildStats, 50);
     console.log(chunkedBuildStats);
     let aggregatedBuildStats = [];
 
@@ -74,10 +74,8 @@ const characterService = new CharacterService(characterModel);
         ...flatten(
           await Promise.all(
             flattenDeep(
-              map(chunkedBuildStats.pop(), (builds: any) =>
-                map(builds, ({ artifactSets, weapons, _id }) =>
-                  abyssBattleService.getBuildAbyssStats(artifactSets, weapons._id, _id),
-                ),
+              map(chunkedBuildStats.pop(), ({ artifactSets, weapons, _id }) =>
+                abyssBattleService.getBuildAbyssStats(artifactSets, weapons._id, _id),
               ),
             ),
           ),
