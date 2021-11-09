@@ -22,7 +22,7 @@ export const getDb = async () => {
   return { characterDb, artifactDb, artifactSetDb, weaponDb };
 };
 
-export const aggregateDb = async () => {
+export const updateDb = async () => {
   const { characterDb, weaponDb, artifactDb, artifactSetDb } = await getDb();
 
   fs.writeFile(

@@ -5,9 +5,10 @@ import mongoose from 'mongoose';
 import { cleanup } from '../util';
 import connectDb from '../util/connection';
 import { updateRepo } from './githubApi';
-import { aggregateDb } from './writeDb';
-import { aggregateFeatured } from './writeFeatured';
-import { aggregateBuildsAndTeams } from './writeStats';
+import { updateDb } from './writeDb';
+
+// import { aggregateFeatured } from './writeFeatured';
+// import { aggregateBuildsAndTeams } from './writeStats';
 
 (async () => {
   await connectDb();
@@ -39,14 +40,14 @@ import { aggregateBuildsAndTeams } from './writeStats';
   }
 
   try {
-    // await aggregateDb();
-    await aggregateBuildsAndTeams();
+    await updateDb();
+    // await aggregateBuildsAndTeams();
     // await aggregateFeatured();
   } catch (err) {
     console.log(err);
   } finally {
     await updateRepo(process.env.npm_config_branch || 'main');
-    cleanup('data');
+    // cleanup('data');
   }
 
   await mongoose.connection.close();

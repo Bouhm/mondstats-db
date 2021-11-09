@@ -24,3 +24,7 @@ export function getShortName(item: { name: string; element?: string }) {
       : item.name.split(' ').join('').toLowerCase();
   return shortName.replace(/[^\w\s]/gi, '');
 }
+
+export const unwindBy = (arr: any[], f: string) => {
+  return arr.reduce((r, o) => r.concat(o[f].map((v) => ({ ...o, [f]: v }))), []);
+};

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import {
+  chunk,
   cloneDeep,
   difference,
   filter,
@@ -26,6 +27,7 @@ import characterModel from '../character/character.model';
 import { CharacterService } from '../character/character.service';
 import playerCharacterModel from '../player-character/player-character.model';
 import { PlayerCharacterService } from '../player-character/player-character.service';
+import { unwindBy } from '../util';
 import connectDb from '../util/connection';
 
 const abyssBattleService = new AbyssBattleService(abyssBattleModel);
@@ -35,30 +37,35 @@ const characterService = new CharacterService(characterModel);
 (async () => {
   await connectDb();
 
-  // abyssBattleModel.createIndexes([{ floor_level: 1, battle_index: 1 }], { sparse: true });
-
   try {
     const characters = await characterService.list();
     const characterIds = map(characters, ({ _id }) => _id);
 
-    const builds = flattenDeep(
-      await Promise.all(map([characterIds[0]], (charId) => playerCharacterService.getTopBuilds(charId))),
+    const builds = flatten(
+      await Promise.all(
+        flattenDeep(map(characterIds, (charId) => playerCharacterService.getTopBuilds(charId))),
+      ),
     );
 
-    // console.log(builds);
-    // console.log(builds[0])
-    // const { artifactSets, weapons, _id } = builds[0];
-    // const a = await abyssBattleService.getBuildAbyssStats(artifactSets, weapons[0]._id, _id)
-    // console.log(a)
-    const buildAbyssStats = {};
-    for (const build of builds) {
-      const { artifactSets, weapons, _id } = build;
-      for (const weapon of weapons) {
-        buildAbyssStats[_id] = await abyssBattleService.getBuildAbyssStats(artifactSets, weapon._id, _id);
-      }
-    }
+    const filteredBuilds = map(builds, ({ artifactSets, weapons, _id }: any) => ({
+      artifactSets,
+      _id,
+      weapons: take(weapons, 10),
+    }));
 
-    console.log(buildAbyssStats);
+    const allBuilds = unwindBy(
+      flatten(
+        map(builds, ({ artifactSets, weapons, _id }: any) => ({
+          artifactSets,
+          _id,
+          weapons: take(weapons, 10),
+        })),
+      ),
+      'weapons',
+    );
+
+    
+
     await Promise.all([
       // fs.writeFile('data/weapons/stats/top-weapons.json', JSON.stringify(topWeaponStats), (e) => e),
       // fs.writeFile('data/weapons/stats/weapon-totals.json', JSON.stringify(weaponStatsTotals), (e) => e),

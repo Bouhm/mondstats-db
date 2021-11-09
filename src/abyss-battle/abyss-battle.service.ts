@@ -317,44 +317,41 @@ export class AbyssBattleService {
             star: 1,
           },
         },
-        // {
-        //   $unwind: '$party',
-        // },
-        // {
-        //   $group: {
-        //     _id: {
-        //       weapon: '$party.weapon',
-        //       artifactSets: '$party.artifactSets',
-        //       character: '$party.character',
-        //     },
-        //     count: {
-        //       $sum: 1,
-        //     },
-        //     avgStar: {
-        //       $avg: '$star',
-        //     },
-        //     winCount: {
-        //       $sum: {
-        //         $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
-        //       },
-        //     },
-        //   },
-        // },
-        // {
-        //   $project: {
-        //     _id: '$_id.character',
-        //     weapon: '$_id.weapon',
-        //     artifactSets: '$_id.artifactSets',
-        //     count: 1,
-        //     avgStar: 1,
-        //     winCount: 1,
-        //   },
-        // },
-        // {
-        //   $sort: {
-        //     count: -1,
-        //   },
-        // },
+        {
+          $group: {
+            _id: {
+              weapon: '$party.weapon',
+              artifactSets: '$party.artifactSets',
+              character: '$party.character',
+            },
+            count: {
+              $sum: 1,
+            },
+            avgStar: {
+              $avg: '$star',
+            },
+            winCount: {
+              $sum: {
+                $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            _id: '$_id.character',
+            weapon: '$_id.weapon',
+            artifactSets: '$_id.artifactSets',
+            count: 1,
+            avgStar: 1,
+            winCount: 1,
+          },
+        },
+        {
+          $sort: {
+            count: -1,
+          },
+        },
         {
           $limit: limit,
         },
