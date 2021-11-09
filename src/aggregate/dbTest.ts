@@ -64,7 +64,7 @@ const characterService = new CharacterService(characterModel);
       'weapons',
     );
 
-    const chunkedBuildStats = chunk(allBuildStats, 50);
+    const chunkedBuildStats = chunk(allBuildStats, 20);
     console.log(chunkedBuildStats);
     let aggregatedBuildStats = [];
 
