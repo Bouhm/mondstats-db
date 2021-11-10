@@ -12,9 +12,4 @@ export class PlayerCharacterResolver {
   async playerCharacters(@Args('filter', { nullable: true }) filter?: ListPlayerCharacterInput) {
     return this.playerCharacterService.list(filter);
   }
-
-  @Query(() => [CharacterBuildStats])
-  async characterBuilds(@Args('filter', { nullable: true }) filter?: ListPlayerCharacterInput) {
-    return this.playerCharacterService.aggregateBuilds(filter);
-  }
 }

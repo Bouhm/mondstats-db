@@ -197,7 +197,7 @@ export class AbyssBattleService {
       .exec();
   }
 
-  async getTopFloorParties(floorLevel: string, battleIndex: number, characterIds = [], limit = 100) {
+  getTopFloorParties(floorLevel: string, battleIndex: number, characterIds = [], limit = 100) {
     return this.abyssBattleModel
       .aggregate([
         {
@@ -376,7 +376,7 @@ export class AbyssBattleService {
         },
         {
           $match: {
-            'party.character': characterId
+            'party.character': characterId,
           },
         },
         {
@@ -433,7 +433,7 @@ export class AbyssBattleService {
       .exec();
   }
 
-  getArtifactSetsAbyssStats(limit = 100) {
+  getCharacterAbyssStats(limit = 100) {
     return this.abyssBattleModel
       .aggregate([
         {
@@ -445,22 +445,18 @@ export class AbyssBattleService {
           },
         },
         {
+          $unwind: '$party',
+        },
+        {
           $project: {
             _id: 0,
-            party: {
-              artifactSets: '$party.artifactSets',
-              weapon: '$party.weapon',
-              character: '$party.character',
-            },
+            party: '$party.character',
             star: 1,
           },
         },
         {
-          $unwind: '$party',
-        },
-        {
           $group: {
-            _id: '$party.artifactSets',
+            _id: '$party',
             count: {
               $sum: 1,
             },
@@ -487,19 +483,50 @@ export class AbyssBattleService {
       .exec();
   }
 
-  async getArtifactSetTotals() {
+  getArtifactSetAbyssStats(limit = 100) {
     return this.abyssBattleModel
       .aggregate([
+        {
+          $lookup: {
+            from: 'playercharacters',
+            localField: 'party',
+            foreignField: '_id',
+            as: 'party',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            party: '$party.artifactSets',
+            star: 1,
+          },
+        },
         {
           $unwind: '$party',
         },
         {
           $group: {
-            _id: '$_id',
+            _id: '$party',
             count: {
               $sum: 1,
             },
+            avgStar: {
+              $avg: '$star',
+            },
+            winCount: {
+              $sum: {
+                $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
+              },
+            },
           },
+        },
+        {
+          $sort: {
+            count: -1,
+          },
+        },
+        {
+          $limit: limit,
         },
       ])
       .option(options)
@@ -530,15 +557,17 @@ export class AbyssBattleService {
         {
           $lookup: {
             from: 'weapons',
-            localField: 'party.weapon',
+            localField: 'party',
             foreignField: '_id',
             as: 'weapon',
           },
         },
         {
           $group: {
-            _id: '$weapon._id',
-            type: '$weapon.type_name',
+            _id: {
+              weaponId: '$weapon._id',
+              type: '$weapon.type_name',
+            },
             count: {
               $sum: 1,
             },
@@ -553,63 +582,21 @@ export class AbyssBattleService {
           },
         },
         {
+          $project: {
+            _id: '$_id.weaponId',
+            type: '$_id.type',
+            count: 1,
+            avgStar: 1,
+            winCount: 1,
+          },
+        },
+        {
           $sort: {
             count: -1,
           },
         },
         {
           $limit: limit,
-        },
-      ])
-      .option(options)
-      .exec();
-  }
-
-  getWeaponTypeTotals() {
-    return this.abyssBattleModel
-      .aggregate([
-        {
-          $lookup: {
-            from: 'playercharacters',
-            localField: 'party',
-            foreignField: '_id',
-            as: 'party',
-          },
-        },
-        {
-          $project: {
-            _id: 0,
-            party: {
-              artifactSets: '$party.artifactSets',
-              weapon: '$party.weapon',
-              character: '$party.character',
-            },
-            star: 1,
-          },
-        },
-        {
-          $unwind: '$party',
-        },
-        {
-          $lookup: {
-            from: 'weapons',
-            localField: 'party.weapon',
-            foreignField: '_id',
-            as: 'weapon',
-          },
-        },
-        {
-          $group: {
-            _id: '$weapon.type_name',
-            total: {
-              $sum: 1,
-            },
-          },
-        },
-        {
-          $sort: {
-            count: -1,
-          },
         },
       ])
       .option(options)
