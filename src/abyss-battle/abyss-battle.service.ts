@@ -145,6 +145,8 @@ export class AbyssBattleService {
           $project: {
             _id: 0,
             party: '$party.character',
+            floor_level: 1,
+            battle_index: 1,
             star: 1,
           },
         },
@@ -153,7 +155,18 @@ export class AbyssBattleService {
         },
         {
           $group: {
-            _id: '$party',
+            _id: {
+              party: '$party',
+              battle: {
+                $concat: [
+                  '$floor_level',
+                  '-',
+                  {
+                    $toString: '$battle_index',
+                  },
+                ],
+              },
+            },
             count: {
               $sum: 1,
             },
@@ -169,16 +182,8 @@ export class AbyssBattleService {
         },
         {
           $project: {
-            _id: 0,
-            party: {
-              $map: {
-                input: '$_id.party',
-                as: 'charId',
-                in: {
-                  $toString: '$$charId',
-                },
-              },
-            },
+            party: '$_id.party',
+            battle: '$_id.battle',
             count: 1,
             avgStar: 1,
             winCount: 1,
