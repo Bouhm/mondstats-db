@@ -3,7 +3,21 @@
 import Axios from 'axios';
 import fs from 'fs';
 import https from 'https';
-import { clamp, every, filter, findIndex, forEach, forIn, map, omit, pick, shuffle, some } from 'lodash';
+import {
+  chunk,
+  clamp,
+  every,
+  filter,
+  findIndex,
+  forEach,
+  forIn,
+  map,
+  omit,
+  orderBy,
+  pick,
+  shuffle,
+  some,
+} from 'lodash';
 import md5 from 'md5';
 import mongoose, { ObjectId } from 'mongoose';
 import parallel from 'run-parallel';
@@ -452,7 +466,7 @@ const saveCharacterData = async (char: ICharacterResponse, i: number) => {
 
   // Artifacts
   const artifactSets = [];
-  const artifactSetCombinations: BuildSet[] = [];
+  let artifactSetCombinations: BuildSet[] = [];
   const artifactRefIds: ObjectId[] = [];
 
   for (const artifact of char.reliquaries) {
@@ -501,6 +515,12 @@ const saveCharacterData = async (char: ICharacterResponse, i: number) => {
       });
     }
   });
+
+  artifactSetCombinations = orderBy(
+    artifactSetCombinations,
+    ['_id', 'activation_number'],
+    ['desc', 'desc'],
+  );
 
   if (artifactSetCombinations.length < 1) return;
 

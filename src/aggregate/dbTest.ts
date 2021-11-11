@@ -40,22 +40,57 @@ const characterService = new CharacterService(characterModel);
   try {
     const characters = await characterService.list();
     const characterIds = map(characters, ({ _id }) => _id);
-    const splitCharIds = chunk(characterIds, Math.round(characterIds.length / 5));
+    const splitCharIds1 = chunk(characterIds, 1);
+
+    const allFloors = [];
+
+    forEach(range(9, 13), (floor) => {
+      forEach(range(1, 4), (stage) => {
+        forEach(range(1, 3), (battle) => {
+          forEach(characterIds, (charId) => {
+            allFloors.push({
+              floorLevel: `${floor}-${stage}`,
+              battleIndex: battle,
+              characterIds: [charId],
+            });
+          });
+        });
+      });
+    });
 
     let allFloorTeams = [];
+    // const splitCharFloors = chunk(allFloors, Math.round(allFloors.length / 30));
 
-    while (splitCharIds.length) {
-      allFloorTeams = [
-        ...allFloorTeams,
-        ...flatten(
-          await Promise.all(
-            flattenDeep(
-              map(splitCharIds.pop(), (charId) => abyssBattleService.getTopParties(charId, 1000)),
-            ),
+    // while (allFloors.length) {
+    //   allFloorTeams = [
+    //     ...allFloorTeams,
+    //     ...flatten(
+    //       await Promise.all(
+    //         flattenDeep(
+    //           map(allFloors.pop(), ({ floorLevel, battleIndex, characterIds }) =>
+    //             abyssBattleService.getTopFloorParties(floorLevel, battleIndex, characterIds),
+    //           ),
+    //         ),
+    //       ),
+    //     ),
+    //   ];
+    // }
+
+    console.log(allFloors.length);
+
+    allFloorTeams = flatten(
+      await Promise.all(
+        flattenDeep(
+          map(allFloors, ({ floorLevel, battleIndex, characterIds }) =>
+            abyssBattleService.getTopFloorParties(floorLevel, battleIndex, characterIds),
           ),
         ),
-      ];
-    }
+      ),
+    );
+
+    console.log(allFloorTeams, 'Done floor teams');
+
+    allFloorTeams = uniqWith(allFloorTeams, compareParties);
 
     const topTeams = aggregateCoreTeams(
       orderBy(
@@ -105,6 +140,7 @@ const characterService = new CharacterService(characterModel);
     const characterTotals = await playerCharacterService.getCharacterTotals();
 
     let allCharBuildStats = [];
+    const splitCharIds = chunk(characterIds, Math.round(characterIds.length / 5));
 
     while (splitCharIds.length) {
       allCharBuildStats = [
