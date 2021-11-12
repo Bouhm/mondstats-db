@@ -1,3 +1,4 @@
+import { count } from 'console';
 import fs from 'fs';
 import {
   chunk,
@@ -59,36 +60,24 @@ const characterService = new CharacterService(characterModel);
     });
 
     let allFloorTeams = [];
-    // const splitCharFloors = chunk(allFloors, Math.round(allFloors.length / 30));
+    const splitCharFloors = chunk(allFloors, Math.round(allFloors.length / 2));
 
-    // while (allFloors.length) {
-    //   allFloorTeams = [
-    //     ...allFloorTeams,
-    //     ...flatten(
-    //       await Promise.all(
-    //         flattenDeep(
-    //           map(allFloors.pop(), ({ floorLevel, battleIndex, characterIds }) =>
-    //             abyssBattleService.getTopFloorParties(floorLevel, battleIndex, characterIds),
-    //           ),
-    //         ),
-    //       ),
-    //     ),
-    //   ];
-    // }
-
-    console.log(allFloors.length);
-
-    allFloorTeams = flatten(
-      await Promise.all(
-        flattenDeep(
-          map(allFloors, ({ floorLevel, battleIndex, characterIds }) =>
-            abyssBattleService.getTopFloorParties(floorLevel, battleIndex, characterIds),
+    while (allFloors.length) {
+      allFloorTeams = [
+        ...allFloorTeams,
+        ...flatten(
+          await Promise.all(
+            flattenDeep(
+              map(allFloors.pop(), ({ floorLevel, battleIndex, characterIds }) =>
+                abyssBattleService.getTopFloorParties(floorLevel, battleIndex, characterIds),
+              ),
+            ),
           ),
         ),
-      ),
-    );
+      ];
+    }
 
-    console.log(allFloorTeams, 'Done floor teams');
+    console.log('Done floor teams');
 
     allFloorTeams = uniqWith(allFloorTeams, compareParties);
 
@@ -132,15 +121,21 @@ const characterService = new CharacterService(characterModel);
     });
 
     const weaponAbyssStats = await abyssBattleService.getWeaponAbyssStats();
+    console.log('Done weapon abyss stats');
     const artifactSetAbyssStats = await abyssBattleService.getArtifactSetAbyssStats();
+    console.log('Done artifactset abyss stats');
     const characterAbyssStats = await abyssBattleService.getCharacterBuildAbyssStats();
+    console.log('Done character abyss stats');
 
     const weaponTotals = await playerCharacterService.getWeaponTypeTotals();
+    console.log('Done character totals');
     const artifactSetTotals = await playerCharacterService.getArtifactSetTotals();
+    console.log('Done artifactset totals');
     const characterTotals = await playerCharacterService.getCharacterTotals();
+    console.log('Done character totals');
 
     let allCharBuildStats = [];
-    const splitCharIds = chunk(characterIds, Math.round(characterIds.length / 5));
+    const splitCharIds = chunk(characterIds, Math.round(characterIds.length / 25));
 
     while (splitCharIds.length) {
       allCharBuildStats = [
@@ -149,7 +144,7 @@ const characterService = new CharacterService(characterModel);
           await Promise.all(
             flattenDeep(
               map(splitCharIds.pop(), (charId) =>
-                abyssBattleService.getCharacterBuildAbyssStats(charId, 1000),
+                abyssBattleService.getCharacterBuildAbyssStats(charId, 100),
               ),
             ),
           ),
@@ -157,23 +152,25 @@ const characterService = new CharacterService(characterModel);
       ];
     }
 
+    console.log('Done build stats');
+
     const allCharBuilds = flatten(
       await Promise.all(
         flattenDeep(map(characterIds, (charId) => playerCharacterService.getCharacterBuilds(charId))),
       ),
     );
 
-    console.log(
-      weaponAbyssStats,
-      artifactSetAbyssStats,
-      weaponTotals,
-      artifactSetTotals,
-      characterAbyssStats,
-      characterTotals,
-      allCharBuilds,
-      topTeams,
-      groupedFloorTeams,
-    );
+    console.log('Done all builds');
+
+    console.log(take(weaponAbyssStats, 5)); // { count, avgStar, winCount, _id: [_id], type: ['Sword'] }[]
+    console.log(take(artifactSetAbyssStats, 5)); // { _id: { _id, activation_number }[], avgStar, count, winCount }[]
+    console.log(take(weaponTotals, 5)); // { _id, total } _id is empty array
+    console.log(take(artifactSetTotals, 5)); // [{ _id: [], total }]
+    console.log(take(characterAbyssStats, 5)); // [] Empty array
+    console.log(take(characterTotals, 5));  // { _id, total }[]
+    console.log(take(allCharBuilds, 5)); // { artifactSets: _id[], _id, weapons: { _id, count }[] }[]
+    console.log(take(topTeams, 5)); // [] Empty array
+    console.log(groupedFloorTeams); // {} Empty object
 
     await Promise.all([
       // fs.writeFile('data/weapons/stats/top-weapons.json', JSON.stringify(topWeaponStats), (e) => e),
