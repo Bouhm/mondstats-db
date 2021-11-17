@@ -180,7 +180,7 @@ export class PlayerCharacterService {
         {
           $lookup: {
             from: 'weapons',
-            localField: 'party.weapon',
+            localField: 'weapon',
             foreignField: '_id',
             as: 'weapon',
           },

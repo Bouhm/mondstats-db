@@ -88,14 +88,6 @@ export class PlayerCharacter {
   player: MongooseSchema.Types.ObjectId;
 
   @Field(() => [String])
-  @Prop({
-    type: [MongooseSchema.Types.ObjectId],
-    ref: 'Artifact',
-    // required: true,
-  })
-  artifacts: MongooseSchema.Types.ObjectId[];
-
-  @Field(() => [String])
   @Prop({ required: true })
   artifactSets: BuildSet[];
 
