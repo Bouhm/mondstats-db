@@ -64,7 +64,7 @@ const characterService = new CharacterService(characterModel);
     // while (allFloors.length) {
     //   allFloorTeams = [
     //     ...allFloorTeams,
-    //     ...flatten(
+    //     ...flatten(`
     //       await Promise.all(
     //         flattenDeep(
     //           map(allFloors.pop(), ({ floorLevel, battleIndex, characterIds }) =>

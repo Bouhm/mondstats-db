@@ -1,7 +1,7 @@
 import { Args, Query, Resolver } from '@nestjs/graphql';
 
 import { ListPlayerCharacterInput } from './player-character.inputs';
-import { CharacterBuildStats, PlayerCharacter } from './player-character.model';
+import { PlayerCharacter } from './player-character.model';
 import { PlayerCharacterService } from './player-character.service';
 
 @Resolver()

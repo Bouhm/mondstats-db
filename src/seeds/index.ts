@@ -21,6 +21,7 @@ import {
 import md5 from 'md5';
 import mongoose, { ObjectId } from 'mongoose';
 import parallel from 'run-parallel';
+import artifactSetBuildModel from 'src/artifact-set-build/artifact-set-build.model';
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
 import artifactSetModel from '../artifact-set/artifact-set.model';
@@ -816,6 +817,26 @@ connectDb();
 mongoose.connection.once('open', async () => {
   try {
     // await purgeOld();
+
+    const allPcs = await playerCharacterModel.find().lean();
+    const splitPcs = chunk(allPcs, Math.round(allPcs.length / 100))
+    while (splitPcs.length) {
+      await Promise.all(map(splitPcs.pop(), async (pc) => { 
+        const { _id, artifactSets } = pc;
+        const artifactSetBuildRef = await artifactSetBuildModel.findOneAndUpdate(
+          { sets: artifactSets },
+          { $setOnInsert: { sets: artifactSets } },
+          options,
+        );
+
+        return playerCharacterModel.findOneAndUpdate(
+          { _id }, 
+          { artifactSetBuild: artifactSetBuildRef._id },
+          { runValidators: true },
+        )
+      }))
+    }    
+
 
     loadFromJson();
     // blockedIndices = new Array(TOKENS.length).fill(false);

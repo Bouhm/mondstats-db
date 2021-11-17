@@ -2,68 +2,7 @@ import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-
-@ObjectType('BuildWeapon')
-export class BuildWeapon {
-  @Field(() => String)
-  _id: string;
-
-  @Field(() => Number)
-  count: number;
-}
-
-@ObjectType('BuildSet')
-export class BuildSet {
-  @Field(() => String)
-  @Prop({
-    type: MongooseSchema.Types.ObjectId,
-    ref: 'ArtifactSet',
-    required: true,
-  })
-  _id: MongooseSchema.Types.ObjectId;
-
-  @Field(() => Number)
-  activation_number: number;
-}
-
-@ObjectType('BuildStats')
-export class BuildStats {
-  @Field(() => [BuildWeapon])
-  weapons: BuildWeapon[];
-
-  @Field(() => [BuildSet])
-  artifacts: BuildSet[];
-
-  @Field(() => Number)
-  count: number;
-}
-
-@ObjectType()
-export class TeamStats {
-  @Field(() => [PlayerCharacter])
-  party: MongooseSchema.Types.ObjectId[];
-
-  @Field(() => Number)
-  count: number;
-}
-
-@ObjectType('CharacterBuildStats')
-export class CharacterBuildStats {
-  @Field(() => String)
-  char_id: string;
-
-  @Field(() => [BuildStats])
-  builds: BuildStats[];
-
-  @Field(() => [Number])
-  constellations: number[];
-
-  @Field(() => [TeamStats])
-  teams: TeamStats[];
-
-  @Field(() => Number)
-  total?: number;
-}
+import { BuildSet } from 'src/artifact-set-build/artifact-set-build.model';
 
 @ObjectType()
 @Schema({ timestamps: true })
@@ -88,8 +27,16 @@ export class PlayerCharacter {
   player: MongooseSchema.Types.ObjectId;
 
   @Field(() => [String])
-  @Prop({ required: true })
+  @Prop()
   artifactSets: BuildSet[];
+
+  @Field(() => String)
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'ArtifactSetBuild',
+    required: true,
+  })
+  artifactSetBuild: MongooseSchema.Types.ObjectId;
 
   @Field(() => Number)
   @Prop({ required: true })
