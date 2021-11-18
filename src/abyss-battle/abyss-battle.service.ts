@@ -521,6 +521,12 @@ export class AbyssBattleService {
     return this.abyssBattleModel
       .aggregate([
         {
+          $match: {
+            floor_level: floorLevel,
+            battle_index: battleIndex,
+          },
+        },
+        {
           $lookup: {
             from: 'playercharacters',
             localField: 'party',
@@ -553,28 +559,22 @@ export class AbyssBattleService {
             },
           },
         },
-        {
-          $lookup: {
-            from: 'artifactsetbuilds',
-            localField: 'artifactSets',
-            foreignField: '_id',
-            as: 'artifactSets',
-          },
-        },
-        {
-          $project: {
-            artifactSets: {
-              $map: {
-                input: '$artifactSets.sets',
-                as: 'set',
-                in: '$$set',
-              },
-            },
-            count: 1,
-            avgStar: 1,
-            winCount: 1,
-          },
-        },
+        // {
+        //   $lookup: {
+        //     from: 'artifactsetbuilds',
+        //     localField: '_id',
+        //     foreignField: '_id',
+        //     as: 'artifactSets',
+        //   },
+        // },
+        // {
+        //   $project: {
+        //     artifactSets: '$artifactSets.sets',
+        //     count: 1,
+        //     avgStar: 1,
+        //     winCount: 1,
+        //   },
+        // },
         {
           $sort: {
             count: -1,

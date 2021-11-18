@@ -147,12 +147,10 @@ const characterService = new CharacterService(characterModel);
 
     // console.log(characterBuildAbyssStats);
 
-    const a = await abyssBattleService.getArtifactSetAbyssStats('9-1', 1);
-    console.log(a);
     let artifactSetAbyssStats = [];
-    const splitFloors = chunk(allFloors, Math.round(allFloors.length / 2));
+    const splitFloors = chunk(allFloors, Math.round(allFloors.length / 10));
 
-    while (allFloors.length) {
+    while (splitFloors.length) {
       artifactSetAbyssStats = [
         ...artifactSetAbyssStats,
         ...flatten(
