@@ -25,8 +25,7 @@ export class ArtifactSetBuild {
 
   @Field(() => [BuildSet])
   @Prop({
-    required: true,
-    unique: true
+    required: true
   })
   sets: BuildSet[];
 }

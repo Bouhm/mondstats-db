@@ -146,6 +146,9 @@ const characterService = new CharacterService(characterModel);
     // );
 
     // console.log(characterBuildAbyssStats);
+
+    const a = await abyssBattleService.getArtifactSetAbyssStats('9-1', 1);
+    console.log(a);
     let artifactSetAbyssStats = [];
     const splitFloors = chunk(allFloors, Math.round(allFloors.length / 2));
 

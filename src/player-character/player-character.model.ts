@@ -2,7 +2,8 @@ import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { BuildSet } from 'src/artifact-set-build/artifact-set-build.model';
+
+import { BuildSet } from '../artifact-set-build/artifact-set-build.model';
 
 @ObjectType()
 @Schema({ timestamps: true })

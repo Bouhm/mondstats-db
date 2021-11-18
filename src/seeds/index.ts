@@ -21,13 +21,13 @@ import {
 import md5 from 'md5';
 import mongoose, { ObjectId } from 'mongoose';
 import parallel from 'run-parallel';
-import artifactSetBuildModel from 'src/artifact-set-build/artifact-set-build.model';
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
+import artifactSetBuildModel, { BuildSet } from '../artifact-set-build/artifact-set-build.model';
 import artifactSetModel from '../artifact-set/artifact-set.model';
 import artifactModel from '../artifact/artifact.model';
 import characterModel from '../character/character.model';
-import playerCharacterModel, { BuildSet } from '../player-character/player-character.model';
+import playerCharacterModel from '../player-character/player-character.model';
 import playerModel, { PlayerDocument } from '../player/player.model';
 import TokenModel, { TokenDocument } from '../token/token.model';
 import connectDb from '../util/connection';
@@ -525,6 +525,12 @@ const saveCharacterData = async (char: ICharacterResponse, i: number) => {
 
   if (artifactSetCombinations.length < 1) return;
 
+  const artifactSetBuildRef = await artifactSetBuildModel.findOneAndUpdate(
+    { sets: artifactSetCombinations },
+    { $setOnInsert: { sets: artifactSetCombinations } },
+    options,
+  );
+
   // PlayerCharacters
   let cNum = 0;
   for (let i = 0; i < 6; i++) {
@@ -535,7 +541,7 @@ const saveCharacterData = async (char: ICharacterResponse, i: number) => {
 
   const playerCharacter: any = {
     character: characterRef._id,
-    artifactSets: artifactSetCombinations,
+    artifactSetBuild: artifactSetBuildRef._id,
     constellation: cNum,
     fetter: char.fetter,
     level: char.level,
@@ -818,25 +824,20 @@ mongoose.connection.once('open', async () => {
   try {
     // await purgeOld();
 
-    const allPcs = await playerCharacterModel.find().lean();
-    const splitPcs = chunk(allPcs, Math.round(allPcs.length / 100))
-    while (splitPcs.length) {
-      await Promise.all(map(splitPcs.pop(), async (pc) => { 
-        const { _id, artifactSets } = pc;
-        const artifactSetBuildRef = await artifactSetBuildModel.findOneAndUpdate(
-          { sets: artifactSets },
-          { $setOnInsert: { sets: artifactSets } },
-          options,
-        );
-
-        return playerCharacterModel.findOneAndUpdate(
-          { _id }, 
-          { artifactSetBuild: artifactSetBuildRef._id },
-          { runValidators: true },
-        )
-      }))
-    }    
-
+    // const allPcs = await playerCharacterModel.find().lean();
+    // const splitPcs = chunk(allPcs, Math.round(allPcs.length / 100));
+    // while (splitPcs.length) {
+    //   await Promise.all(
+    //     map(splitPcs.pop(), async (pc) => {
+    //       const { _id } = pc;
+    //       return playerCharacterModel.findOneAndUpdate(
+    //         { _id },
+    //         { $unset: { artifactSets: 1 } },
+    //         { mutli: true, runValidators: true },
+    //       );
+    //     }),
+    //   );
+    // }
 
     loadFromJson();
     // blockedIndices = new Array(TOKENS.length).fill(false);
