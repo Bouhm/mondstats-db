@@ -78,6 +78,8 @@ let existingUids = false;
 let lastUpdatedUid = 0;
 let currSkip = 0;
 let server = 'usa';
+let data = [];
+let dataPath = './src/seeds/seed.json';
 
 const options = {
   upsert: true,
@@ -903,4 +905,4 @@ mongoose.connection.once('open', async () => {
   } finally {
     await mongoose.connection.close();
   }
-});7
+});

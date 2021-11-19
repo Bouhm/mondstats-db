@@ -71,66 +71,67 @@ const characterService = new CharacterService(characterModel);
       });
     });
 
-    let allFloorTeams = [];
-    const splitCharFloors = chunk(allCharFloors, Math.round(allCharFloors.length / 2));
+    // let allFloorTeams = [];
+    // console.log(allCharFloors.length);
+    // const splitCharFloors = chunk(allCharFloors, Math.round(allCharFloors.length / 100));
 
-    while (splitCharFloors.length) {
-      allFloorTeams = [
-        ...allFloorTeams,
-        ...flatten(
-          await Promise.all(
-            flattenDeep(
-              map(splitCharFloors.pop(), ({ floor_level, battle_index, character }) =>
-                abyssBattleService.getTopFloorParties(floor_level, battle_index, character),
-              ),
-            ),
-          ),
-        ),
-      ];
-    }
+    // while (splitCharFloors.length) {
+    //   allFloorTeams = [
+    //     ...allFloorTeams,
+    //     ...flatten(
+    //       await Promise.all(
+    //         flattenDeep(
+    //           map(splitCharFloors.pop(), ({ floor_level, battle_index, character }) =>
+    //             abyssBattleService.getTopFloorParties(floor_level, battle_index, character),
+    //           ),
+    //         ),
+    //       ),
+    //     ),
+    //   ];
+    // }
 
-    const floorTeams = uniqWith(allFloorTeams, compareParties);
+    // const floorTeams = uniqWith(allFloorTeams, compareParties);
 
-    const topTeams = aggregateCoreTeams(
-      orderBy(
-        reduce(
-          allFloorTeams,
-          (combined, curr) => {
-            const partyIdx = findIndex(combined, ({ party }) => isEqual(party, curr.party));
-            const newCombined = combined;
-            const newCurr = omit(curr, 'battle');
+    // const topTeams = aggregateCoreTeams(
+    //   orderBy(
+    //     reduce(
+    //       allFloorTeams,
+    //       (combined, curr) => {
+    //         const partyIdx = findIndex(combined, ({ party }) => isEqual(party, curr.party));
+    //         const newCombined = combined;
+    //         const newCurr = omit(curr, 'battle');
 
-            if (partyIdx > -1) {
-              const { count, winCount, avgStar } = newCurr;
-              const currCombined = newCombined[partyIdx];
+    //         if (partyIdx > -1) {
+    //           const { count, winCount, avgStar } = newCurr;
+    //           const currCombined = newCombined[partyIdx];
 
-              currCombined.count += count;
-              currCombined.winCount += winCount;
-              currCombined.avgStar =
-                (currCombined.avgStar * currCombined.count + avgStar * count) /
-                (currCombined.count + count);
-            } else {
-              newCombined.push(newCurr);
-            }
+    //           currCombined.count += count;
+    //           currCombined.winCount += winCount;
+    //           currCombined.avgStar =
+    //             (currCombined.avgStar * currCombined.count + avgStar * count) /
+    //             (currCombined.count + count);
+    //         } else {
+    //           newCombined.push(newCurr);
+    //         }
 
-            return newCombined;
-          },
-          [],
-        ),
-        ['count', 'winCount'],
-        ['desc', 'desc'],
-      ),
-    );
+    //         return newCombined;
+    //       },
+    //       [],
+    //     ),
+    //     ['count', 'winCount'],
+    //     ['desc', 'desc'],
+    //   ),
+    // );
 
-    console.log('Done top teams');
+    // console.log('Done top teams');
 
-    const groupedFloorTeams = {};
+    // const groupedFloorTeams = {};
 
-    forEach(groupBy(allFloorTeams, 'battle'), (battleData: TeamStat[], floorLevel: string) => {
-      groupedFloorTeams[floorLevel] = aggregateCoreTeams(
-        orderBy(battleData, ['count', 'winCount'], ['desc', 'desc']),
-      );
-    });
+    // forEach(groupBy(allFloorTeams, 'battle'), (battleData: TeamStat[], floorLevel: string) => {
+    //   groupedFloorTeams[floorLevel] = aggregateCoreTeams(
+    //     orderBy(battleData, ['count', 'winCount'], ['desc', 'desc']),
+    //   );
+    // });
 
     console.log('Done floor teams');
 
@@ -152,31 +153,32 @@ const characterService = new CharacterService(characterModel);
 
     console.log('Done character builds');
 
-    const splitFloors = chunk(allCharFloors, Math.round(allCharFloors.length / 2));
-    let characterBuildAbyssStats = [];
+    // const splitFloors = chunk(allCharFloors, Math.round(allCharFloors.length / 20));
+    // let characterBuildAbyssStats = [];
 
-    while (splitFloors.length) {
-      characterBuildAbyssStats = [
-        ...characterBuildAbyssStats,
-        ...flatten(
-          await Promise.all(
-            flattenDeep(
-              map(splitFloors.pop(), ({ floor_level, battle_index }) =>
-                abyssBattleService.getCharacterBuildAbyssStats(floor_level, battle_index),
-              ),
-            ),
-          ),
-        ),
-      ];
-    }
+    // while (splitFloors.length) {
+    //   characterBuildAbyssStats = [
+    //     ...characterBuildAbyssStats,
+    //     ...flatten(
+    //       await Promise.all(
+    //         flattenDeep(
+    //           map(splitFloors.pop(), ({ floor_level, battle_index }) =>
+    //             abyssBattleService.getCharacterBuildAbyssStats(floor_level, battle_index),
+    //           ),
+    //         ),
+    //       ),
+    //     ),
+    //   ];
+    // }
 
     console.log('Done character build abyss stats');
 
     let artifactSetAbyssStats = [];
 
     for (const floor of allFloors) {
+      console.log(floor.floor_level, floor.battle_index);
       artifactSetAbyssStats.push(
-        await abyssBattleService.getArtifactSetAbyssStats(floor.floorLevel, floor.battleIndex),
+        await abyssBattleService.getArtifactSetAbyssStats(floor.floor_level, floor.battle_index),
       );
     }
 
@@ -204,7 +206,16 @@ const characterService = new CharacterService(characterModel);
 
     console.log('Done artifactset abyss stats');
 
-    const characterAbyssStats = await abyssBattleService.getCharacterAbyssStats();
+    const characterAbyssStats = [];
+
+    for (const floor of allFloors) {
+      console.log(floor.floor_level, floor.battle_index);
+
+      characterAbyssStats.push(
+        await abyssBattleService.getCharacterAbyssStats(floor.floor_level, floor.battle_index),
+      );
+    }
+
     console.log('Done character abyss stats');
 
     const weaponTotals = await playerCharacterService.getWeaponTypeTotals();
@@ -220,12 +231,12 @@ const characterService = new CharacterService(characterModel);
     console.log(take(artifactSetAbyssStats, 5)); // { _id: { _id, activation_number }[], avgStar, count, winCount }[]
     console.log(take(weaponTotals, 5)); // { _id, total } _id is empty array
     console.log(take(artifactSetTotals, 5)); // [{ _id: [], total }]
-    console.log(take(characterBuildAbyssStats, 5)); // [] Empty array
+    // console.log(take(characterBuildAbyssStats, 5)); // [] Empty array
     console.log(take(characterAbyssStats, 5));
     console.log(take(characterTotals, 5)); // { _id, total }[]
     console.log(take(charBuilds, 5)); // { artifactSets: _id[], _id, weapons: { _id, count }[] }[]
-    console.log(take(floorTeams, 5)); // [] Empty array
-    console.log(take(topTeams, 5)); //
+    // console.log(take(floorTeams, 5)); // [] Empty array
+    // console.log(take(topTeams, 5)); //
 
     await Promise.all([
       // fs.writeFile('data/weapons/stats/top-weapons.json', JSON.stringify(topWeaponStats), (e) => e),

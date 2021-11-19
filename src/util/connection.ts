@@ -9,3 +9,5 @@ const connectDb = async () => {
 };
 
 export default connectDb;
+
+// mongosh "mongodb+srv://cluster0.jvgf0.mongodb.net/favonius" --username ADMIN --password J6hEjYm7kiq9bYhx

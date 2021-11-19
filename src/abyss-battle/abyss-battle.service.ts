@@ -131,7 +131,7 @@ export class AbyssBattleService {
   }
 
   getTopParties(characterIds = [], limit = 100) {
-    return this.abyssBattleModel
+    return db.abyssbattles
       .aggregate([
         {
           $lookup: {
@@ -149,9 +149,6 @@ export class AbyssBattleService {
             battle_index: 1,
             star: 1,
           },
-        },
-        {
-          $match: characterIds.length ? { party: { $all: characterIds } } : {},
         },
         {
           $group: {
@@ -195,7 +192,7 @@ export class AbyssBattleService {
           },
         },
         {
-          $limit: limit,
+          $limit: 1000,
         },
       ])
       .option(options)
@@ -439,9 +436,15 @@ export class AbyssBattleService {
       .exec();
   }
 
-  getCharacterAbyssStats(limit = 100) {
+  getCharacterAbyssStats(floor_level: string, battle_index: number, limit = 100) {
     return this.abyssBattleModel
       .aggregate([
+        {
+          $match: {
+            floor_level,
+            battle_index,
+          },
+        },
         {
           $lookup: {
             from: 'playercharacters',
@@ -456,10 +459,15 @@ export class AbyssBattleService {
         {
           $project: {
             _id: 0,
-            party: '$party.character',
+            character: '$party.character',
             star: 1,
           },
         },
+        // {
+        //   $match: {
+        //     party: character,
+        //   },
+        // },
         {
           $group: {
             _id: '$party',
