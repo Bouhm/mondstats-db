@@ -131,7 +131,7 @@ export class AbyssBattleService {
   }
 
   getTopParties(characterIds = [], limit = 100) {
-    return db.abyssbattles
+    return this.abyssBattleModel
       .aggregate([
         {
           $lookup: {
@@ -192,7 +192,7 @@ export class AbyssBattleService {
           },
         },
         {
-          $limit: 1000,
+          $limit: limit,
         },
       ])
       .option(options)
