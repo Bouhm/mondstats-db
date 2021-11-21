@@ -4,6 +4,7 @@ import {
   cloneDeep,
   difference,
   filter,
+  find,
   findIndex,
   flatten,
   flattenDeep,
@@ -28,8 +29,9 @@ import { CharacterService } from '../character/character.service';
 import playerCharacterModel from '../player-character/player-character.model';
 import { PlayerCharacterService } from '../player-character/player-character.service';
 import playerModel from '../player/player.model';
-import { unwindBy } from '../util';
+import { getShortName, unwindBy } from '../util';
 import connectDb from '../util/connection';
+import { getDb } from './writeDb';
 
 const abyssBattleService = new AbyssBattleService(abyssBattleModel);
 const playerCharacterService = new PlayerCharacterService(playerCharacterModel);
@@ -37,7 +39,8 @@ const characterService = new CharacterService(characterModel);
 
 (async () => {
   await connectDb();
-
+  try {
+    const { characterDb } = await getDb();
     const characters = await characterService.list();
     const characterIds = map(characters, ({ _id }) => _id);
 
@@ -231,17 +234,6 @@ const characterService = new CharacterService(characterModel);
     const characterTotals = await playerCharacterService.getCharacterTotals();
     console.log('Done character totals');
 
-    // console.log(weaponAbyssStats); // { count, avgStar, winCount, _id: [_id], type: ['Sword'] }[]
-    // console.log(take(artifactSetAbyssStats, 5)); // { _id: { _id, activation_number }[], avgStar, count, winCount }[]
-    // console.log(take(weaponTotals, 5)); // { _id, total } _id is empty array
-    // console.log(take(artifactSetTotals, 5)); // [{ _id: [], total }]
-    // // console.log(take(characterBuildAbyssStats, 5)); // [] Empty array
-    // console.log(take(characterAbyssStats, 5));
-    // console.log(take(characterTotals, 5)); // { _id, total }[]
-    // console.log(take(charBuilds, 5)); // { artifactSets: _id[], _id, weapons: { _id, count }[] }[]
-    // // console.log(take(floorTeams, 5)); // [] Empty array
-    // // console.log(take(topTeams, 5)); //
-
     const topWeaponStats = {
       weapons: weaponAbyssStats,
       totals: weaponTotals
@@ -265,9 +257,22 @@ const characterService = new CharacterService(characterModel);
       })
 
       if (buildIdx > -1) {
-        
+        charBuild.avgStar = charBuildAbyssStats[buildIdx].avgStar;
+        charBuild.count = charBuildAbyssStats[buildIdx].count;
+        charBuild.winCount = charBuildAbyssStats[buildIdx].winCount;
       }
     })
+
+    console.log(weaponAbyssStats); // { count, avgStar, winCount, _id: [_id], type: ['Sword'] }[]
+    console.log(take(artifactSetAbyssStats, 5)); // { _id: { _id, activation_number }[], avgStar, count, winCount }[]
+    console.log(take(weaponTotals, 5)); // { _id, total } _id is empty array
+    console.log(take(artifactSetTotals, 5)); // [{ _id: [], total }]
+    console.log(take(charBuildAbyssStats, 5)); // [] Empty array
+    console.log(take(characterAbyssStats, 5));
+    console.log(take(characterTotals, 5)); // { _id, total }[]
+    console.log(take(charBuilds, 5)); // { artifactSets: _id[], _id, weapons: { _id, count }[] }[]
+    console.log(take(floorTeams, 5)); // [] Empty array
+    console.log(take(topTeams, 5)); //
 
     await Promise.all([
       fs.writeFile('data/weapons/stats/top-weapons.json', JSON.stringify(topWeaponStats), (e) => e),
@@ -282,16 +287,16 @@ const characterService = new CharacterService(characterModel);
       //   JSON.stringify(characterStatsTotals),
       //   (e) => e,
       // ),
-      ...map(characterBuilds, (charBuild) => {
+      ...map(charBuilds, (charBuild) => {
         const character = find(characterDb, { _id: charBuild.char_id });
         const fileName = getShortName(character);
         return fs.writeFile(`data/characters/${fileName}.json`, JSON.stringify(charBuild), (e) => e);
       }),
-      ...map(mainCharacterBuilds, (charBuild) => {
-        const character = find(characterDb, { _id: charBuild.char_id });
-        const fileName = getShortName(character);
-        return fs.writeFile(`data/characters/mains/${fileName}.json`, JSON.stringify(charBuild), (e) => e);
-      }),
+      // ...map(mainCharacterBuilds, (charBuild) => {
+      //   const character = find(characterDb, { _id: charBuild.char_id });
+      //   const fileName = getShortName(character);
+      //   return fs.writeFile(`data/characters/mains/${fileName}.json`, JSON.stringify(charBuild), (e) => e);
+      // }),
       fs.writeFile('data/abyss/stats/top-abyss-teams.json', JSON.stringify(topTeams), (e) => e),
       ...map(Object.entries(allFloorTeams), (teamData) => {
         return fs.writeFile(`data/abyss/${teamData[0]}.json`, JSON.stringify(teamData[1]), (e) => e);
