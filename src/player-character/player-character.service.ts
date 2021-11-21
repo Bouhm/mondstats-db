@@ -103,7 +103,7 @@ export class PlayerCharacterService {
           $group: {
             _id: {
               weapon: '$weapon',
-              artifactSets: '$artifactSets',
+              artifactSetBuild: '$artifactSetBuild',
               character: '$character',
             },
             count: {
@@ -114,7 +114,7 @@ export class PlayerCharacterService {
         {
           $group: {
             _id: {
-              artifactSets: '$_id.artifactSets',
+              artifactSetBuild: '$_id.artifactSetBuild',
               character: '$_id.character',
             },
             weapons: {
@@ -135,7 +135,7 @@ export class PlayerCharacterService {
         },
         {
           $project: {
-            artifactSets: '$_id.artifactSets',
+            artifactSetBuild: '$_id.artifactSetBuild',
             _id: '$_id.character',
             weapons: {
               $slice: ['$weapons', 0, 10],
@@ -211,7 +211,7 @@ export class PlayerCharacterService {
       .aggregate([
         {
           $group: {
-            _id: '$artifactSets',
+            _id: '$artifactSetBuild',
             total: {
               $sum: 1,
             },
