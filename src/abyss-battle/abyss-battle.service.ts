@@ -462,17 +462,9 @@ export class AbyssBattleService {
         {
           $lookup: {
             from: 'playercharacters',
-            let: {
-              sourceParty: '$party',
-            },
+            localField: 'party',
+            foreignField: '_id',
             pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ['$_id', '$$sourceParty'],
-                  },
-                },
-              },
               {
                 $project: {
                   _id: 0,
@@ -480,128 +472,27 @@ export class AbyssBattleService {
                 },
               },
             ],
-            as: 'foundPlayerChar',
-          },
-        },
-        {
-          $group: {
-            _id: {
-              floor_level: '$floor_level',
-              battle_index: '$battle_index',
-              artifactSetBuild: {
-                $arrayElemAt: ['$foundPlayerChar.artifactSetBuild', 0],
-              },
-            },
-            count: {
-              $sum: 1,
-            },
-            avgStar: {
-              $avg: '$star',
-            },
-            winCount: {
-              $sum: {
-                $cond: {
-                  if: {
-                    $eq: ['$star', 3],
-                  },
-                  then: 1,
-                  else: 0,
-                },
-              },
-            },
-          },
-        },
-        {
-          $sort: {
-            count: -1,
-          },
-        },
-        {
-          $limit: 100,
-        },
-        {
-          $lookup: {
-            from: 'artifactsetbuilds',
-            let: {
-              sourceArtifBldId: '$_id.artfactSetBuild',
-            },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ['$_id', '$$sourceArtifBldId'],
-                  },
-                },
-              },
-              {
-                $project: {
-                  sets: 1,
-                },
-              },
-            ],
-            as: 'artifactSets',
-          },
-        },
-        {
-          $set: {
-            artifactSets: {
-              $arrayElemAt: ['$_id.artifactSets.sets', 0],
-            },
-          },
-        },
-      ])
-      .option(options)
-      .exec();
-  }
-
-  getWeaponAbyssStats(limit = 100) {
-    return this.abyssBattleModel
-      .aggregate([
-        {
-          $lookup: {
-            from: 'playercharacters',
-            localField: 'party',
-            foreignField: '_id',
-            pipeline: [
-              {
-                $project: {
-                  _id: 0,
-                  character: 1,
-                },
-              },
-            ],
-            as: 'party',
+            as: 'playerCharacter',
           },
         },
         {
           $project: {
             _id: 0,
-            weapon: '$party.weapon',
+            playerCharacter: {
+              $arrayElemAt: ['$playerCharacter', 0],
+            },
             star: 1,
           },
         },
         {
-          $unwind: '$weapon',
-        },
-        {
-          $lookup: {
-            from: 'weapons',
-            localField: 'weapon',
-            foreignField: '_id',
-            as: 'weapon',
+          $project: {
+            artifactSetBuildId: '$playerCharacter.artifactSetBuild',
+            star: 1,
           },
         },
-        // {
-        //   $match: {
-        //     'weapon.type_name': weaponType,
-        //   },
-        // },
         {
           $group: {
-            _id: {
-              weaponId: '$weapon._id',
-              weaponType: '$weapon.type_name',
-            },
+            _id: '$artifactSetBuildId',
             count: {
               $sum: 1,
             },
@@ -616,12 +507,117 @@ export class AbyssBattleService {
           },
         },
         {
+          $sort: {
+            count: -1,
+          },
+        },
+        {
+          $limit: limit,
+        },
+        {
           $project: {
-            weaponId: '$_id.weaponId',
-            type: '$_id.weaponType',
+            artifactSetBuildId: '$_id',
+            _id: 0,
             count: 1,
             avgStar: 1,
             winCount: 1,
+          },
+        },
+        {
+          $lookup: {
+            from: 'artifactsetbuilds',
+            localField: 'artifactSetBuildId',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  _id: 0,
+                  sets: 1,
+                },
+              },
+            ],
+            as: 'artifactSets',
+          },
+        },
+        {
+          $set: {
+            artifactSets: {
+              $arrayElemAt: ['$artifactSets.sets', 0],
+            },
+          },
+        },
+      ])
+      .option(options)
+      .exec();
+  }
+
+  getWeaponAbyssStats(limit = 100) {
+    return this.abyssBattleModel
+      .aggregate([
+        {
+          $unwind: '$party',
+        },
+        {
+          $lookup: {
+            from: 'playercharacters',
+            localField: 'party',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  _id: 0,
+                  weapon: 1,
+                },
+              },
+            ],
+            as: 'playerCharacter',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            playerCharacter: {
+              $arrayElemAt: ['$playerCharacter', 0],
+            },
+            star: 1,
+          },
+        },
+        {
+          $project: {
+            weaponId: '$playerCharacter.weapon',
+            star: 1,
+          },
+        },
+        {
+          $lookup: {
+            from: 'weapons',
+            localField: 'weaponId',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  _id: 0,
+                  type_name: 1,
+                },
+              },
+            ],
+            as: 'weapon',
+          },
+        },
+        {
+          $group: {
+            _id: '$weapon.type_name',
+            count: {
+              $sum: 1,
+            },
+            avgStar: {
+              $avg: '$star',
+            },
+            winCount: {
+              $sum: {
+                $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
+              },
+            },
           },
         },
         {
@@ -632,6 +628,15 @@ export class AbyssBattleService {
         {
           $limit: limit,
         },
+        {
+          $project: {
+            weapon_type: '$_id',
+            _id: 0,
+            count: 1,
+            avgStar: 1,
+            winCount: 1,
+          },
+        }
       ])
       .option(options)
       .exec();

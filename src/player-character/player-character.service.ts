@@ -216,6 +216,14 @@ export class PlayerCharacterService {
             from: 'weapons',
             localField: 'weapon',
             foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  _id: 0,
+                  type_name: 1,
+                },
+              },
+            ],
             as: 'weapon',
           },
         },
