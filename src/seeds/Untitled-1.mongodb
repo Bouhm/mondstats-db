@@ -6,37 +6,117 @@
 // Select the database to use.
 use('favonius');
 
-const start = new Date();
+var characterId = ObjectId("60b6eda01ec85acb41954df1");
+var weaponId = ObjectId("61954db5a48a6ff6cf3e09c2");
+var artifactSetBuildId = ObjectId("60b6ea101ec85acb4193ed28");
+var limit = 10;
 
 db.abyssbattles.aggregate([
-        {
-          $unwind: '$party',
-        },
-        {
-          $lookup: {
-            from: 'playercharacters',
-            localField: 'party',
-            foreignField: '_id',
-            pipeline: [
-              {
-                $project: {
-                  _id: 0,
-                  character: 1,
-                  weapon: 1,
-                  artifactSetBuild: 1,
-                },
-              },
-            ],
-            as: 'playerCharacter',
-          },
-        },
+  {
+    $unwind: '$party',
+  },
+  {
+    $lookup: {
+      from: 'playercharacters',
+      localField: 'party',
+      foreignField: '_id',
+      pipeline: [
         {
           $project: {
             _id: 0,
-            playerCharacter: {
-              $arrayElemAt: ['$playerCharacter', 0],
-            },
-            star: 1,
+            character: 1,
+            weapon: 1,
+            artifactSetBuild: 1,
           },
         },
+      ],
+      as: 'playerCharacter',
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      playerCharacter: {
+        $arrayElemAt: ['$playerCharacter', 0],
+      },
+      star: 1,
+    },
+  },
+  {
+    $project: {
+      characterId: '$playerCharacter.character',
+      weaponId: '$playerCharacter.weapon',
+      artifactSetBuildId: '$playerCharacter.artifactSetBuild',
+      star: 1,
+    },
+  },
+  {
+    $match: {
+      characterId: characterId,
+      // weaponId: weaponId,
+      // artifactSetBuildId: artifactSetBuildId,
+    },
+  },
+  {
+    $group: {
+      _id: {
+        characterId: '$characterId',
+        weaponId: '$weaponId',
+        artifactSetBuildId: '$artifactSetBuildId',
+      },
+      count: {
+        $sum: 1,
+      },
+      avgStar: {
+        $avg: '$star',
+      },
+      winCount: {
+        $sum: {
+          $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
+        },
+      },
+    },
+  },
+  {
+    $sort: {
+      count: -1,
+    },
+  },
+  {
+    $limit: limit,
+  },
+  {
+    $project: {
+      characterId: '$_id.characterId',
+      weaponId: '$_id.weaponId',
+      artifactSetBuildId: '$_id.artifactSetBuildId',
+      _id: 0,
+      count: 1,
+      avgStar: 1,
+      winCount: 1,
+    },
+  },
+  {
+    $lookup: {
+      from: 'artifactsetbuilds',
+      localField: 'artifactSetBuildId',
+      foreignField: '_id',
+      pipeline: [
+        {
+          $project: {
+            _id: 0,
+            sets: 1,
+          },
+        },
+      ],
+      as: 'artifactSets',
+    },
+  },
+  {
+    $set: {
+      artifactSets: {
+        $arrayElemAt: ['$artifactSets.sets', 0],
+      },
+    },
+  },
 ], { allowDiskUse: true })

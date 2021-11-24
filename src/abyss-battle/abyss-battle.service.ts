@@ -316,9 +316,9 @@ export class AbyssBattleService {
         },
         {
           $match: {
-            characterId,
-            weaponId,
-            artifactSetBuildId,
+            characterId: characterId,
+            // weaponId: weaponId,
+            // artifactSetBuildId: artifactSetBuildId,
           },
         },
         {
@@ -354,6 +354,7 @@ export class AbyssBattleService {
             characterId: '$_id.characterId',
             weaponId: '$_id.weaponId',
             artifactSetBuildId: '$_id.artifactSetBuildId',
+            _id: 0,
             count: 1,
             avgStar: 1,
             winCount: 1,
