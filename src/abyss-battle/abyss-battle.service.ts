@@ -388,25 +388,29 @@ export class AbyssBattleService {
       .exec();
   }
 
-  getCharacterAbyssStats(floor_level: string, battle_index: number, limit = 100) {
+  getCharacterAbyssStats(characterId: string, limit = 100) {
     return this.abyssBattleModel
       .aggregate([
         {
-          $match: {
-            floor_level,
-            battle_index,
-          },
+          $unwind: '$party',
         },
         {
           $lookup: {
             from: 'playercharacters',
             localField: 'party',
             foreignField: '_id',
-            as: 'party',
+            pipeline: [
+              {
+                $project: {
+                  _id: 0,
+                  character: 1,
+                  weapon: 1,
+                  artifactSetBuild: 1,
+                },
+              },
+            ],
+            as: 'playerCharacter',
           },
-        },
-        {
-          $unwind: '$party',
         },
         {
           $project: {
@@ -415,11 +419,11 @@ export class AbyssBattleService {
             star: 1,
           },
         },
-        // {
-        //   $match: {
-        //     party: character,
-        //   },
-        // },
+        {
+          $match: {
+            character: characterId,
+          },
+        },
         {
           $group: {
             _id: '$party',
