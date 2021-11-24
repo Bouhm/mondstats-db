@@ -88,16 +88,13 @@ export class PlayerCharacterService {
     return filteredCharacters;
   }
 
-  getCharacterBuilds(characterId = '', filter = {}, limit = 20) {
-    const match: any = filter;
-    if (characterId) {
-      match.character = characterId;
-    }
-
+  getCharacterBuilds(characterId = '', limit = 10) {
     return this.playerCharacterModel
       .aggregate([
         {
-          $match: match,
+          $match: {
+            character: characterId,
+          },
         },
         {
           $group: {
@@ -134,16 +131,48 @@ export class PlayerCharacterService {
           },
         },
         {
+          $limit: limit,
+        },
+        {
           $project: {
             artifactSetBuild: '$_id.artifactSetBuild',
-            _id: '$_id.character',
+            characterId: '$_id.character',
             weapons: {
               $slice: ['$weapons', 0, 10],
             },
           },
         },
         {
-          $limit: limit,
+          $lookup: {
+            from: 'artifactsetbuilds',
+            localField: 'artifactSetBuild',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  _id: 0,
+                  sets: 1,
+                },
+              },
+            ],
+            as: 'artifactSets',
+          },
+        },
+        {
+          $set: {
+            artifactSets: {
+              $arrayElemAt: ['$artifactSets.sets', 0],
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            characterId: 1,
+            artifactSetBuild: 1,
+            artifactSets: 1,
+            weapons: 1,
+          },
         },
       ])
       .option(options)
@@ -174,9 +203,14 @@ export class PlayerCharacterService {
       .exec();
   }
 
-  getWeaponTypeTotals(limit = 100) {
+  getWeaponTypeTotals(character: string, limit = 100) {
     return this.playerCharacterModel
       .aggregate([
+        {
+          $match: {
+            character,
+          },
+        },
         {
           $lookup: {
             from: 'weapons',

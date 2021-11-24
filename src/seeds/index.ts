@@ -826,6 +826,21 @@ mongoose.connection.once('open', async () => {
   try {
     // await purgeOld();
 
+    // const uids =  _getBaseUid('asia');
+    // const oldPlayers = await playerModel.find({
+    //   uid: { $gt: uids },
+    // }).lean();
+
+    // await Promise.all(
+    //   map(oldPlayers, (player: any) => {
+    //     return Promise.all([
+    //       playerModel.deleteOne({ _id: player._id }),
+    //       abyssBattleModel.deleteMany({ player: player._id }),
+    //       playerCharacterModel.deleteMany({ player: player._id }),
+    //     ]);
+    //   }),
+    // );
+
     loadFromJson();
     // blockedIndices = new Array(TOKENS.length).fill(false);
     const now = new Date();
