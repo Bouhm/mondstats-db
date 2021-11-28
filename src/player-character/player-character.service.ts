@@ -203,14 +203,9 @@ export class PlayerCharacterService {
       .exec();
   }
 
-  getWeaponTypeTotals(character: string, limit = 100) {
+  getWeaponTypeTotals(limit = 100) {
     return this.playerCharacterModel
       .aggregate([
-        {
-          $match: {
-            character,
-          },
-        },
         {
           $lookup: {
             from: 'weapons',
@@ -248,12 +243,12 @@ export class PlayerCharacterService {
       .exec();
   }
 
-  getArtifactSetTotals(limit = 100) {
+  getWeaponTotals(limit = 1000) {
     return this.playerCharacterModel
       .aggregate([
         {
           $group: {
-            _id: '$artifactSetBuild',
+            _id: '$weapon',
             total: {
               $sum: 1,
             },
@@ -272,7 +267,54 @@ export class PlayerCharacterService {
       .exec();
   }
 
-  getStats() {
+  getArtifactSetTotals(limit = 1000) {
+    return this.playerCharacterModel
+      .aggregate([
+        {
+          $group: {
+            _id: '$artifactSetBuild',
+            total: {
+              $sum: 1,
+            },
+          },
+        },
+        {
+          $sort: {
+            total: -1,
+          },
+        },
+        {
+          $limit: limit,
+        },
+        {
+          $lookup: {
+            from: 'artifactsetbuilds',
+            localField: '_id',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  _id: 0,
+                  sets: 1,
+                },
+              },
+            ],
+            as: 'artifactSets',
+          },
+        },
+        {
+          $set: {
+            artifactSets: {
+              $arrayElemAt: ['$artifactSets.sets', 0],
+            },
+          },
+        },
+      ])
+      .option(options)
+      .exec();
+  }
+
+  getCount() {
     return this.playerCharacterModel.find().lean().countDocuments();
   }
 }

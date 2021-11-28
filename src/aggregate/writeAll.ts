@@ -6,6 +6,7 @@ import { cleanup } from '../util';
 import connectDb from '../util/connection';
 import { updateRepo } from './githubApi';
 import { updateDb } from './writeDb';
+import { aggregateAll } from './writeStats';
 
 // import { aggregateFeatured } from './writeFeatured';
 // import { aggregateBuildsAndTeams } from './writeStats';
@@ -41,7 +42,7 @@ import { updateDb } from './writeDb';
 
   try {
     await updateDb();
-    // await aggregateBuildsAndTeams();
+    await aggregateAll();
     // await aggregateFeatured();
   } catch (err) {
     console.log(err);

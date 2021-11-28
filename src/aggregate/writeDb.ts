@@ -19,6 +19,7 @@ export const getDb = async () => {
   const artifactDb = await artifactService.db();
   const artifactSetDb = await artifactSetService.db();
   const weaponDb = await weaponService.db();
+  const artifactSetBuildDb = await artifactSetBuildService.db();
   return { characterDb, artifactDb, artifactSetDb, weaponDb };
 };
 

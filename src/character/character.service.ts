@@ -38,7 +38,9 @@ export class CharacterService {
       delete character.__v;
       delete character.createdAt;
       delete character.updatedAt;
-      forEach(character.constellations, (c, i) => delete character.constellations[i]._id);
+      forEach(character.constellations, (c, i) => {
+        if (character.constellations[i]) delete character.constellations[i]._id;
+      });
     });
 
     return characters;

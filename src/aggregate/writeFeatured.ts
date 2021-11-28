@@ -12,9 +12,9 @@ export const aggregateFeatured = async () => {
   const abyssBattleService = new AbyssBattleService(abyssBattleModel);
   const playerService = new PlayerService(playerModel);
 
-  const playerCount = await playerService.getStats();
-  const playerCharacterCount = await playerCharacterService.getStats();
-  const abyssBattleCount = await abyssBattleService.getStats();
+  const playerCount = await playerService.getCount();
+  const playerCharacterCount = await playerCharacterService.getCount();
+  const abyssBattleCount = await abyssBattleService.getCount();
 
   const bannerChars = ['Tartaglia', 'Yanfei', 'Ningguang', 'Chongyun', 'Aloy'];
 

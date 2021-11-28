@@ -35,14 +35,18 @@ export class ArtifactSetService {
     const artifactSets = await this.artifactSetModel.find().lean().exec();
     const filteredSets = [];
     artifactSets.forEach((set: any) => {
-      set.rarity = parseInt(genshindb.artifacts(set.name).rarity.pop());
-      if (set.rarity > 3) {
-        delete set.__v;
-        delete set.createdAt;
-        delete set.updatedAt;
+      const dbSet = genshindb.artifacts(set.name);
 
-        set.affixes.forEach((affix, i) => delete set.affixes[i]._id);
-        filteredSets.push(set);
+      if (dbSet && dbSet.rarity) {
+        set.rarity = parseInt(dbSet.rarity.pop());
+        if (set.rarity && set.rarity > 3) {
+          delete set.__v;
+          delete set.createdAt;
+          delete set.updatedAt;
+  
+          set.affixes.forEach((affix, i) => delete set.affixes[i]._id);
+          filteredSets.push(set);
+        }
       }
     });
 
