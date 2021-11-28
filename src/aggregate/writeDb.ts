@@ -1,5 +1,7 @@
 import fs from 'fs';
+import { ArtifactSetBuildService } from 'src/artifact-set-build/artifact-set-build.service';
 
+import artifactSetBuildModel from '../artifact-set-build/artifact-set-build.model';
 import artifactSetModel from '../artifact-set/artifact-set.model';
 import { ArtifactSetService } from '../artifact-set/artifact-set.service';
 import artifactModel from '../artifact/artifact.model';
@@ -13,6 +15,7 @@ const characterService = new CharacterService(characterModel);
 const weaponService = new WeaponService(weaponModel);
 const artifactService = new ArtifactService(artifactModel);
 const artifactSetService = new ArtifactSetService(artifactSetModel, artifactModel);
+const artifactSetBuildService = new ArtifactSetBuildService(artifactSetBuildModel);
 
 export const getDb = async () => {
   const characterDb = await characterService.db();
@@ -20,7 +23,7 @@ export const getDb = async () => {
   const artifactSetDb = await artifactSetService.db();
   const weaponDb = await weaponService.db();
   const artifactSetBuildDb = await artifactSetBuildService.db();
-  return { characterDb, artifactDb, artifactSetDb, weaponDb };
+  return { characterDb, artifactDb, artifactSetDb, artifactSetBuildDb, weaponDb };
 };
 
 export const updateDb = async () => {

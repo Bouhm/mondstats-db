@@ -17,6 +17,7 @@ import {
   orderBy,
   range,
   reduce,
+  some,
   take,
   uniqWith,
   values,
@@ -225,10 +226,8 @@ export async function aggregateAll() {
   const allFloorTeams = flatten(
     await Promise.all(
       flattenDeep(
-        map(
-          allCharFloors,
-          ({ floor_level, battle_index, characterId }) =>
-            abyssBattleService.getTopFloorParties(floor_level, battle_index, characterId),
+        map(allCharFloors, ({ floor_level, battle_index, characterId }) =>
+          abyssBattleService.getTopFloorParties(floor_level, battle_index, characterId),
         ),
       ),
     ),
@@ -281,6 +280,7 @@ export async function aggregateAll() {
     const charTotal = find(characterTotals, { characterId });
 
     characterData[characterId] = {
+      _id: characterId,
       battleCount: charAbyssStat.battleCount,
       winCount: charAbyssStat.winCount,
       avgStar: charAbyssStat.avgStar,
@@ -306,6 +306,7 @@ export async function aggregateAll() {
     const weaponAbyssStat = find(weaponAbyssStats, { weaponId: _id });
 
     weaponData[_id] = {
+      _id,
       total,
       battleCount: weaponAbyssStat.battleCount,
       winCount: weaponAbyssStat.winCount,
@@ -337,18 +338,29 @@ export async function aggregateAll() {
       fs.writeFile(`data/abyss/${floorLevel}`, JSON.stringify(topFloorTeams[floorLevel]), (e) => e),
     ),
     ...map(characterData, ({ data, characterId }) => {
-      const character = find(characterDb, { _id: characterId });
-      const fileName = getShortName(character);
+      const idx = findIndex(characterDb, ({ _id }) => _id.toString() === characterId.toString());
+      const fileName = getShortName(characterDb[idx]);
       return fs.writeFile(`data/characters/${fileName}.json`, JSON.stringify(data), (e) => e);
     }),
     ...map(weaponData, ({ data, weaponId }) => {
-      const weapon = find(weaponDb, { _id: weaponId });
-      const fileName = getShortName(weapon);
+      const idx = findIndex(weaponDb, ({ _id }) => _id.toString() === weaponId.toString());
+      const fileName = getShortName(weaponDb[idx]);
       return fs.writeFile(`data/weapons/${fileName}.json`, JSON.stringify(data), (e) => e);
     }),
     ...map(artifactSetDb, ({ _id, name }) => {
-      const data = artifactSetData[_id];
+      const buildIds = map(
+        filter(artifactSetBuildDb, ({ sets }) =>
+          some(sets, (set) => _id.toString() === set._id.toString()),
+        ),
+        (setBuild) => setBuild._id,
+      );
+      const allSetData = map(buildIds, (buildId) => artifactSetData[buildId]);
+
       const fileName = getShortName(name);
+      const data = {
+        _id,
+        sets: allSetData,
+      };
       return fs.writeFile(`data/artifacts/${fileName}.json`, JSON.stringify(data), (e) => e);
     }),
     fs.writeFile('data/weapons/stats/type-totals.json', JSON.stringify(weaponTypeTotals), (e) => e),
