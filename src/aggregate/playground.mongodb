@@ -1,0 +1,82 @@
+// MongoDB Playground
+// To disable this template go to Settings | MongoDB | Use Default Template For Playground.
+// Make sure you are connected to enable completions and to be able to run a playground.
+// Use Ctrl+Space inside a snippet or a string literal to trigger completions.
+
+// Select the database to use.
+use('favonius');
+
+var characterId = ObjectId("60b6eda01ec85acb41954df1");
+var weaponId = ObjectId("61954db5a48a6ff6cf3e09c2");
+var artifactSetBuildId = ObjectId("60b6ea101ec85acb4193ed28");
+var limit = 1000;
+
+db.abyssbattles.aggregate([
+  {
+          $unwind: '$party',
+        },
+        {
+          $lookup: {
+            from: 'playercharacters',
+            localField: 'party',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  _id: 0,
+                  weapon: 1,
+                },
+              },
+            ],
+            as: 'playerCharacter',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            playerCharacter: {
+              $arrayElemAt: ['$playerCharacter', 0],
+            },
+            star: 1,
+          },
+        },
+        {
+          $project: {
+            weaponId: '$playerCharacter.weapon',
+            star: 1,
+          },
+        },
+        {
+          $group: {
+            _id: '$weaponId',
+            battleCount: {
+              $sum: 1,
+            },
+            avgStar: {
+              $avg: '$star',
+            },
+            winCount: {
+              $sum: {
+                $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
+              },
+            },
+          },
+        },
+        {
+          $sort: {
+            battleCount: -1,
+          },
+        },
+        {
+          $limit: limit,
+        },
+        {
+          $project: {
+            weaponId: '$_id',
+            _id: 0,
+            battleCount: 1,
+            avgStar: 1,
+            winCount: 1,
+          },
+        },
+], { allowDiskUse: true })

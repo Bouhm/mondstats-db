@@ -88,7 +88,7 @@ export class PlayerCharacterService {
     return filteredCharacters;
   }
 
-  getCharacterBuilds(characterId = '', limit = 10) {
+  getCharacterBuilds(characterId = '', limit = 20) {
     return this.playerCharacterModel
       .aggregate([
         {
@@ -116,7 +116,7 @@ export class PlayerCharacterService {
             },
             weapons: {
               $push: {
-                _id: '$_id.weapon',
+                weaponId: '$_id.weapon',
                 count: '$count',
               },
             },
@@ -135,7 +135,7 @@ export class PlayerCharacterService {
         },
         {
           $project: {
-            artifactSetBuild: '$_id.artifactSetBuild',
+            artifactSetBuildId: '$_id.artifactSetBuild',
             characterId: '$_id.character',
             weapons: {
               $slice: ['$weapons', 0, 10],
@@ -169,7 +169,7 @@ export class PlayerCharacterService {
           $project: {
             _id: 0,
             characterId: 1,
-            artifactSetBuild: 1,
+            artifactSetBuildId: 1,
             artifactSets: 1,
             weapons: 1,
           },
@@ -179,7 +179,7 @@ export class PlayerCharacterService {
       .exec();
   }
 
-  getCharacterTotals(limit = 100) {
+  getCharacterTotals(limit = 1000) {
     return this.playerCharacterModel
       .aggregate([
         {
@@ -198,12 +198,19 @@ export class PlayerCharacterService {
         {
           $limit: limit,
         },
+        {
+          $project: {
+            total: 1,
+            characterId: '$_id',
+            _id: 0,
+          },
+        },
       ])
       .option(options)
       .exec();
   }
 
-  getWeaponTypeTotals(limit = 100) {
+  getWeaponTypeTotals(limit = 1000) {
     return this.playerCharacterModel
       .aggregate([
         {
@@ -238,6 +245,13 @@ export class PlayerCharacterService {
         {
           $limit: limit,
         },
+        {
+          $project: {
+            total: 1,
+            weaponType: '$_id',
+            _id: 0,
+          },
+        },
       ])
       .option(options)
       .exec();
@@ -261,6 +275,13 @@ export class PlayerCharacterService {
         },
         {
           $limit: limit,
+        },
+        {
+          $project: {
+            total: 1,
+            weaponId: '$_id',
+            _id: 0,
+          },
         },
       ])
       .option(options)
@@ -287,9 +308,16 @@ export class PlayerCharacterService {
           $limit: limit,
         },
         {
+          $project: {
+            total: 1,
+            artifactSetBuildId: '$_id',
+            _id: 0,
+          },
+        },
+        {
           $lookup: {
             from: 'artifactsetbuilds',
-            localField: '_id',
+            localField: 'artifactSetBuildId',
             foreignField: '_id',
             pipeline: [
               {

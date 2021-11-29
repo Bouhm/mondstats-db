@@ -1,7 +1,7 @@
 import fs from 'fs';
-import { ArtifactSetBuildService } from 'src/artifact-set-build/artifact-set-build.service';
 
 import artifactSetBuildModel from '../artifact-set-build/artifact-set-build.model';
+import { ArtifactSetBuildService } from '../artifact-set-build/artifact-set-build.service';
 import artifactSetModel from '../artifact-set/artifact-set.model';
 import { ArtifactSetService } from '../artifact-set/artifact-set.service';
 import artifactModel from '../artifact/artifact.model';

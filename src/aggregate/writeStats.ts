@@ -1,6 +1,5 @@
 import fs from 'fs';
 import {
-  chunk,
   cloneDeep,
   difference,
   filter,
@@ -13,17 +12,11 @@ import {
   intersection,
   isEqual,
   map,
-  omit,
   orderBy,
   range,
-  reduce,
   some,
-  take,
   uniqWith,
-  values,
 } from 'lodash';
-import mongoose from 'mongoose';
-import { ObjectBindingPattern } from 'ts-morph';
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
 import { AbyssBattleService } from '../abyss-battle/abyss-battle.service';
@@ -31,9 +24,7 @@ import characterModel from '../character/character.model';
 import { CharacterService } from '../character/character.service';
 import playerCharacterModel from '../player-character/player-character.model';
 import { PlayerCharacterService } from '../player-character/player-character.service';
-import playerModel from '../player/player.model';
-import { getShortName, unwindBy } from '../util';
-import connectDb from '../util/connection';
+import { getShortName } from '../util';
 import { getDb } from './writeDb';
 
 const abyssBattleService = new AbyssBattleService(abyssBattleModel);
@@ -186,7 +177,7 @@ const aggregateCoreTeams = (parties: TeamStat[]) => {
 
 export async function aggregateAll() {
   const { artifactSetDb, artifactSetBuildDb, characterDb, weaponDb } = await getDb();
-  const characters = await characterService.list();
+  const characters = await characterModel.find();
   const characterIds = map(characters, ({ _id }) => _id);
 
   const allFloors = [];
@@ -221,7 +212,7 @@ export async function aggregateAll() {
 
   const topTeams = aggregateCoreTeams(uniqWith(allTopTeams, compareParties));
 
-  console.log('Done top parties', topTeams);
+  console.log('Done top parties');
 
   const allFloorTeams = flatten(
     await Promise.all(
@@ -252,7 +243,7 @@ export async function aggregateAll() {
     });
   });
 
-  console.log('Done floor parties', topFloorTeams);
+  console.log('Done floor parties');
 
   const characterAbyssStats = flatten(
     await Promise.all(
@@ -272,22 +263,30 @@ export async function aggregateAll() {
   const characterTotals = await playerCharacterService.getCharacterTotals();
   console.log('Done character totals');
 
-  console.log(characterAbyssStats, characterTotals);
-
   const characterData: any = {};
   forEach(charBuilds, ({ characterId, artifactSets, weapons }) => {
-    const charAbyssStat = find(characterAbyssStats, { characterId });
-    const charTotal = find(characterTotals, { characterId });
+    const statIdx = findIndex(
+      characterAbyssStats,
+      (stat) => stat.characterId.toString() === characterId.toString(),
+    );
+    const totalIdx = findIndex(
+      characterTotals,
+      (total) => total.characterId.toString() === characterId.toString(),
+    );
 
-    characterData[characterId] = {
-      _id: characterId,
-      battleCount: charAbyssStat.battleCount,
-      winCount: charAbyssStat.winCount,
-      avgStar: charAbyssStat.avgStar,
-      artifactSets,
-      weapons,
-      total: charTotal.total,
-    };
+    if (statIdx > -1) {
+      const { battleCount, winCount, avgStar } = characterAbyssStats[statIdx];
+
+      characterData[characterId] = {
+        _id: characterId,
+        battleCount,
+        winCount,
+        avgStar,
+        artifactSets,
+        weapons,
+        total: characterTotals[totalIdx] ? characterTotals[totalIdx].total : 0,
+      };
+    }
   });
 
   console.log('Done character builds');
@@ -302,16 +301,22 @@ export async function aggregateAll() {
   console.log('Done weapon totals');
 
   const weaponData: any = {};
-  forEach(weaponTotals, ({ _id, total }) => {
-    const weaponAbyssStat = find(weaponAbyssStats, { weaponId: _id });
+  forEach(weaponTotals, ({ weaponId, total }) => {
+    const statIdx = findIndex(
+      weaponAbyssStats,
+      (stat) => stat.weaponId && weaponId && stat.weaponId.toString() === weaponId.toString(),
+    );
 
-    weaponData[_id] = {
-      _id,
-      total,
-      battleCount: weaponAbyssStat.battleCount,
-      winCount: weaponAbyssStat.winCount,
-      avgStar: weaponAbyssStat.avgStar,
-    };
+    if (statIdx > -1) {
+      const { battleCount, winCount, avgStar } = weaponAbyssStats[statIdx];
+
+      weaponData[weaponId] = {
+        total,
+        battleCount,
+        winCount,
+        avgStar,
+      };
+    }
   });
 
   const artifactSetAbyssStats = await abyssBattleService.getArtifactSetAbyssStats();
@@ -321,15 +326,25 @@ export async function aggregateAll() {
   console.log('Done artifactset totals');
 
   const artifactSetData: any = {};
-  forEach(artifactSetTotals, ({ _id, total }) => {
-    const artifactSetStat = find(artifactSetAbyssStats, { artifactSetBuildId: _id });
+  forEach(artifactSetTotals, ({ artifactSetBuildId, total }) => {
+    const statIdx = findIndex(
+      artifactSetAbyssStats,
+      (stat) =>
+        stat.artifactSetBuildId &&
+        artifactSetBuildId &&
+        stat.artifactSetBuildId.toString() === artifactSetBuildId.toString(),
+    );
 
-    artifactSetData[_id] = {
-      total,
-      battleCount: artifactSetStat.battleCount,
-      winCount: artifactSetStat.winCount,
-      avgStar: artifactSetStat.avgStar,
-    };
+    if (statIdx > -1) {
+      const { battleCount, winCount, avgStar } = artifactSetAbyssStats[statIdx];
+
+      artifactSetData[artifactSetBuildId] = {
+        total,
+        battleCount,
+        winCount,
+        avgStar,
+      };
+    }
   });
 
   await Promise.all([
@@ -339,13 +354,19 @@ export async function aggregateAll() {
     ),
     ...map(characterData, ({ data, characterId }) => {
       const idx = findIndex(characterDb, ({ _id }) => _id.toString() === characterId.toString());
-      const fileName = getShortName(characterDb[idx]);
-      return fs.writeFile(`data/characters/${fileName}.json`, JSON.stringify(data), (e) => e);
+
+      if (idx > -1) {
+        const fileName = getShortName(characterDb[idx]);
+        return fs.writeFile(`data/characters/${fileName}.json`, JSON.stringify(data), (e) => e);
+      }
     }),
     ...map(weaponData, ({ data, weaponId }) => {
       const idx = findIndex(weaponDb, ({ _id }) => _id.toString() === weaponId.toString());
-      const fileName = getShortName(weaponDb[idx]);
-      return fs.writeFile(`data/weapons/${fileName}.json`, JSON.stringify(data), (e) => e);
+
+      if (idx > -1) {
+        const fileName = getShortName(weaponDb[idx]);
+        return fs.writeFile(`data/weapons/${fileName}.json`, JSON.stringify(data), (e) => e);
+      }
     }),
     ...map(artifactSetDb, ({ _id, name }) => {
       const buildIds = map(

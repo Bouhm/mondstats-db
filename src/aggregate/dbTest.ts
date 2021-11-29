@@ -43,8 +43,13 @@ const characterService = new CharacterService(characterModel);
   await connectDb();
   try {
     const { characterDb, weaponDb } = await getDb();
-    const characters = await characterService.list();
+    const characters = await characterModel.find();
     const characterIds = map(characters, ({ _id }) => _id);
+    
+    const a = await playerCharacterService.getWeaponTotals();
+    const b = await abyssBattleService.getWeaponAbyssStats();
+    console.log(a, b)
+    console.log(a[0].weaponId.toString(), b[0].weaponId.toString())
 
     const allFloors = [];
 

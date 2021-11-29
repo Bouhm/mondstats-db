@@ -1,18 +1,5 @@
-import {
-  difference,
-  find,
-  findIndex,
-  forEach,
-  forIn,
-  includes,
-  isEqual,
-  map,
-  omit,
-  sortBy,
-  times,
-} from 'lodash';
-import { Model, ObjectId } from 'mongoose';
-import { Character } from 'src/character/character.model';
+import { difference, find, forEach, includes, map } from 'lodash';
+import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -21,7 +8,7 @@ import { Affix } from '../artifact-set/artifact-set.model';
 // import { Character, CharacterDocument } from '../character/character.model';
 import { PlayerCharacter } from '../player-character/player-character.model';
 import { ListAbyssBattleInput } from './abyss-battle.inputs';
-import { AbyssBattle, AbyssBattleDocument, AbyssStats } from './abyss-battle.model';
+import { AbyssBattle, AbyssBattleDocument } from './abyss-battle.model';
 
 function _getActivationNumber(battleCount: number, affixes: Affix[]) {
   const activations = map(affixes, (effect) => effect.activation_number);
@@ -154,9 +141,6 @@ export class AbyssBattleService {
             party: '$party.character',
             star: 1,
           },
-        },
-        {
-          $match: characterId ? { party: { $all: [characterId] } } : {},
         },
         {
           $group: {
@@ -325,7 +309,7 @@ export class AbyssBattleService {
         },
         {
           $match: {
-            characterId: characterId,
+            characterId,
             // weaponId: weaponId,
             // artifactSetBuildId: artifactSetBuildId,
           },
@@ -397,7 +381,7 @@ export class AbyssBattleService {
       .exec();
   }
 
-  getCharacterAbyssStats(characterId: string, limit = 100) {
+  getCharacterAbyssStats(characterId: string, limit = 1000) {
     return this.abyssBattleModel
       .aggregate([
         {
@@ -422,18 +406,18 @@ export class AbyssBattleService {
         {
           $project: {
             _id: 0,
-            character: '$playerCharacter.character',
+            characterId: '$playerCharacter.character',
             star: 1,
           },
         },
         {
           $match: {
-            character: characterId,
+            characterId,
           },
         },
         {
           $group: {
-            _id: '$character',
+            _id: '$characterId',
             battleCount: {
               $sum: 1,
             },
@@ -469,7 +453,7 @@ export class AbyssBattleService {
       .exec();
   }
 
-  getArtifactSetAbyssStats(floor_level = '9-1', battle_index = 1, limit = 100) {
+  getArtifactSetAbyssStats(limit = 1000) {
     return this.abyssBattleModel
       .aggregate([
         {
@@ -567,7 +551,7 @@ export class AbyssBattleService {
       .exec();
   }
 
-  getWeaponAbyssStats(limit = 100) {
+  getWeaponAbyssStats(limit = 1000) {
     return this.abyssBattleModel
       .aggregate([
         {
@@ -605,24 +589,8 @@ export class AbyssBattleService {
           },
         },
         {
-          $lookup: {
-            from: 'weapons',
-            localField: 'weaponId',
-            foreignField: '_id',
-            pipeline: [
-              {
-                $project: {
-                  _id: 0,
-                  type_name: 1,
-                },
-              },
-            ],
-            as: 'weapon',
-          },
-        },
-        {
           $group: {
-            _id: '$weapon.type_name',
+            _id: '$weaponId',
             battleCount: {
               $sum: 1,
             },
@@ -646,7 +614,7 @@ export class AbyssBattleService {
         },
         {
           $project: {
-            weaponType: '$_id',
+            weaponId: '$_id',
             _id: 0,
             battleCount: 1,
             avgStar: 1,
