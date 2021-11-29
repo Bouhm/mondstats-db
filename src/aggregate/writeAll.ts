@@ -14,7 +14,7 @@ import { aggregateAll } from './writeStats';
 (async () => {
   await connectDb();
 
-  const dirs = ['characters', 'artifacts', 'weapons', 'abyss'];
+  const dirs = ['characters', 'artifactSets', 'weapons', 'abyss'];
 
   if (!fs.existsSync('data')) {
     fs.mkdir('data', { recursive: true }, (e) => e);
@@ -44,11 +44,10 @@ import { aggregateAll } from './writeStats';
     await updateDb();
     await aggregateAll();
     // await aggregateFeatured();
+
+    await updateRepo(process.env.npm_config_branch || 'main');
   } catch (err) {
     console.log(err);
-  } finally {
-    await updateRepo(process.env.npm_config_branch || 'main');
-    // cleanup('data');
   }
 
   await mongoose.connection.close();

@@ -45,38 +45,43 @@ const characterService = new CharacterService(characterModel);
     const { artifactSetDb, artifactSetBuildDb, characterDb, weaponDb } = await getDb();
     const characters = await characterModel.find();
     const characterIds = map(characters, ({ _id }) => _id);
-    
+
     const weaponAbyssStats = await abyssBattleService.getWeaponAbyssStats();
     console.log('Done weapon abyss stats');
   
     const weaponTotals = await playerCharacterService.getWeaponTotals();
   
-    const weaponTypeTotals: { _id: string; total: number }[] =
-      await playerCharacterService.getWeaponTypeTotals();
-    console.log('Done weapon totals');
-  
-    console.log(weaponAbyssStats, weaponTotals)
-    const weaponData: any = {};
+    const weaponData: any = [];
     forEach(weaponTotals, ({ weaponId, total }) => {
       const statIdx = findIndex(
         weaponAbyssStats,
         (stat) => stat.weaponId && weaponId && stat.weaponId.toString() === weaponId.toString(),
       );
-      
   
       if (statIdx > -1) {
         const { battleCount, winCount, avgStar } = weaponAbyssStats[statIdx];
   
-        weaponData[weaponId] = {
+        weaponData.push({
+          _id: weaponId,
           total,
           battleCount,
           winCount,
           avgStar,
-        };
+        });
       }
     });
+    for (const data of weaponData) {
+      const idx = findIndex(
+        weaponDb,
+        ({ _id }) => _id && data._id && _id.toString() === data._id.toString(),
+      );
 
-    console.log(weaponData)
+      console.log(data, idx)
+  
+      if (idx > -1) {
+        fs.writeFileSync(`data/weapons/${data._id.toString()}.json`, JSON.stringify(data));
+      }
+    }
   
   } catch (err) {
     console.log(err);

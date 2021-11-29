@@ -145,7 +145,7 @@ export class PlayerCharacterService {
         {
           $lookup: {
             from: 'artifactsetbuilds',
-            localField: 'artifactSetBuild',
+            localField: 'artifactSetBuildId',
             foreignField: '_id',
             pipeline: [
               {
