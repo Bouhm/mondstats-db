@@ -12,7 +12,7 @@ var artifactSetBuildId = ObjectId("60b6ea101ec85acb4193ed28");
 var limit = 1000;
 
 db.abyssbattles.aggregate([
-  {
+        {
           $unwind: '$party',
         },
         {
@@ -27,56 +27,63 @@ db.abyssbattles.aggregate([
                   weapon: 1,
                 },
               },
+              {
+                $project: {
+                  weapon: {
+                    $arrayElemAt: ['$weapon', 0],
+                  },
+                }
+              }
             ],
             as: 'playerCharacter',
           },
         },
-        {
-          $project: {
-            _id: 0,
-            playerCharacter: {
-              $arrayElemAt: ['$playerCharacter', 0],
-            },
-            star: 1,
-          },
-        },
-        {
-          $project: {
-            weaponId: '$playerCharacter.weapon',
-            star: 1,
-          },
-        },
-        {
-          $group: {
-            _id: '$weaponId',
-            battleCount: {
-              $sum: 1,
-            },
-            avgStar: {
-              $avg: '$star',
-            },
-            winCount: {
-              $sum: {
-                $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
-              },
-            },
-          },
-        },
-        {
-          $sort: {
-            battleCount: -1,
-          },
-        },
-        {
-          $limit: limit,
-        },
-        {
-          $project: {
-            weaponId: '$_id',
-            _id: 0,
-            battleCount: 1,
-            avgStar: 1,
-            winCount: 1,
-          },
-        },
+        // {
+        //   $project: {
+        //     _id: 0,
+        //     playerCharacter: {
+        //       $arrayElemAt: ['$playerCharacter', 0],
+        //     },
+        //     star: 1,
+        //   },
+        // },
+        // {
+        //   $project: {
+        //     weaponId: '$playerCharacter.weapon',
+        //     star: 1,
+        //   },
+        // },
+        // {
+        //   $group: {
+        //     _id: '$weaponId',
+        //     battleCount: {
+        //       $sum: 1,
+        //     },
+        //     avgStar: {
+        //       $avg: '$star',
+        //     },
+        //     winCount: {
+        //       $sum: {
+        //         $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
+        //       },
+        //     },
+        //   },
+        // },
+        // {
+        //   $sort: {
+        //     battleCount: -1,
+        //   },
+        // },
+        // {
+        //   $limit: limit,
+        // },
+        // {
+        //   $project: {
+        //     weaponId: '$_id',
+        //     _id: 0,
+        //     battleCount: 1,
+        //     avgStar: 1,
+        //     winCount: 1,
+        //   },
+        // },
 ], { allowDiskUse: true })

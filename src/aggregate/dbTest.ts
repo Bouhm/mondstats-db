@@ -42,177 +42,42 @@ const characterService = new CharacterService(characterModel);
 (async () => {
   await connectDb();
   try {
-    const { characterDb, weaponDb } = await getDb();
+    const { artifactSetDb, artifactSetBuildDb, characterDb, weaponDb } = await getDb();
     const characters = await characterModel.find();
     const characterIds = map(characters, ({ _id }) => _id);
     
-    const a = await playerCharacterService.getWeaponTotals();
-    const b = await abyssBattleService.getWeaponAbyssStats();
-    console.log(a, b)
-    console.log(a[0].weaponId.toString(), b[0].weaponId.toString())
-
-    const allFloors = [];
-
-    forEach(range(9, 13), (floor) => {
-      forEach(range(1, 4), (stage) => {
-        allFloors.push(`${floor}-${stage}`);
-      });
-    });
-
-    const allCharFloors = [];
-
-    forEach(range(9, 13), (floor) => {
-      forEach(range(1, 4), (stage) => {
-        forEach(range(1, 3), (battle) => {
-          forEach(characterIds, (charId) => {
-            allCharFloors.push({
-              floor_level: `${floor}-${stage}`,
-              battle_index: battle,
-              characterId: charId,
-            });
-          });
-        });
-      });
-    });
-
-    const allTopTeams = flatten(
-      await Promise.all(
-        flattenDeep(map(characterIds, (characterId) => abyssBattleService.getTopParties(characterId))),
-      ),
-    );
-
-    const topTeams = aggregateCoreTeams(uniqWith(allTopTeams, compareParties));
-
-    console.log('Done top parties', topTeams);
-
-    const allFloorTeams = flatten(
-      await Promise.all(
-        flattenDeep(
-          map(
-            [
-              {
-                floor_level: '9-1',
-                battle_index: 1,
-                characterId: characterIds[0],
-              },
-              {
-                floor_level: '9-2',
-                battle_index: 1,
-                characterId: characterIds[0],
-              },
-            ],
-            // allCharFloors,
-            ({ floor_level, battle_index, characterId }) =>
-              abyssBattleService.getTopFloorParties(floor_level, battle_index, characterId),
-          ),
-        ),
-      ),
-    );
-
-    const floorTeams = uniqWith(allFloorTeams, compareParties);
-    const groupedFloorTeams = groupBy(floorTeams, 'floorLevel');
-    const combinedFloorTeams = {};
-
-    Object.entries(groupedFloorTeams).forEach((floorData) => {
-      const data = floorData[1];
-      const floorLevel = floorData[0];
-
-      const groupedBattleTeams = groupBy(data, 'battleIndex');
-
-      Object.entries(groupedBattleTeams).forEach((battleData) => {
-        const teams = battleData[1];
-        const battleIndex = battleData[0];
-
-        combinedFloorTeams[floorLevel] = {};
-        combinedFloorTeams[floorLevel][battleIndex] = aggregateCoreTeams(teams);
-      });
-    });
-
-    console.log('Done floor parties', combinedFloorTeams);
-
-    const characterAbyssStats = flatten(
-      await Promise.all(
-        flattenDeep(
-          map(characterIds, (characterId) => abyssBattleService.getCharacterAbyssStats(characterId)),
-        ),
-      ),
-    );
-    console.log('Done character abyss stats');
-
-    const charBuilds = flatten(
-      await Promise.all(
-        flattenDeep(map(characterIds, (charId) => playerCharacterService.getCharacterBuilds(charId))),
-      ),
-    );
-
-    const characterTotals = await playerCharacterService.getCharacterTotals();
-    console.log('Done character totals');
-
-    console.log(characterAbyssStats, characterTotals);
-
-    const characterData: any = {};
-    forEach(charBuilds, ({ characterId, artifactSets, weapons }) => {
-      const charAbyssStat = find(characterAbyssStats, { characterId });
-      const charTotal = find(characterTotals, { characterId });
-
-      characterData[characterId] = {
-        battleCount: charAbyssStat.battleCount,
-        winCount: charAbyssStat.winCount,
-        avgStar: charAbyssStat.avgStar,
-        artifactSets,
-        weapons,
-        total: charTotal.total,
-      };
-    });
-
-    console.log('Done character builds');
-
     const weaponAbyssStats = await abyssBattleService.getWeaponAbyssStats();
     console.log('Done weapon abyss stats');
-
+  
     const weaponTotals = await playerCharacterService.getWeaponTotals();
-
+  
     const weaponTypeTotals: { _id: string; total: number }[] =
       await playerCharacterService.getWeaponTypeTotals();
     console.log('Done weapon totals');
-
+  
+    console.log(weaponAbyssStats, weaponTotals)
     const weaponData: any = {};
-    forEach(weaponTotals, ({ _id, total }) => {
-      const weaponAbyssStat = find(weaponAbyssStats, { weaponId: _id });
-
-      weaponData[_id] = {
-        total,
-        battleCount: weaponAbyssStat.battleCount,
-        winCount: weaponAbyssStat.winCount,
-        avgStar: weaponAbyssStat.avgStar,
-      };
+    forEach(weaponTotals, ({ weaponId, total }) => {
+      const statIdx = findIndex(
+        weaponAbyssStats,
+        (stat) => stat.weaponId && weaponId && stat.weaponId.toString() === weaponId.toString(),
+      );
+      
+  
+      if (statIdx > -1) {
+        const { battleCount, winCount, avgStar } = weaponAbyssStats[statIdx];
+  
+        weaponData[weaponId] = {
+          total,
+          battleCount,
+          winCount,
+          avgStar,
+        };
+      }
     });
 
-    const artifactSetAbyssStats = await abyssBattleService.getArtifactSetAbyssStats();
-    console.log('done artifact set abyss stats');
-
-    const artifactSetTotals = await playerCharacterService.getArtifactSetTotals();
-    console.log('Done artifactset totals');
-
-    const artifactSetData: any = {};
-    forEach(artifactSetTotals, ({ _id, total }) => {
-      const artifactSetStat = find(artifactSetAbyssStats, { artifactSetBuildId: _id });
-
-      artifactSetData[_id] = {
-        total,
-        battleCount: artifactSetStat.battleCount,
-        winCount: artifactSetStat.winCount,
-        avgStar: artifactSetStat.avgStar,
-      };
-    });
-
-    await Promise.all([
-      fs.writeFile('data/abyss/top-abyss-teams.json', JSON.stringify(topTeams), (e) => e),
-      ...map(allFloors, (floorLevel) =>
-        fs.writeFile(`data/abyss/${floorLevel}`, JSON.stringify(combinedFloorTeams[floorLevel]), (e) => e),
-      ),
-      fs.writeFile('data/weapons/type-totals.json', JSON.stringify(weaponTypeTotals), (e) => e)
-    ]);
+    console.log(weaponData)
+  
   } catch (err) {
     console.log(err);
   }

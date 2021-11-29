@@ -320,7 +320,7 @@ export async function aggregateAll() {
   });
 
   const artifactSetAbyssStats = await abyssBattleService.getArtifactSetAbyssStats();
-  console.log('done artifact set abyss stats');
+  console.log('Done artifact set abyss stats');
 
   const artifactSetTotals = await playerCharacterService.getArtifactSetTotals();
   console.log('Done artifactset totals');
@@ -347,43 +347,61 @@ export async function aggregateAll() {
     }
   });
 
+  const characterDataPromises = [];
+  forEach(characterData, ({ data, characterId }) => {
+    const idx = findIndex(
+      characterDb,
+      ({ _id }) => _id && characterId && _id.toString() === characterId.toString(),
+    );
+
+    if (idx > -1) {
+      characterDataPromises.push(
+        fs.writeFile(`data/characters/${characterId}.json`, JSON.stringify(data), (e) => e),
+      );
+    }
+  });
+
+  const weaponDataPromises = [];
+  forEach(weaponData, ({ data, weaponId }) => {
+    const idx = findIndex(
+      weaponDb,
+      ({ _id }) => _id && weaponId && _id.toString() === weaponId.toString(),
+    );
+
+    if (idx > -1) {
+      weaponDataPromises.push(
+        fs.writeFile(`data/weapons/${weaponId}.json`, JSON.stringify(data), (e) => e),
+      );
+    }
+  });
+
+  const artifactSetDataPromises = [];
+  forEach(artifactSetDb, ({ _id }) => {
+    const buildIds = map(
+      filter(artifactSetBuildDb, ({ sets }) =>
+        some(sets, (set) => _id && set._id && _id.toString() === set._id.toString()),
+      ),
+      (setBuild) => setBuild._id,
+    );
+    const allSetData = map(buildIds, (buildId) => artifactSetData[buildId]);
+
+    const data = {
+      _id,
+      sets: allSetData,
+    };
+    artifactSetDataPromises.push(
+      fs.writeFile(`data/artifacts/${_id}.json`, JSON.stringify(data), (e) => e),
+    );
+  });
+
   await Promise.all([
     fs.writeFile('data/abyss/stats/top-abyss-teams.json', JSON.stringify(topTeams), (e) => e),
     ...map(allFloors, (floorLevel) =>
-      fs.writeFile(`data/abyss/${floorLevel}`, JSON.stringify(topFloorTeams[floorLevel]), (e) => e),
+      fs.writeFile(`data/abyss/${floorLevel}.json`, JSON.stringify(topFloorTeams[floorLevel]), (e) => e),
     ),
-    ...map(characterData, ({ data, characterId }) => {
-      const idx = findIndex(characterDb, ({ _id }) => _id.toString() === characterId.toString());
-
-      if (idx > -1) {
-        const fileName = getShortName(characterDb[idx]);
-        return fs.writeFile(`data/characters/${fileName}.json`, JSON.stringify(data), (e) => e);
-      }
-    }),
-    ...map(weaponData, ({ data, weaponId }) => {
-      const idx = findIndex(weaponDb, ({ _id }) => _id.toString() === weaponId.toString());
-
-      if (idx > -1) {
-        const fileName = getShortName(weaponDb[idx]);
-        return fs.writeFile(`data/weapons/${fileName}.json`, JSON.stringify(data), (e) => e);
-      }
-    }),
-    ...map(artifactSetDb, ({ _id, name }) => {
-      const buildIds = map(
-        filter(artifactSetBuildDb, ({ sets }) =>
-          some(sets, (set) => _id.toString() === set._id.toString()),
-        ),
-        (setBuild) => setBuild._id,
-      );
-      const allSetData = map(buildIds, (buildId) => artifactSetData[buildId]);
-
-      const fileName = getShortName(name);
-      const data = {
-        _id,
-        sets: allSetData,
-      };
-      return fs.writeFile(`data/artifacts/${fileName}.json`, JSON.stringify(data), (e) => e);
-    }),
+    ...characterDataPromises,
+    ...weaponDataPromises,
+    ...artifactSetDataPromises,
     fs.writeFile('data/weapons/stats/type-totals.json', JSON.stringify(weaponTypeTotals), (e) => e),
   ]);
 }
