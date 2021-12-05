@@ -117,7 +117,7 @@ export class AbyssBattleService {
     return filteredBattles;
   }
 
-  getTopParties(characterId = '', limit = 100) {
+  getTopParties(characterId = '', limit = 20) {
     return this.abyssBattleModel
       .aggregate([
         {
@@ -132,6 +132,11 @@ export class AbyssBattleService {
                   character: 1,
                 },
               },
+              {
+                $sort: {
+                  character: 1,
+                },
+              },
             ],
             as: 'party',
           },
@@ -141,6 +146,9 @@ export class AbyssBattleService {
             party: '$party.character',
             star: 1,
           },
+        },
+        {
+          $match: characterId ? { party: { $all: [characterId] } } : {},
         },
         {
           $group: {
@@ -185,7 +193,7 @@ export class AbyssBattleService {
       .exec();
   }
 
-  getTopFloorParties(floor_level: string, battle_index: number, characterId = '', limit = 10) {
+  getTopFloorParties(floor_level: string, battle_index: number, characterId = '', limit = 20) {
     return this.abyssBattleModel
       .aggregate([
         {
@@ -203,6 +211,11 @@ export class AbyssBattleService {
               {
                 $project: {
                   _id: 0,
+                  character: 1,
+                },
+              },
+              {
+                $sort: {
                   character: 1,
                 },
               },

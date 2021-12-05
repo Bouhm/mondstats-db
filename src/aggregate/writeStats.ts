@@ -8,12 +8,14 @@ import {
   flatten,
   flattenDeep,
   forEach,
+  groupBy,
   intersection,
   isEqual,
   map,
   orderBy,
   range,
   some,
+  uniqWith,
 } from 'lodash';
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
@@ -185,66 +187,66 @@ export async function aggregateAll() {
     });
   });
 
-  // const allCharFloors = [];
+  const allCharFloors = [];
 
-  // forEach(range(9, 13), (floor) => {
-  //   forEach(range(1, 4), (stage) => {
-  //     forEach(range(1, 3), (battle) => {
-  //       forEach(characterIds, (charId) => {
-  //         allCharFloors.push({
-  //           floor_level: `${floor}-${stage}`,
-  //           battle_index: battle,
-  //           characterId: charId,
-  //         });
-  //       });
-  //     });
-  //   });
-  // });
+  forEach(range(9, 13), (floor) => {
+    forEach(range(1, 4), (stage) => {
+      forEach(range(1, 3), (battle) => {
+        forEach(characterIds, (charId) => {
+          allCharFloors.push({
+            floor_level: `${floor}-${stage}`,
+            battle_index: battle,
+            characterId: charId,
+          });
+        });
+      });
+    });
+  });
 
-  // const allTopTeams = flatten(
-  //   await Promise.all(
-  //     flattenDeep(map(characterIds, (characterId) => abyssBattleService.getTopParties(characterId))),
-  //   ),
-  // );
+  const allTopTeams = flatten(
+    await Promise.all(
+      flattenDeep(map(characterIds, (characterId) => abyssBattleService.getTopParties(characterId))),
+    ),
+  );
 
-  // const topTeams = aggregateCoreTeams(uniqWith(allTopTeams, compareParties));
-  // fs.writeFileSync('data/abyss/stats/top-abyss-teams.json', JSON.stringify(topTeams));
+  const topTeams = aggregateCoreTeams(uniqWith(allTopTeams, compareParties));
+  fs.writeFileSync('data/abyss/stats/top-abyss-teams.json', JSON.stringify(topTeams));
 
-  // console.log('Done top parties');
+  console.log('Done top parties');
 
-  // const allFloorTeams = flatten(
-  //   await Promise.all(
-  //     flattenDeep(
-  //       map(allCharFloors, ({ floor_level, battle_index, characterId }) =>
-  //         abyssBattleService.getTopFloorParties(floor_level, battle_index, characterId),
-  //       ),
-  //     ),
-  //   ),
-  // );
+  const allFloorTeams = flatten(
+    await Promise.all(
+      flattenDeep(
+        map(allCharFloors, ({ floor_level, battle_index, characterId }) =>
+          abyssBattleService.getTopFloorParties(floor_level, battle_index, characterId),
+        ),
+      ),
+    ),
+  );
 
-  // const floorTeams = uniqWith(allFloorTeams, compareParties);
-  // const groupedFloorTeams = groupBy(floorTeams, 'floorLevel');
-  // const topFloorTeams = {};
+  const floorTeams = uniqWith(allFloorTeams, compareParties);
+  const groupedFloorTeams = groupBy(floorTeams, 'floorLevel');
+  const topFloorTeams = {};
 
-  // Object.entries(groupedFloorTeams).forEach((floorData) => {
-  //   const data = floorData[1];
-  //   const floorLevel = floorData[0];
+  Object.entries(groupedFloorTeams).forEach((floorData) => {
+    const data = floorData[1];
+    const floorLevel = floorData[0];
 
-  //   const groupedBattleTeams = groupBy(data, 'battleIndex');
+    const groupedBattleTeams = groupBy(data, 'battleIndex');
 
-  //   Object.entries(groupedBattleTeams).forEach((battleData) => {
-  //     const teams = battleData[1];
-  //     const battleIndex = battleData[0];
+    Object.entries(groupedBattleTeams).forEach((battleData) => {
+      const teams = battleData[1];
+      const battleIndex = battleData[0];
 
-  //     topFloorTeams[floorLevel] = {};
-  //     topFloorTeams[floorLevel][battleIndex] = aggregateCoreTeams(teams);
-  //   });
-  // });
+      topFloorTeams[floorLevel] = {};
+      topFloorTeams[floorLevel][battleIndex] = aggregateCoreTeams(teams);
+    });
+  });
 
-  // for (const floorLevel of allFloors) {
-  //   fs.writeFileSync(`data/abyss/${floorLevel}.json`, JSON.stringify(topFloorTeams[floorLevel]));
-  // }
-  // console.log('Done floor parties');
+  for (const floorLevel of allFloors) {
+    fs.writeFileSync(`data/abyss/${floorLevel}.json`, JSON.stringify(topFloorTeams[floorLevel]));
+  }
+  console.log('Done floor parties');
 
   const characterAbyssStats = flatten(
     await Promise.all(
@@ -370,7 +372,7 @@ export async function aggregateAll() {
         winCount,
         avgStar,
       });
-    }
+    }p
   });
 
   for (const data of artifactSetDb) {
