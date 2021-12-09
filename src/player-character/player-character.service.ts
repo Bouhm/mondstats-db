@@ -88,7 +88,7 @@ export class PlayerCharacterService {
     return filteredCharacters;
   }
 
-  getCharacterBuilds(characterId = '', limit = 20) {
+  getCharacterBuilds(characterId = '', limit = 10) {
     return this.playerCharacterModel
       .aggregate([
         {
@@ -143,34 +143,10 @@ export class PlayerCharacterService {
           },
         },
         {
-          $lookup: {
-            from: 'artifactsetbuilds',
-            localField: 'artifactSetBuildId',
-            foreignField: '_id',
-            pipeline: [
-              {
-                $project: {
-                  _id: 0,
-                  sets: 1,
-                },
-              },
-            ],
-            as: 'artifactSets',
-          },
-        },
-        {
-          $set: {
-            artifactSets: {
-              $arrayElemAt: ['$artifactSets.sets', 0],
-            },
-          },
-        },
-        {
           $project: {
             _id: 0,
             characterId: 1,
             artifactSetBuildId: 1,
-            artifactSets: 1,
             weapons: 1,
           },
         },
@@ -312,29 +288,6 @@ export class PlayerCharacterService {
             total: 1,
             artifactSetBuildId: '$_id',
             _id: 0,
-          },
-        },
-        {
-          $lookup: {
-            from: 'artifactsetbuilds',
-            localField: 'artifactSetBuildId',
-            foreignField: '_id',
-            pipeline: [
-              {
-                $project: {
-                  _id: 0,
-                  sets: 1,
-                },
-              },
-            ],
-            as: 'artifactSets',
-          },
-        },
-        {
-          $set: {
-            artifactSets: {
-              $arrayElemAt: ['$artifactSets.sets', 0],
-            },
           },
         },
       ])
