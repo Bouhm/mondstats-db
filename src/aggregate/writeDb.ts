@@ -27,7 +27,7 @@ export const getDb = async () => {
 };
 
 export const updateDb = async () => {
-  const { characterDb, weaponDb, artifactDb, artifactSetDb } = await getDb();
+  const { characterDb, weaponDb, artifactDb, artifactSetDb, artifactSetBuildDb } = await getDb();
 
   fs.writeFile(
     'data/db.json',
@@ -36,6 +36,7 @@ export const updateDb = async () => {
       weapons: weaponDb,
       artifacts: artifactDb,
       artifactSets: artifactSetDb,
+      artifactSetBuilds: artifactSetBuildDb,
     }),
     (e) => e,
   );

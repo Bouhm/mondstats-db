@@ -4,7 +4,6 @@ import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
-import { Affix } from '../artifact-set/artifact-set.model';
 // import abyssBattles from '../data/abyssBattles.json';
 import { ListPlayerCharacterInput } from './player-character.inputs';
 import { PlayerCharacter, PlayerCharacterDocument } from './player-character.model';
@@ -155,28 +154,25 @@ export class PlayerCharacterService {
       .exec();
   }
 
-  getCharacterTotals(limit = 1000) {
+  getCharacterCounts() {
     return this.playerCharacterModel
       .aggregate([
         {
           $group: {
             _id: '$character',
-            total: {
+            count: {
               $sum: 1,
             },
           },
         },
         {
           $sort: {
-            total: -1,
+            count: -1,
           },
         },
         {
-          $limit: limit,
-        },
-        {
           $project: {
-            total: 1,
+            count: 1,
             characterId: '$_id',
             _id: 0,
           },
@@ -233,20 +229,20 @@ export class PlayerCharacterService {
       .exec();
   }
 
-  getWeaponTotals(limit = 1000) {
+  getWeaponCounts(limit = 1000) {
     return this.playerCharacterModel
       .aggregate([
         {
           $group: {
             _id: '$weapon',
-            total: {
+            count: {
               $sum: 1,
             },
           },
         },
         {
           $sort: {
-            total: -1,
+            count: -1,
           },
         },
         {
@@ -254,7 +250,7 @@ export class PlayerCharacterService {
         },
         {
           $project: {
-            total: 1,
+            count: 1,
             weaponId: '$_id',
             _id: 0,
           },
@@ -264,20 +260,20 @@ export class PlayerCharacterService {
       .exec();
   }
 
-  getArtifactSetTotals(limit = 1000) {
+  getArtifactSetCounts(limit = 1000) {
     return this.playerCharacterModel
       .aggregate([
         {
           $group: {
             _id: '$artifactSetBuild',
-            total: {
+            count: {
               $sum: 1,
             },
           },
         },
         {
           $sort: {
-            total: -1,
+            count: -1,
           },
         },
         {
@@ -285,7 +281,7 @@ export class PlayerCharacterService {
         },
         {
           $project: {
-            total: 1,
+            count: 1,
             artifactSetBuildId: '$_id',
             _id: 0,
           },
