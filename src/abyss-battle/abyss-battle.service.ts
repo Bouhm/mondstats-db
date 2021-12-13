@@ -178,7 +178,7 @@ export class AbyssBattleService {
           },
         },
         {
-          $limit: 100,
+          $limit: limit,
         },
         {
           $project: {
@@ -279,7 +279,7 @@ export class AbyssBattleService {
       .exec();
   }
 
-  getCharacterBuildAbyssStats(characterId: '', limit = 10) {
+  getCharacterBuildAbyssStats(characterId: string, limit = 10) {
     return this.abyssBattleModel
       .aggregate([
         {

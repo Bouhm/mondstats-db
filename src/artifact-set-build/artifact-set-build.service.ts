@@ -1,3 +1,4 @@
+import { forEach } from 'lodash';
 import { Model } from 'mongoose';
 
 import { Injectable } from '@nestjs/common';
@@ -13,6 +14,13 @@ export class ArtifactSetBuildService {
   ) {}
 
   async db() {
-    return await this.artifactSetBuildModel.find().lean().exec();
+    const artifactSetBuilds = await this.artifactSetBuildModel.find().lean().exec();
+    forEach(artifactSetBuilds, (setBuild: any) => {
+      delete setBuild.__v;
+      delete setBuild.createdAt;
+      delete setBuild.updatedAt;
+    });
+
+    return artifactSetBuilds;
   }
 }

@@ -1,0 +1,51 @@
+import fs from 'fs';
+import {
+  cloneDeep,
+  difference,
+  filter,
+  find,
+  findIndex,
+  flatten,
+  flattenDeep,
+  forEach,
+  groupBy,
+  includes,
+  intersection,
+  isEqual,
+  map,
+  orderBy,
+  range,
+  reduce,
+  some,
+  uniqWith,
+} from 'lodash';
+
+import abyssBattleModel from '../abyss-battle/abyss-battle.model';
+import { AbyssBattleService } from '../abyss-battle/abyss-battle.service';
+import characterModel from '../character/character.model';
+import { CharacterService } from '../character/character.service';
+import playerCharacterModel from '../player-character/player-character.model';
+import { PlayerCharacterService } from '../player-character/player-character.service';
+import connectDb from '../util/connection';
+import { getDb } from './writeDb';
+
+const abyssBattleService = new AbyssBattleService(abyssBattleModel);
+const playerCharacterService = new PlayerCharacterService(playerCharacterModel);
+
+(async () => {
+  await connectDb();
+  const { artifactSetDb, artifactSetBuildDb, characterDb, weaponDb } = await getDb();
+  const characters = await characterModel.find();
+  const characterIds = map(characters, ({ _id }) => _id);
+  const a = await abyssBattleService.getCharacterBuildAbyssStats("60b6eda01ec85acb41954df1")
+
+  const characterBuildAbyssStats: any = groupBy(
+    flatten(
+      await Promise.all(
+        flattenDeep(map(characterIds, (charId) => abyssBattleService.getCharacterBuildAbyssStats(charId))),
+      ),
+    ),
+    'characterId',
+  );
+  console.log(characterBuildAbyssStats)
+})();

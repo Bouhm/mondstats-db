@@ -154,25 +154,25 @@ export class PlayerCharacterService {
       .exec();
   }
 
-  getCharacterCounts() {
+  getCharacterTotals() {
     return this.playerCharacterModel
       .aggregate([
         {
           $group: {
             _id: '$character',
-            count: {
+            total: {
               $sum: 1,
             },
           },
         },
         {
           $sort: {
-            count: -1,
+            total: -1,
           },
         },
         {
           $project: {
-            count: 1,
+            total: 1,
             characterId: '$_id',
             _id: 0,
           },
@@ -182,7 +182,7 @@ export class PlayerCharacterService {
       .exec();
   }
 
-  getWeaponTypeTotals(limit = 1000) {
+  getWeaponTypeTotals() {
     return this.playerCharacterModel
       .aggregate([
         {
@@ -202,8 +202,44 @@ export class PlayerCharacterService {
           },
         },
         {
+          $project: {
+            weapon: {
+              $arrayElemAt: ['$weapon', 0],
+            },
+            star: 1,
+          },
+        },
+        {
           $group: {
             _id: '$weapon.type_name',
+            total: {
+              $sum: 1,
+            },
+          },
+        },
+        {
+          $sort: {
+            total: -1,
+          },
+        },
+        {
+          $project: {
+            total: 1,
+            weaponType: '$_id',
+            _id: 0,
+          },
+        },
+      ])
+      .option(options)
+      .exec();
+  }
+
+  getWeaponTotals(limit = 1000) {
+    return this.playerCharacterModel
+      .aggregate([
+        {
+          $group: {
+            _id: '$weapon',
             total: {
               $sum: 1,
             },
@@ -220,37 +256,6 @@ export class PlayerCharacterService {
         {
           $project: {
             total: 1,
-            weaponType: '$_id',
-            _id: 0,
-          },
-        },
-      ])
-      .option(options)
-      .exec();
-  }
-
-  getWeaponCounts(limit = 1000) {
-    return this.playerCharacterModel
-      .aggregate([
-        {
-          $group: {
-            _id: '$weapon',
-            count: {
-              $sum: 1,
-            },
-          },
-        },
-        {
-          $sort: {
-            count: -1,
-          },
-        },
-        {
-          $limit: limit,
-        },
-        {
-          $project: {
-            count: 1,
             weaponId: '$_id',
             _id: 0,
           },
@@ -260,20 +265,20 @@ export class PlayerCharacterService {
       .exec();
   }
 
-  getArtifactSetCounts(limit = 1000) {
+  getArtifactSetTotals(limit = 1000) {
     return this.playerCharacterModel
       .aggregate([
         {
           $group: {
             _id: '$artifactSetBuild',
-            count: {
+            total: {
               $sum: 1,
             },
           },
         },
         {
           $sort: {
-            count: -1,
+            total: -1,
           },
         },
         {
@@ -281,7 +286,7 @@ export class PlayerCharacterService {
         },
         {
           $project: {
-            count: 1,
+            total: 1,
             artifactSetBuildId: '$_id',
             _id: 0,
           },
