@@ -281,6 +281,14 @@ export async function aggregateAll() {
   // }
   // console.log('Done floor parties');
 
+  const characterConstellationCounts = groupByCharacterId(
+    await playerCharacterService.getCharacterConstellationCount(),
+  );
+
+  const characterAbyssConstellationCounts = groupByCharacterId(
+    await abyssBattleService.getCharacterAbyssConstellationCount(),
+  );
+
   const characterAbyssTotals: any = groupByCharacterId(
     flatten(
       await Promise.all(
@@ -315,6 +323,7 @@ export async function aggregateAll() {
   const characterBuildData: any = {};
   forEach(characterBuilds, (builds, characterId) => {
     characterBuildData[characterId] = {
+      constellations: characterConstellationCounts[characterId],
       builds: omit(builds, ['characterId']),
       total: characterTotals[characterId].total,
     };
@@ -323,6 +332,7 @@ export async function aggregateAll() {
   const characterBuildAbyssData: any = {};
   forEach(characterBuildAbyssStats, (stats, characterId) => {
     characterBuildAbyssData[characterId] = {
+      constellations: characterAbyssConstellationCounts[characterId],
       builds: omit(stats, 'characterId'),
       total: characterAbyssTotals[characterId].total,
     };

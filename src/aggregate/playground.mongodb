@@ -13,36 +13,61 @@ var limit = 1000;
 var floor_level = '9-1';
 var battle_index = 1;
 
-db.playercharacters.find().sort({ updatedAt: 1 }).limit(1)
-
-db.playercharacters.aggregate([
-        {
-          $group: {
-            _id: {
-              characterId: '$character',
-              constellation: '$constellation',
+db.abyssbattles.aggregate([
+      {
+        $unwind: '$party',
+      },
+      {
+        $lookup: {
+          from: 'playercharacters',
+          localField: 'party',
+          foreignField: '_id',
+          pipeline: [
+            {
+              $project: {
+                _id: 0,
+                character: 1,
+                constellation: 1,
+              },
             },
-            count: {
-              $sum: 1,
+          ],
+          as: 'playerCharacter',
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          playerCharacter: {
+            $arrayElemAt: ['$playerCharacter', 0],
+          },
+        },
+      {
+        $group: {
+          _id: {
+            characterId: '$playerCharacter.character',
+            constellation: '$playerCharacter.constellation',
+          },
+          count: {
+            $sum: 1,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: '$_id.characterId',
+          constellations: {
+            $push: {
+              constellation: '$_id.constellation',
+              count: '$count',
             },
           },
         },
-        {
-          $group: {
-            _id: '$_id.characterId',
-            constellations: {
-              $push: {
-                constellation: '$_id.constellation',
-                count: '$count'
-              }
-            }
-          },
+      },
+      {
+        $project: {
+          characterId: '$_id',
+          constellations: 1,
+          _id: 0,
         },
-        {
-          $project: {
-            characterId: '$_id',
-            constellations: 1,
-            _id: 0
-          }
-        }
+      },
 ], { allowDiskUse: true })

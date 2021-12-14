@@ -552,6 +552,68 @@ export class AbyssBattleService {
       .exec();
   }
 
+  getCharacterAbyssConstellationCount() {
+    return this.abyssBattleModel.aggregate([
+      {
+        $unwind: '$party',
+      },
+      {
+        $lookup: {
+          from: 'playercharacters',
+          localField: 'party',
+          foreignField: '_id',
+          pipeline: [
+            {
+              $project: {
+                _id: 0,
+                character: 1,
+                constellation: 1,
+              },
+            },
+          ],
+          as: 'playerCharacter',
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          playerCharacter: {
+            $arrayElemAt: ['$playerCharacter', 0],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            characterId: '$playerCharacter.character',
+            constellation: '$playerCharacter.constellation',
+          },
+          count: {
+            $sum: 1,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: '$_id.characterId',
+          constellations: {
+            $push: {
+              constellation: '$_id.constellation',
+              count: '$count',
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          characterId: '$_id',
+          constellations: 1,
+          _id: 0,
+        },
+      },
+    ]);
+  }
+
   getWeaponTypeAbyssTotals() {
     return this.abyssBattleModel
       .aggregate([
