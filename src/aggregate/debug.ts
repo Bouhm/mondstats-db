@@ -37,15 +37,25 @@ const playerCharacterService = new PlayerCharacterService(playerCharacterModel);
   const { artifactSetDb, artifactSetBuildDb, characterDb, weaponDb } = await getDb();
   const characters = await characterModel.find();
   const characterIds = map(characters, ({ _id }) => _id);
-  const a = await abyssBattleService.getCharacterBuildAbyssStats("60b6eda01ec85acb41954df1")
+  function groupByCharacterId(obj: any) {
+    return reduce(
+      obj,
+      (res, curr) => {
+        res[curr.characterId] = res[curr.characterId] || [];
+        res[curr.characterId].push(curr);
+        return res;
+      },
+      {},
+    );
+  };
 
-  const characterBuildAbyssStats: any = groupBy(
+  const characterBuilds = groupByCharacterId(
     flatten(
       await Promise.all(
-        flattenDeep(map(characterIds, (charId) => abyssBattleService.getCharacterBuildAbyssStats(charId))),
+        flattenDeep(map(characterIds, (charId) => playerCharacterService.getCharacterBuilds(charId))),
       ),
     ),
-    'characterId',
   );
-  console.log(characterBuildAbyssStats)
+
+  console.log(characterBuilds);
 })();

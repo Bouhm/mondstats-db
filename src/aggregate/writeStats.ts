@@ -195,6 +195,18 @@ const aggregateCoreTeams = (parties: TeamStat[]) => {
   return orderBy(mergedTeams, 'battleCount', 'desc');
 };
 
+function groupByCharacterId(obj: any) {
+  return reduce(
+    obj,
+    (res, curr) => {
+      res[curr.characterId] = res[curr.characterId] || [];
+      res[curr.characterId].push(curr);
+      return res;
+    },
+    {},
+  );
+}
+
 export async function aggregateAll() {
   const { artifactSetDb, artifactSetBuildDb, characterDb, weaponDb } = await getDb();
   const characters = await characterModel.find();
@@ -269,7 +281,7 @@ export async function aggregateAll() {
   // }
   // console.log('Done floor parties');
 
-  const characterAbyssTotals: any = groupBy(
+  const characterAbyssTotals: any = groupByCharacterId(
     flatten(
       await Promise.all(
         flattenDeep(
@@ -277,29 +289,26 @@ export async function aggregateAll() {
         ),
       ),
     ),
-    'characterId',
   );
   console.log('Done character abyss stats');
 
-  const characterBuilds = groupBy(
+  const characterBuilds = groupByCharacterId(
     flatten(
       await Promise.all(
         flattenDeep(map(characterIds, (charId) => playerCharacterService.getCharacterBuilds(charId))),
       ),
     ),
-    'characterId',
   );
 
-  const characterTotals: any = groupBy(await playerCharacterService.getCharacterTotals(), 'characterId');
+  const characterTotals: any = groupByCharacterId(await playerCharacterService.getCharacterTotals());
   console.log('Done character totals');
 
-  const characterBuildAbyssStats = groupBy(
+  const characterBuildAbyssStats = groupByCharacterId(
     flatten(
       await Promise.all(
         flattenDeep(map(characterIds, (charId) => abyssBattleService.getCharacterBuildAbyssStats(charId))),
       ),
     ),
-    'characterId',
   );
   console.log('Done character build stats');
 
@@ -313,8 +322,10 @@ export async function aggregateAll() {
 
   const characterBuildAbyssData: any = {};
   forEach(characterBuildAbyssStats, (stats, characterId) => {
-    characterBuildAbyssData[characterId].builds = omit(stats, 'characterId');
-    characterBuildAbyssData[characterId].total = characterAbyssTotals[characterId].total;
+    characterBuildAbyssData[characterId] = {
+      builds: omit(stats, 'characterId'),
+      total: characterAbyssTotals[characterId].total,
+    };
   });
 
   forEach(characterIds, (characterId) => {

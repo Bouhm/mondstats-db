@@ -182,6 +182,43 @@ export class PlayerCharacterService {
       .exec();
   }
 
+  getCharacterConstellationCount() {
+    return this.playerCharacterModel
+      .aggregate([
+        {
+          $group: {
+            _id: {
+              characterId: '$character',
+              constellation: '$constellation',
+            },
+            count: {
+              $sum: 1,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: '$_id.characterId',
+            constellations: {
+              $push: {
+                constellation: '$_id.constellation',
+                count: '$count',
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            characterId: '$_id',
+            constellations: 1,
+            _id: 0,
+          },
+        },
+      ])
+      .option(options)
+      .exec();
+  }
+
   getWeaponTypeTotals() {
     return this.playerCharacterModel
       .aggregate([

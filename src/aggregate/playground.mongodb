@@ -15,126 +15,34 @@ var battle_index = 1;
 
 db.playercharacters.find().sort({ updatedAt: 1 }).limit(1)
 
-db.abyssbattles.aggregate([
-     {
-          $unwind: '$party',
-        },
-        {
-          $lookup: {
-            from: 'playercharacters',
-            localField: 'party',
-            foreignField: '_id',
-            pipeline: [
-              {
-                $project: {
-                  _id: 0,
-                  character: 1,
-                  weapon: 1,
-                  artifactSetBuild: 1,
-                },
-              },
-            ],
-            as: 'playerCharacter',
-          },
-        },
-        {
-          $project: {
-            _id: 0,
-            playerCharacter: {
-              $arrayElemAt: ['$playerCharacter', 0],
-            },
-            star: 1,
-          },
-        },
-        {
-          $project: {
-            characterId: '$playerCharacter.character',
-            weaponId: '$playerCharacter.weapon',
-            artifactSetBuildId: '$playerCharacter.artifactSetBuild',
-            star: 1,
-          },
-        },
-        {
-          $match: {
-            characterId,
-          },
-        },
+db.playercharacters.aggregate([
         {
           $group: {
             _id: {
-              characterId: '$characterId',
-              weaponId: '$weaponId',
-              artifactSetBuildId: '$artifactSetBuildId',
+              characterId: '$character',
+              constellation: '$constellation',
             },
-            battleCount: {
+            count: {
               $sum: 1,
             },
-            avgStar: {
-              $avg: '$star',
-            },
-            winCount: {
-              $sum: {
-                $cond: { if: { $eq: ['$star', 3] }, then: 1, else: 0 },
-              },
-            },
-            star: {
-              $sum: '$star',
-            },
           },
         },
         {
           $group: {
-            _id: {
-              artifactSetBuildId: '$_id.artifactSetBuildId',
-              characterId: '$_id.characterId',
-            },
-            weapons: {
+            _id: '$_id.characterId',
+            constellations: {
               $push: {
-                weaponId: '$_id.weaponId',
-                battleCount: '$battleCount',
-                avgStar: '$avgStar',
-                winCount: '$winCount',
-                star: '$star',
-              },
-            },
+                constellation: '$_id.constellation',
+                count: '$count'
+              }
+            }
           },
-        },
-        { $unwind: '$weapons' },
-        { $sort: { 'weapons.battleCount': -1 } },
-        {
-          $group: {
-            _id: '$_id',
-            battleCount: {
-              $sum: '$weapons.battleCount',
-            },
-            winCount: {
-              $sum: '$weapons.winCount',
-            },
-            star: {
-              $sum: '$weapons.star',
-            },
-            weapons: { $push: '$weapons' },
-          },
-        },
-        {
-          $sort: {
-            battleCount: -1,
-          },
-        },
-        {
-          $limit: limit,
         },
         {
           $project: {
-            artifactSetBuildId: '$_id.artifactSetBuildId',
-            characterId: '$_id.characterId',
-            battleCount: 1,
-            totalStars: '$star',
-            winCount: 1,
-            _id: 0,
-            weapons: {
-              $slice: ['$weapons', 0, 10],
-            },
-          },
-        },
+            characterId: '$_id',
+            constellations: 1,
+            _id: 0
+          }
+        }
 ], { allowDiskUse: true })
