@@ -18,6 +18,7 @@ import {
   reduce,
   some,
   uniqWith,
+  values,
 } from 'lodash';
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
@@ -47,7 +48,7 @@ const playerCharacterService = new PlayerCharacterService(playerCharacterModel);
       },
       {},
     );
-  };
+  }
 
   const characterBuilds = groupByCharacterId(
     flatten(
@@ -57,5 +58,12 @@ const playerCharacterService = new PlayerCharacterService(playerCharacterModel);
     ),
   );
 
-  console.log(characterBuilds);
+  console.log(values(characterBuilds));
+
+  const characterConstellationCounts = groupBy(
+    await playerCharacterService.getCharacterConstellationCount(),
+    'characterId',
+  );
+
+  console.log(characterConstellationCounts[0]);
 })();
