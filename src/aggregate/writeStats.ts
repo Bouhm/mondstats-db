@@ -1,4 +1,4 @@
-import fs, { stat } from 'fs';
+import fs from 'fs';
 import {
   cloneDeep,
   difference,
@@ -9,7 +9,6 @@ import {
   flattenDeep,
   forEach,
   groupBy,
-  includes,
   intersection,
   isEqual,
   map,
@@ -25,7 +24,6 @@ import {
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
 import { AbyssBattleService } from '../abyss-battle/abyss-battle.service';
 import characterModel from '../character/character.model';
-import { CharacterService } from '../character/character.service';
 import playerCharacterModel from '../player-character/player-character.model';
 import { PlayerCharacterService } from '../player-character/player-character.service';
 import { getDb } from './writeDb';
@@ -292,7 +290,7 @@ export async function aggregateAll() {
     'characterId',
   );
 
-  const characterAbyssTotals: any = groupById(
+  const characterAbyssStats: any = groupById(
     flatten(
       await Promise.all(
         flattenDeep(
@@ -313,7 +311,7 @@ export async function aggregateAll() {
     'characterId',
   );
 
-  const characterTotals: any = groupById(await playerCharacterService.getCharacterTotals(), 'characterId');
+  const characterCounts: any = groupById(await playerCharacterService.getCharacterCounts(), 'characterId');
   console.log('Done character totals');
 
   const characterBuildAbyssStats: any = groupById(
@@ -333,8 +331,12 @@ export async function aggregateAll() {
         orderBy(characterConstellationCounts[characterId][0].constellations, 'constellation', 'asc'),
         (c) => c.count,
       ),
-      builds: values(omit(builds, ['characterId'])),
-      total: characterTotals[characterId].total,
+      builds: orderBy(
+        map(values(builds), (build) => omit(build, 'characterId')),
+        'count',
+        'desc',
+      ),
+      count: characterCounts[characterId][0].count,
     };
   });
 
@@ -345,14 +347,18 @@ export async function aggregateAll() {
         orderBy(characterAbyssConstellationCounts[characterId][0].constellations, 'constellation', 'asc'),
         (c) => c.count,
       ),
-      builds: values(omit(stats, 'characterId')),
-      total: characterAbyssTotals[characterId].total,
+      builds: orderBy(
+        map(values(stats), (stat) => omit(stat, 'characterId')),
+        'count',
+        'desc',
+      ),
+      count: characterAbyssStats[characterId][0].battleCount,
     };
   });
 
   forEach(characterIds, (characterId) => {
     const charData = {
-      _id: characterId,
+      characterId: characterId,
       all: characterBuildData[characterId],
       abyss: characterBuildAbyssData[characterId],
     };
@@ -361,7 +367,7 @@ export async function aggregateAll() {
   });
   console.log('Done character builds');
 
-  const weaponTotals = await playerCharacterService.getWeaponTotals();
+  const weaponCounts = await playerCharacterService.getWeaponCounts();
   const weaponAbyssStats: any = groupById(await abyssBattleService.getWeaponAbyssStats(), 'weaponId');
   console.log('Done weapon abyss stats');
 
@@ -369,26 +375,28 @@ export async function aggregateAll() {
   const weaponTypeAbyssTotals: any = await abyssBattleService.getWeaponTypeAbyssTotals();
 
   const weaponData: any = [];
-  forEach(weaponTotals, ({ weaponId, count }) => {
-    const weaponCharacters: { _id: string; count: number }[] = [];
-    forEach(characterBuildAbyssStats, ({ characterId, weapons }) => {
-      const weaponStat = find(weapons, (weapon) => weapon.weaponId.toString() === weaponId.toString());
+  forEach(weaponCounts, ({ weaponId, count }) => {
+    const weaponCharacters: { characterId: string; count: number }[] = [];
+    forEach(characterBuildAbyssStats, (buildStats) => {
+      forEach(buildStats, ({ characterId, weapons }) => {
+        const weaponStat = find(weapons, (weapon) => weapon.weaponId.toString() === weaponId.toString());
 
-      if (weaponStat) {
-        const charIdx = findIndex(
-          weaponCharacters,
-          (char) => char._id.toString() === characterId.toString(),
-        );
+        if (weaponStat) {
+          const charIdx = findIndex(
+            weaponCharacters,
+            (char) => char.characterId.toString() === characterId.toString(),
+          );
 
-        if (charIdx > -1) {
-          weaponCharacters[charIdx].count += weaponStat.battleCount;
-        } else {
-          weaponCharacters.push({
-            _id: characterId,
-            count: weaponStat.battleCount,
-          });
+          if (charIdx > -1) {
+            weaponCharacters[charIdx].count += weaponStat.battleCount;
+          } else {
+            weaponCharacters.push({
+              characterId,
+              count: weaponStat.battleCount,
+            });
+          }
         }
-      }
+      });
     });
 
     if (weaponAbyssStats[weaponId]) {
@@ -401,20 +409,21 @@ export async function aggregateAll() {
         weaponTypeTotals,
         (typeCount) => typeCount.weaponType === weapon.type_name,
       ).total;
+
       const typeAbyssTotal = find(
         weaponTypeAbyssTotals,
         (typeCount) => typeCount.weaponType === weapon.type_name,
       ).total;
 
       weaponData.push({
-        _id: weaponId,
+        weaponId,
         count,
         typeTotal,
         typeAbyssTotal,
         battleCount,
         winCount,
         avgStar,
-        characters: weaponCharacters,
+        characters: orderBy(weaponCharacters, 'count', 'desc'),
       });
     }
   });
@@ -431,46 +440,50 @@ export async function aggregateAll() {
   }
 
   const artifactSetAbyssStats = groupById(
-    await abyssBattleService.getArtifactSetAbyssStats(),
+    await abyssBattleService.getArtifactSetBuildAbyssStats(),
     'artifactSetBuildId',
   );
-  console.log('Done artifact set abyss stats');
 
-  const artifactSetTotals = await playerCharacterService.getArtifactSetTotals();
+  const artifactSetBuildCounts = await playerCharacterService.getArtifactSetBuildCounts();
   console.log('Done artifactset totals');
 
   const artifactSetData: any = [];
-  forEach(artifactSetTotals, ({ artifactSetBuildId, artifactSets, total }) => {
-    const artifactCharacters: { _id: string; count: number }[] = [];
-    forEach(characterBuildAbyssStats, (buildStat) => {
-      if (buildStat.artifactSetBuildId.toString() === artifactSetBuildId.toString()) {
-        const charIdx = findIndex(
-          artifactCharacters,
-          (char) => char._id.toString() === buildStat.characterId.toString(),
-        );
+  forEach(artifactSetBuildCounts, ({ artifactSetBuildId, count }) => {
+    const artifactCharacters: { characterId: string; count: number }[] = [];
+    forEach(characterBuildAbyssStats, (buildStats) => {
+      forEach(buildStats, (buildStat) => {
+        if (
+          buildStat.artifactSetBuildId &&
+          artifactSetBuildId &&
+          buildStat.artifactSetBuildId.toString() === artifactSetBuildId.toString()
+        ) {
+          const charIdx = findIndex(
+            artifactCharacters,
+            (char) => char.characterId.toString() === buildStat.characterId.toString(),
+          );
 
-        if (charIdx > -1) {
-          artifactCharacters[charIdx].count += buildStat.battleCount;
-        } else {
-          artifactCharacters.push({
-            _id: buildStat.characterId,
-            count: buildStat.battleCount,
-          });
+          if (charIdx > -1) {
+            artifactCharacters[charIdx].count += buildStat.battleCount;
+          } else {
+            artifactCharacters.push({
+              characterId: buildStat.characterId,
+              count: buildStat.battleCount,
+            });
+          }
         }
-      }
+      });
     });
 
     if (artifactSetAbyssStats[artifactSetBuildId]) {
-      const { battleCount, winCount, avgStar } = artifactSetAbyssStats[artifactSetBuildId];
+      const { battleCount, winCount, avgStar } = artifactSetAbyssStats[artifactSetBuildId][0];
 
       artifactSetData.push({
-        _id: artifactSetBuildId,
-        artifactSets,
-        total,
+        artifactSetBuildId,
+        count,
         battleCount,
         winCount,
         avgStar,
-        characters: artifactCharacters,
+        characters: orderBy(artifactCharacters, 'count', 'desc'),
       });
     }
   });
@@ -484,15 +497,16 @@ export async function aggregateAll() {
     );
     const allSetData = filter(
       map(buildIds, (buildId) =>
-        find(artifactSetData, (set) => set._id.toString() === buildId.toString()),
+        find(artifactSetData, (set) => set.artifactSetBuildId.toString() === buildId.toString()),
       ),
       (data) => !!data,
     );
 
     const setData = {
-      _id: data._id,
-      artifactSetBuilds: allSetData,
+      artifactSetId: data._id,
+      artifactSetBuilds: orderBy(allSetData, 'count', 'desc'),
     };
+
     fs.writeFileSync(`data/artifactSets/${data._id.toString()}.json`, JSON.stringify(setData));
   }
 }

@@ -13,61 +13,69 @@ var limit = 1000;
 var floor_level = '9-1';
 var battle_index = 1;
 
-db.abyssbattles.aggregate([
+db.playercharacters.aggregate([
       {
-        $unwind: '$party',
-      },
-      {
-        $lookup: {
-          from: 'playercharacters',
-          localField: 'party',
-          foreignField: '_id',
-          pipeline: [
-            {
-              $project: {
-                _id: 0,
-                character: 1,
-                constellation: 1,
+          $match: {
+            character: characterId,
+          },
+        },
+        {
+          $group: {
+            _id: {
+              weapon: '$weapon',
+              artifactSetBuild: '$artifactSetBuild',
+              character: '$character',
+            },
+            count: {
+              $sum: 1,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              artifactSetBuild: '$_id.artifactSetBuild',
+              character: '$_id.character',
+            },
+            count: {
+              $sum: '$count',
+            },
+            weapons: {
+              $push: {
+                weaponId: '$_id.weapon',
+                count: '$count',
               },
             },
-          ],
-          as: 'playerCharacter',
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          playerCharacter: {
-            $arrayElemAt: ['$playerCharacter', 0],
           },
         },
-      {
-        $group: {
-          _id: {
-            characterId: '$playerCharacter.character',
-            constellation: '$playerCharacter.constellation',
-          },
-          count: {
-            $sum: 1,
+        { $unwind: '$weapons' },
+        { $sort: { 'weapons.count': -1 } },
+        { $group: { _id: '$_id', count: { $sum: '$weapons.count' }, weapons: { $push: '$weapons' } } },
+        {
+          $sort: {
+            count: -1,
           },
         },
-      },
-      {
-        $group: {
-          _id: '$_id.characterId',
-          constellations: {
-            $push: {
-              constellation: '$_id.constellation',
-              count: '$count',
+        {
+          $limit: limit,
+        },
+        {
+          $project: {
+            artifactSetBuildId: '$_id.artifactSetBuild',
+            characterId: '$_id.character',
+            count: 1,
+            weapons: {
+              $slice: ['$weapons', 0, 10],
             },
           },
         },
-      },
-      {
-        $project: {
-          characterId: '$_id',
-          constellations: 1,
-          _id: 0,
+        {
+          $project: {
+            _id: 0,
+            characterId: 1,
+            artifactSetBuildId: 1,
+            count: 1,
+            weapons: 1,
+          },
         },
-      },
 ], { allowDiskUse: true })

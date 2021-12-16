@@ -140,6 +140,8 @@ const handleResponse = (
     return notOk();
   }
 
+  console.log(resp.message, resp.retcode)
+
   switch (resp.retcode) {
     case 10101: // Rate limit reached (30 per day)
     case -100: // Incorrect login cookies

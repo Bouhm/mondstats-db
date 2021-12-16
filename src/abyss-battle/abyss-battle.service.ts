@@ -408,7 +408,7 @@ export class AbyssBattleService {
       .exec();
   }
 
-  getArtifactSetAbyssStats() {
+  getArtifactSetBuildAbyssStats() {
     return this.abyssBattleModel
       .aggregate([
         {
