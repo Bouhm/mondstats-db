@@ -13,69 +13,7 @@ var limit = 1000;
 var floor_level = '9-1';
 var battle_index = 1;
 
+db.abyssbattles.find({ floor_level: '12-3', battle_index: 1 })
+
 db.playercharacters.aggregate([
-      {
-          $match: {
-            character: characterId,
-          },
-        },
-        {
-          $group: {
-            _id: {
-              weapon: '$weapon',
-              artifactSetBuild: '$artifactSetBuild',
-              character: '$character',
-            },
-            count: {
-              $sum: 1,
-            },
-          },
-        },
-        {
-          $group: {
-            _id: {
-              artifactSetBuild: '$_id.artifactSetBuild',
-              character: '$_id.character',
-            },
-            count: {
-              $sum: '$count',
-            },
-            weapons: {
-              $push: {
-                weaponId: '$_id.weapon',
-                count: '$count',
-              },
-            },
-          },
-        },
-        { $unwind: '$weapons' },
-        { $sort: { 'weapons.count': -1 } },
-        { $group: { _id: '$_id', count: { $sum: '$weapons.count' }, weapons: { $push: '$weapons' } } },
-        {
-          $sort: {
-            count: -1,
-          },
-        },
-        {
-          $limit: limit,
-        },
-        {
-          $project: {
-            artifactSetBuildId: '$_id.artifactSetBuild',
-            characterId: '$_id.character',
-            count: 1,
-            weapons: {
-              $slice: ['$weapons', 0, 10],
-            },
-          },
-        },
-        {
-          $project: {
-            _id: 0,
-            characterId: 1,
-            artifactSetBuildId: 1,
-            count: 1,
-            weapons: 1,
-          },
-        },
 ], { allowDiskUse: true })

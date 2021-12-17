@@ -45,81 +45,77 @@ function groupById(obj: any, field: string) {
   );
 }
 
+
+const compareParties = (src, other) => {
+  let compareFloors = true;
+  if (src.floorLevel && src.battleIndex) {
+    compareFloors = src.floorLevel === other.floorLevel && src.battleIndex === other.battleIndex;
+  }
+
+  return isEqual(src.party, other.party) && compareFloors;
+};
+
 (async () => {
   await connectDb();
   const { artifactSetDb, artifactSetBuildDb, characterDb, weaponDb } = await getDb();
   const characters = await characterModel.find();
   const characterIds = map(characters, ({ _id }) => _id);
-  const characterBuildAbyssStats: any = groupById(
-    flatten(
-      await Promise.all(
-        flattenDeep(map(characterIds, (charId) => abyssBattleService.getCharacterBuildAbyssStats(charId))),
+
+  const allFloors = [];
+
+  forEach(range(9, 13), (floor) => {
+    forEach(range(1, 4), (stage) => {
+      allFloors.push(`${floor}-${stage}`);
+    });
+  });
+
+  const allCharFloors = [];
+
+  forEach(range(9, 13), (floor) => {
+    forEach(range(1, 4), (stage) => {
+      forEach(range(1, 3), (battle) => {
+        forEach(characterIds, (charId) => {
+          allCharFloors.push({
+            floor_level: `${floor}-${stage}`,
+            battle_index: battle,
+            characterId: charId,
+          });
+        });
+      });
+    });
+  });
+
+  // const allTopTeams = flatten(
+  //   await Promise.all(
+  //     flattenDeep(map(characterIds, (characterId) => abyssBattleService.getTopParties(characterId))),
+  //   ),
+  // );
+
+  // const topTeams = aggregateCoreTeams(uniqWith(allTopTeams, compareParties));
+  // fs.writeFileSync('data/abyss/stats/top-abyss-teams.json', JSON.stringify(topTeams));
+
+  // console.log('Done top parties');
+
+  const allFloorTeams = flatten(
+    await Promise.all(
+      flattenDeep(
+        map(allCharFloors, ({ floor_level, battle_index, characterId }) =>
+          abyssBattleService.getTopFloorParties(floor_level, battle_index, characterId),
+        ),
       ),
     ),
-    'characterId',
   );
-  console.log('Done character build stats');
 
-  // const characterBuildData: any = {};
-  // forEach(characterBuilds, (builds, characterId) => {
-  //   characterBuildData[characterId] = {
-  //     constellations: map(
-  //       orderBy(characterConstellationCounts[characterId][0].constellations, 'constellation', 'asc'),
-  //       (c) => c.count,
-  //     ),
-  //     builds: map(values(builds), (build) => omit(build, 'characterId')),
-  //     count: characterCounts[characterId][0].count,
-  //   };
-  // });
+  const groupedFloorTeams = groupBy(allFloorTeams, 'floorLevel');
+  const topFloorTeams = {};
+  console.log(groupedFloorTeams)
 
-  // const characterBuildAbyssData: any = {};
-  // forEach(characterBuildAbyssStats, (stats, characterId) => {
-  //   characterBuildAbyssData[characterId] = {
-  //     constellations: map(
-  //       orderBy(characterAbyssConstellationCounts[characterId][0].constellations, 'constellation', 'asc'),
-  //       (c) => c.count,
-  //     ),
-  //     builds: map(values(stats), (stat) => omit(stat, 'characterId')),
-  //     count: characterAbyssStats[characterId][0].battleCount,
-  //   };
-  // });
 
-  // forEach(characterIds, (characterId) => {
-  //   const charData = {
-  //     characterId: characterId,
-  //     all: characterBuildData[characterId],
-  //     abyss: characterBuildAbyssData[characterId],
-  //   };
+  Object.entries(groupedFloorTeams).forEach((floorData) => {
+    const data = uniqWith(floorData[1], compareParties);
+    const floorLevel = floorData[0];
 
-  //   fs.writeFileSync(`data/characters/${characterId.toString()}.json`, JSON.stringify(charData));
-  // });
-  // console.log('Done character builds');
-
-  const weaponCounts = await playerCharacterService.getWeaponCounts();
-  console.log('Done weapon abyss stats');
-
-  forEach(weaponCounts, ({ weaponId, count }) => {
-    const weaponCharacters: { characterId: string; count: number }[] = [];
-    forEach(characterBuildAbyssStats, (buildStat) => {
-      const { weapons, characterId } = buildStat;
-      console.log(buildStat);
-      const weaponStat = find(weapons, (weapon) => weapon.weaponId.toString() === weaponId.toString());
-
-      if (weaponStat) {
-        const charIdx = findIndex(
-          weaponCharacters,
-          (char) => char.characterId.toString() === characterId.toString(),
-        );
-
-        if (charIdx > -1) {
-          weaponCharacters[charIdx].count += weaponStat.battleCount;
-        } else {
-          weaponCharacters.push({
-            characterId,
-            count: weaponStat.battleCount,
-          });
-        }
-      }
-    });
+    const groupedBattleTeams = groupBy(data, 'battleIndex');
+    console.log(groupedBattleTeams);
   });
 })();
