@@ -179,13 +179,6 @@ export class PlayerCharacterService {
             count: -1,
           },
         },
-        {
-          $project: {
-            count: 1,
-            characterId: '$_id',
-            _id: 0,
-          },
-        },
       ])
       .option(options)
       .exec();
@@ -217,13 +210,6 @@ export class PlayerCharacterService {
                 count: '$count',
               },
             },
-          },
-        },
-        {
-          $project: {
-            characterId: '$_id',
-            constellations: 1,
-            _id: 0,
           },
         },
       ])
@@ -308,13 +294,6 @@ export class PlayerCharacterService {
         {
           $limit: limit,
         },
-        {
-          $project: {
-            count: 1,
-            weaponId: '$_id',
-            _id: 0,
-          },
-        },
       ])
       .option(options)
       .exec();
@@ -341,13 +320,6 @@ export class PlayerCharacterService {
         },
         {
           $limit: limit,
-        },
-        {
-          $project: {
-            count: 1,
-            artifactSetBuildId: '$_id',
-            _id: 0,
-          },
         },
       ])
       .option(options)

@@ -596,15 +596,6 @@ export class AbyssBattleService {
             count: -1,
           },
         },
-        {
-          $project: {
-            artifactSetBuildId: '$_id',
-            _id: 0,
-            count: 1,
-            // avgStar: 1,
-            // winCount: 1,
-          },
-        },
       ])
       .option(options)
       .exec();
@@ -673,15 +664,6 @@ export class AbyssBattleService {
         {
           $limit: limit,
         },
-        {
-          $project: {
-            characterId: '$_id',
-            _id: 0,
-            count: 1,
-            // avgStar: 1,
-            // winCount: 1,
-          },
-        },
       ])
       .option(options)
       .exec();
@@ -742,13 +724,6 @@ export class AbyssBattleService {
               count: '$count',
             },
           },
-        },
-      },
-      {
-        $project: {
-          characterId: '$_id',
-          constellations: 1,
-          _id: 0,
         },
       },
     ]);
@@ -905,15 +880,6 @@ export class AbyssBattleService {
         },
         {
           $limit: limit,
-        },
-        {
-          $project: {
-            weaponId: '$_id',
-            _id: 0,
-            count: 1,
-            // avgStar: 1,
-            // winCount: 1,
-          },
         },
       ])
       .option(options)
