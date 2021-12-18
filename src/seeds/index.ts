@@ -37,6 +37,13 @@ import { IAbyssResponse, IArtifactSet, ICharacterResponse } from './interfaces';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
+const proxyUrls = [
+  'https://boiling-ocean-32451.herokuapp.com/',
+  'https://desolate-oasis-47778.herokuapp.com/',
+  'https://rocky-fortress-66983.herokuapp.com/',
+  'https://salty-dawn-55729.herokuapp.com/',
+  'https://young-refuge-32983.herokuapp.com/',
+];
 const spiralAbyssApiUrl = 'https://bbs-api-os.mihoyo.com/game_record/genshin/api/spiralAbyss';
 const userApiUrl = 'https://bbs-api-os.mihoyo.com/game_record/genshin/api/index';
 const charApiUrl = 'https://bbs-api-os.mihoyo.com/game_record/genshin/api/character';
@@ -48,10 +55,10 @@ const axios = Axios.create({
 });
 
 // const tokensPath = './src/keys/tokens.json';
-const proxiesPath = './src/keys/proxies.json';
+// const proxiesPath = './src/keys/proxies.json';
 // const dsPath = './src/keys/DS.json';
 
-let PROXIES: Array<{ ip: string; port: string }> = [];
+// let PROXIES: Array<{ ip: string; port: string }> = [];
 // let TOKENS: string[] = [];
 let currRefs: {
   token: TokenDocument;
@@ -140,8 +147,6 @@ const handleResponse = (
     return notOk();
   }
 
-  console.log(resp.message, resp.retcode)
-
   switch (resp.retcode) {
     case 10101: // Rate limit reached (30 per day)
     case -100: // Incorrect login cookies
@@ -170,7 +175,6 @@ const nextToken = async (i: number, skip = false) => {
     .limit(1)
     .lean();
   currRefs[i].token = { ...currRefs[i].token, ...newToken } as unknown as TokenDocument & { DS: string };
-  _incrementProxyIdx();
 
   if (currRefs[i].token.used) {
     const delta = new Date().getTime() - new Date(currRefs[i].token.used).getTime();
@@ -184,15 +188,6 @@ const nextToken = async (i: number, skip = false) => {
   await TokenModel.findOneAndUpdate({ ltuid: currRefs[i].token.ltuid }, { used: new Date() }, options);
 
   // if (DEVELOPMENT) console.log("using next token... " + tokenIdx);
-};
-
-const _incrementProxyIdx = () => {
-  proxyIdx++;
-  if (proxyIdx >= PROXIES.length) {
-    proxyIdx = 0;
-  }
-
-  // if (DEVELOPMENT) console.log("using next proxy... " + proxyIdx);
 };
 
 async function _sleep(ms: number) {
@@ -262,7 +257,6 @@ const updateDS = async (i: number) => {
 };
 
 const getHeaders = (i: number) => {
-  proxyIdx = clamp(proxyIdx, 0, PROXIES.length - 1);
   const Cookie = `ltoken=${currRefs[i].token.ltoken}; ltuid=${currRefs[i].token.ltuid}; mi18nLang=en-us; _MHYUUID=${currRefs[i].token._MHYUUID}`;
 
   return {
@@ -282,8 +276,6 @@ const getHeaders = (i: number) => {
     Referer: 'https://webstatic-sea.hoyolab.com/',
     Cookie,
     TE: 'trailers',
-    'X-Forwarded-For': PROXIES[proxyIdx].ip,
-    'X-Forwarded-Port': PROXIES[proxyIdx].port,
   };
 };
 
@@ -807,7 +799,7 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
 
 const loadFromJson = () => {
   // TOKENS = shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
-  PROXIES = shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
+  // PROXIES = shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
   // DS = shuffle(JSON.parse(fs.readFileSync(dsPath, 'utf-8')));
   // sampleChars = JSON.parse(fs.readFileSync('./src/db/sampleChars.json', 'utf-8'));
   // sampleAbyss = JSON.parse(fs.readFileSync('./src/db/sampleAbyss.json', 'utf-8'));

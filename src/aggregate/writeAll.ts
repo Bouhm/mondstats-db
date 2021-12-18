@@ -40,10 +40,13 @@ import { aggregateAll } from './writeStats';
     fs.mkdir(`data/characters/mains`, { recursive: true }, (e) => e);
   }
 
+  if (!fs.existsSync(`data/characters/abyss`)) {
+    fs.mkdir(`data/characters/abyss`, { recursive: true }, (e) => e);
+  }
+
   try {
     await updateDb();
     await aggregateAll();
-    // await aggregateFeatured();
 
     await updateRepo(process.env.npm_config_branch || 'main');
   } catch (err) {

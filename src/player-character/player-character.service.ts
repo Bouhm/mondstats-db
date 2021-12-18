@@ -87,12 +87,13 @@ export class PlayerCharacterService {
     return filteredCharacters;
   }
 
-  getCharacterBuilds(characterId = '', limit = 10) {
+  getCharacterBuilds(characterId = '', matchExp = {}, limit = 10) {
     return this.playerCharacterModel
       .aggregate([
         {
           $match: {
             character: characterId,
+            ...matchExp,
           },
         },
         {
@@ -118,7 +119,7 @@ export class PlayerCharacterService {
             },
             weapons: {
               $push: {
-                weaponId: '$_id.weapon',
+                _id: '$_id.weapon',
                 count: '$count',
               },
             },
@@ -159,9 +160,12 @@ export class PlayerCharacterService {
       .exec();
   }
 
-  getCharacterCounts() {
+  getCharacterCounts(matchExp = {}) {
     return this.playerCharacterModel
       .aggregate([
+        {
+          $match: matchExp,
+        },
         {
           $group: {
             _id: '$character',
@@ -187,9 +191,12 @@ export class PlayerCharacterService {
       .exec();
   }
 
-  getCharacterConstellationCount() {
+  getCharacterConstellationCount(matchExp = {}) {
     return this.playerCharacterModel
       .aggregate([
+        {
+          $match: matchExp,
+        },
         {
           $group: {
             _id: {
@@ -224,9 +231,12 @@ export class PlayerCharacterService {
       .exec();
   }
 
-  getWeaponTypeTotals() {
+  getWeaponTypeTotals(matchExp = {}) {
     return this.playerCharacterModel
       .aggregate([
+        {
+          $match: matchExp,
+        },
         {
           $lookup: {
             from: 'weapons',
@@ -276,9 +286,12 @@ export class PlayerCharacterService {
       .exec();
   }
 
-  getWeaponCounts(limit = 1000) {
+  getWeaponCounts(matchExp = {}, limit = 1000) {
     return this.playerCharacterModel
       .aggregate([
+        {
+          $match: matchExp,
+        },
         {
           $group: {
             _id: '$weapon',
@@ -307,9 +320,12 @@ export class PlayerCharacterService {
       .exec();
   }
 
-  getArtifactSetBuildCounts(limit = 1000) {
+  getArtifactSetBuildCounts(matchExp = {}, limit = 1000) {
     return this.playerCharacterModel
       .aggregate([
+        {
+          $match: matchExp,
+        },
         {
           $group: {
             _id: '$artifactSetBuild',
