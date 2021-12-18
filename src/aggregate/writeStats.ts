@@ -278,11 +278,11 @@ export async function aggregateAll() {
   }
   console.log('Done floor parties');
 
-  const characterConstellationCounts = groupBy(
+  const characterConstellationCounts = groupById(
     await playerCharacterService.getCharacterConstellationCount(),
   );
 
-  const characterAbyssConstellationCounts = groupBy(
+  const characterAbyssConstellationCounts = groupById(
     await abyssBattleService.getCharacterAbyssConstellationCount(),
   );
 
@@ -306,7 +306,7 @@ export async function aggregateAll() {
     'characterId',
   );
 
-  const characterCounts: any = groupById(await playerCharacterService.getCharacterCounts(), 'characterId');
+  const characterCounts: any = groupById(await playerCharacterService.getCharacterCounts());
   console.log('Done character totals');
 
   const characterBuildAbyssStats: any = groupById(
@@ -380,17 +380,20 @@ export async function aggregateAll() {
   forEach(weaponCounts, (weaponCount) => {
     const weaponCharacters: { _id: string; count: number }[] = [];
     forEach(characterBuildAbyssStats, (buildStats) => {
-      forEach(buildStats, ({ _id, weapons }) => {
-        const weaponStat = find(weapons, (weapon) => weapon._id.toString() === _id.toString());
+      forEach(buildStats, ({ weapons }) => {
+        const weaponStat = find(weapons, (weapon) => weapon._id.toString() === weaponCount._id.toString());
 
         if (weaponStat) {
-          const charIdx = findIndex(weaponCharacters, (char) => char._id.toString() === _id.toString());
+          const charIdx = findIndex(
+            weaponCharacters,
+            (char) => char._id.toString() === weaponCount._id.toString(),
+          );
 
           if (charIdx > -1) {
             weaponCharacters[charIdx].count += weaponStat.count;
           } else {
             weaponCharacters.push({
-              _id,
+              _id: weaponCount._id,
               count: weaponStat.count,
             });
           }

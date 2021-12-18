@@ -20,7 +20,7 @@ var party = [
 ]
 
 db.abyssbattles.aggregate([
-  {
+         {
           $match: {
             star: 3,
           },
@@ -65,9 +65,7 @@ db.abyssbattles.aggregate([
         },
         {
           $match: {
-            characterId: {
-              $in: party,
-            },
+            characterId,
           },
         },
         {
@@ -101,7 +99,7 @@ db.abyssbattles.aggregate([
             },
             weapons: {
               $push: {
-                weaponId: '$_id.weaponId',
+                _id: '$_id.weaponId',
                 count: '$count',
                 // avgStar: '$avgStar',
                 // winCount: '$winCount',
@@ -144,7 +142,7 @@ db.abyssbattles.aggregate([
             // winCount: 1,
             _id: 0,
             weapons: {
-              $slice: ['$weapons', 0, 5],
+              $slice: ['$weapons', 0, 10],
             },
           },
         },
