@@ -517,12 +517,11 @@ export class AbyssBattleService {
         },
         {
           $project: {
-            artifactSetBuildId: '$_id.artifactSetBuildId',
             characterId: '$_id.characterId',
             count: 1,
             // totalStars: '$star',
             // winCount: 1,
-            _id: 0,
+            _id: '$_id.artifactSetBuildId',
             weapons: {
               $slice: ['$weapons', 0, 10],
             },

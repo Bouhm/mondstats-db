@@ -148,9 +148,8 @@ export class PlayerCharacterService {
         },
         {
           $project: {
-            _id: 0,
             characterId: 1,
-            artifactSetBuildId: 1,
+            _id: '$artifactSetBuildId',
             count: 1,
             weapons: 1,
           },

@@ -441,9 +441,9 @@ export async function aggregateAll() {
     forEach(characterBuildAbyssStats, (buildStats) => {
       forEach(buildStats, (buildStat) => {
         if (
-          buildStat.artifactSetBuildId &&
+          buildStat._id &&
           artifactSetBuildCount._id &&
-          buildStat.artifactSetBuildId.toString() === artifactSetBuildCount._id.toString()
+          buildStat._id.toString() === artifactSetBuildCount._id.toString()
         ) {
           const charIdx = findIndex(
             artifactCharacters,
