@@ -38,9 +38,9 @@ export class AbyssBattle {
   @Prop({ required: true })
   battle_index: number;
 
-  @Field(() => Number)
-  @Prop({ required: true })
-  star: number;
+  // @Field(() => Number)
+  // @Prop({ required: true })
+  // star: number;
 
   @Field(() => String)
   @Prop({

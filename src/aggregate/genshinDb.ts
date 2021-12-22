@@ -1,4 +1,7 @@
 import genshindb from 'genshin-db';
+import { map } from 'lodash';
 
-const { attack, specialized } = genshindb.weapons('sac sword').stats(90);
-console.log(Math.round(attack), Math.round(specialized * 1000) / 1000);
+const names = genshindb.characters('names', { matchCategories: true });
+
+const characters = map(names, (name) => genshindb.characters(name));
+console.log(characters);

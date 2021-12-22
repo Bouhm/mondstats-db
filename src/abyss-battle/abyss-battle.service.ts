@@ -121,11 +121,6 @@ export class AbyssBattleService {
     return this.abyssBattleModel
       .aggregate([
         {
-          $match: {
-            star: 3,
-          },
-        },
-        {
           $lookup: {
             from: 'playercharacters',
             localField: 'party',
@@ -149,7 +144,6 @@ export class AbyssBattleService {
         {
           $project: {
             party: '$party.character',
-            // star: 1,
           },
         },
         {
@@ -161,20 +155,6 @@ export class AbyssBattleService {
             count: {
               $sum: 1,
             },
-            // avgStar: {
-            //   $avg: '$star',
-            // },
-            // winCount: {
-            //   $sum: {
-            //     $cond: {
-            //       if: {
-            //         $eq: ['$star', 3],
-            //       },
-            //       then: 1,
-            //       else: 0,
-            //     },
-            //   },
-            // },
           },
         },
         {
@@ -188,8 +168,6 @@ export class AbyssBattleService {
         {
           $project: {
             party: '$_id',
-            // avgStar: 1,
-            // winCount: 1,
             count: 1,
           },
         },
@@ -205,7 +183,6 @@ export class AbyssBattleService {
           $match: {
             floor_level,
             battle_index,
-            star: 3,
           },
         },
         {
@@ -285,14 +262,9 @@ export class AbyssBattleService {
       .exec();
   }
 
-  getTopPartyBuilds(party: string[], limit = 5) {
+  getPartyBuilds(party: string[], limit = 5) {
     return this.abyssBattleModel
       .aggregate([
-        {
-          $match: {
-            star: 3,
-          },
-        },
         {
           $unwind: '$party',
         },
@@ -320,7 +292,6 @@ export class AbyssBattleService {
             playerCharacter: {
               $arrayElemAt: ['$playerCharacter', 0],
             },
-            star: 1,
           },
         },
         {
@@ -328,7 +299,6 @@ export class AbyssBattleService {
             characterId: '$playerCharacter.character',
             weaponId: '$playerCharacter.weapon',
             artifactSetBuildId: '$playerCharacter.artifactSetBuild',
-            star: 1,
           },
         },
         {
@@ -403,11 +373,6 @@ export class AbyssBattleService {
     return this.abyssBattleModel
       .aggregate([
         {
-          $match: {
-            star: 3,
-          },
-        },
-        {
           $unwind: '$party',
         },
         {
@@ -434,7 +399,6 @@ export class AbyssBattleService {
             playerCharacter: {
               $arrayElemAt: ['$playerCharacter', 0],
             },
-            star: 1,
           },
         },
         {
@@ -442,7 +406,6 @@ export class AbyssBattleService {
             characterId: '$playerCharacter.character',
             weaponId: '$playerCharacter.weapon',
             artifactSetBuildId: '$playerCharacter.artifactSetBuild',
-            star: 1,
           },
         },
         {
@@ -536,11 +499,6 @@ export class AbyssBattleService {
     return this.abyssBattleModel
       .aggregate([
         {
-          $match: {
-            star: 3,
-          },
-        },
-        {
           $unwind: '$party',
         },
         {
@@ -604,11 +562,6 @@ export class AbyssBattleService {
     return this.abyssBattleModel
       .aggregate([
         {
-          $match: {
-            star: 3,
-          },
-        },
-        {
           $unwind: '$party',
         },
         {
@@ -631,7 +584,6 @@ export class AbyssBattleService {
           $project: {
             _id: 0,
             characterId: '$playerCharacter.character',
-            star: 1,
           },
         },
         {
@@ -670,11 +622,6 @@ export class AbyssBattleService {
 
   getCharacterAbyssConstellationCount() {
     return this.abyssBattleModel.aggregate([
-      {
-        $match: {
-          star: 3,
-        },
-      },
       {
         $unwind: '$party',
       },
@@ -732,11 +679,6 @@ export class AbyssBattleService {
     return this.abyssBattleModel
       .aggregate([
         {
-          $match: {
-            star: 3,
-          },
-        },
-        {
           $unwind: '$party',
         },
         {
@@ -761,13 +703,11 @@ export class AbyssBattleService {
             playerCharacter: {
               $arrayElemAt: ['$playerCharacter', 0],
             },
-            star: 1,
           },
         },
         {
           $project: {
             weaponId: '$playerCharacter.weapon',
-            star: 1,
           },
         },
         {
@@ -791,7 +731,6 @@ export class AbyssBattleService {
             weapon: {
               $arrayElemAt: ['$weapon', 0],
             },
-            star: 1,
           },
         },
         {
@@ -818,11 +757,6 @@ export class AbyssBattleService {
     return this.abyssBattleModel
       .aggregate([
         {
-          $match: {
-            star: 3,
-          },
-        },
-        {
           $unwind: '$party',
         },
         {
@@ -847,13 +781,11 @@ export class AbyssBattleService {
             playerCharacter: {
               $arrayElemAt: ['$playerCharacter', 0],
             },
-            star: 1,
           },
         },
         {
           $project: {
             weaponId: '$playerCharacter.weapon',
-            star: 1,
           },
         },
         {

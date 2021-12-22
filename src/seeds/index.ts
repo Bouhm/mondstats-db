@@ -1,23 +1,8 @@
 /* eslint-disable prefer-const */
 'use strict';
 import Axios from 'axios';
-import fs from 'fs';
 import https from 'https';
-import {
-  chunk,
-  clamp,
-  every,
-  filter,
-  findIndex,
-  forEach,
-  forIn,
-  map,
-  omit,
-  orderBy,
-  pick,
-  shuffle,
-  some,
-} from 'lodash';
+import { clamp, every, filter, findIndex, flatten, forEach, map, orderBy, pick, some, uniq } from 'lodash';
 import md5 from 'md5';
 import mongoose, { ObjectId } from 'mongoose';
 import parallel from 'run-parallel';
@@ -33,17 +18,19 @@ import TokenModel, { TokenDocument } from '../token/token.model';
 import connectDb from '../util/connection';
 import WeaponModel from '../weapon/weapon.model';
 // import { updateDb } from './fetch';
-import { IAbyssResponse, IArtifactSet, ICharacterResponse } from './interfaces';
+import { IAbyssResponse, ICharacterResponse } from './interfaces';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const proxyUrls = [
-  'https://boiling-ocean-32451.herokuapp.com/',
-  'https://desolate-oasis-47778.herokuapp.com/',
-  'https://rocky-fortress-66983.herokuapp.com/',
-  'https://salty-dawn-55729.herokuapp.com/',
-  'https://young-refuge-32983.herokuapp.com/',
-];
+const proxyUrl = 'https://mondstats.bouhm.workers.dev/?';
+// const proxyUrls = [
+//   'https://boiling-ocean-32451.herokuapp.com/',
+//   'https://desolate-oasis-47778.herokuapp.com/',
+//   'https://rocky-fortress-66983.herokuapp.com/',
+//   'https://salty-dawn-55729.herokuapp.com/',
+//   'https://young-refuge-32983.herokuapp.com/',
+// ];
+let PROXIES: Array<{ ip: string; port: string }> = [];
 const spiralAbyssApiUrl = 'https://bbs-api-os.mihoyo.com/game_record/genshin/api/spiralAbyss';
 const userApiUrl = 'https://bbs-api-os.mihoyo.com/game_record/genshin/api/index';
 const charApiUrl = 'https://bbs-api-os.mihoyo.com/game_record/genshin/api/character';
@@ -55,7 +42,7 @@ const axios = Axios.create({
 });
 
 // const tokensPath = './src/keys/tokens.json';
-// const proxiesPath = './src/keys/proxies.json';
+// const proxiesPath = './src/seeds/proxies.json';
 // const dsPath = './src/keys/DS.json';
 
 // let PROXIES: Array<{ ip: string; port: string }> = [];
@@ -147,6 +134,8 @@ const handleResponse = (
     return notOk();
   }
 
+  console.log(resp.message);
+
   switch (resp.retcode) {
     case 10101: // Rate limit reached (30 per day)
     case -100: // Incorrect login cookies
@@ -168,13 +157,11 @@ const handleResponse = (
   }
 };
 
-const nextToken = async (i: number, skip = false) => {
-  const newToken = await TokenModel.findOne()
-    .sort({ used: 1 })
-    .skip(skip ? i : 0)
-    .limit(1)
-    .lean();
+const nextToken = async (i: number) => {
+  const newToken = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
   currRefs[i].token = { ...currRefs[i].token, ...newToken } as unknown as TokenDocument & { DS: string };
+  console.log(newToken.ltuid);
+  _incrementProxyIdx();
 
   if (currRefs[i].token.used) {
     const delta = new Date().getTime() - new Date(currRefs[i].token.used).getTime();
@@ -207,35 +194,6 @@ async function _retry(promiseFactory, retryCount) {
 
 // Grab DS
 const updateDS = async (i: number) => {
-  // const cookieTokens = TOKENS[tokenIdx].split(' ');
-  // const ltoken = cookieTokens[0].split('=')[1].slice(0, -1);
-  // const ltuid = cookieTokens[1].split('=')[1];
-
-  // const browser = await firefox.launch();
-  // const Cookie = `ltoken=${currRefs[i].token.ltoken}; ltuid=${currRefs[i].token.ltuid}; mi18nLang=en-us; _MHYUUID=${currRefs[i].token._MHYUUID}`;
-  // const context = await browser.newContext({
-  //   extraHTTPHeaders: {
-  //     Cookie,
-  //     'x-rpc-client_type': '4',
-  //     'x-rpc-app_version': '1.5.0',
-  //   },
-  // });
-
-  // const page = await context.newPage();
-
-  // return new Promise<void>(async (resolve) => {
-  //   page.on('request', (req) => {
-  //     if (req.headers().ds) {
-  //       currRefs[i].DS = req.headers().ds;
-  //       resolve();
-  //       browser.close();
-  //     }
-  //   });
-
-  //   const url = 'https://www.hoyolab.com/accountCenter/postList?id=59349680';
-  //   await _retry(() => page.goto(url), 3);
-  // });
-
   const randomString = (length) => {
     let result = '';
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -257,24 +215,30 @@ const updateDS = async (i: number) => {
 };
 
 const getHeaders = (i: number) => {
-  const Cookie = `ltoken=${currRefs[i].token.ltoken}; ltuid=${currRefs[i].token.ltuid}; mi18nLang=en-us; _MHYUUID=${currRefs[i].token._MHYUUID}`;
+  proxyIdx = clamp(proxyIdx, 0, PROXIES.length - 1);
+  const Cookie = `ltoken=lffygF1C6X9z1sDOjOlNP8syq1ZtECzsu14NzwzY; ltuid=165799224; mi18nLang=en-us;`;
 
   return {
-    Host: 'bbs-api-os.mihoyo.com',
+    // Host: 'bbs-api-os.mihoyo.com',
     'User-Agent':
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36',
     Accept: 'application/json, text/plain, */*',
     'Accept-Language': 'en-US,en;q=0.5',
-    'Accept-Encoding': 'gzip, deflate, br',
+    // 'Accept-Encoding': 'gzip, deflate, br',
     'x-rpc-app_version': '1.5.0',
     'x-rpc-client_type': '5',
     'x-rpc-language': 'en-us',
     DS: currRefs[i].DS,
-    Origin: 'https://webstatic-sea.hoyolab.com',
     DNT: '1',
+    Origin: 'https://webstatic-sea.hoyolab.com',
+    // 'X-Requested-With': 'XMLHttpRequest',
     Connection: 'keep-alive',
     Referer: 'https://webstatic-sea.hoyolab.com/',
-    Cookie,
+    'x-cors-headers': JSON.stringify({
+      Cookie,
+      'X-Forwarded-For': PROXIES[proxyIdx].ip,
+      'X-Forwarded-Port': PROXIES[proxyIdx].port,
+    }),
     TE: 'trailers',
   };
 };
@@ -324,7 +288,7 @@ const handleBlock = async (i: number) => {
   //   blockedIndices = new Array(TOKENS.length).fill(false);
   // }
   console.log(`Blocked at ${currRefs[i].token.ltuid}`);
-  await _sleep(maxRest);
+  // await _sleep(maxRest);
 };
 
 const purgePlayer = async (uid: number) => {
@@ -354,7 +318,7 @@ const fetchAbyssData = async (server: string, currUid: number, scheduleType = 1,
   const apiUrl = `${spiralAbyssApiUrl}?server=os_${server}&role_id=${currUid}&schedule_type=${scheduleType}`;
 
   try {
-    const resp = await axios.get(apiUrl, {
+    const resp = await axios.get(proxyUrl + apiUrl, {
       headers: getHeaders(i),
       withCredentials: true,
     });
@@ -382,12 +346,21 @@ const fetchAbyssData = async (server: string, currUid: number, scheduleType = 1,
   }
 };
 
+const _incrementProxyIdx = () => {
+  proxyIdx++;
+  if (proxyIdx >= PROXIES.length) {
+    proxyIdx = 0;
+  }
+
+  // if (DEVELOPMENT) console.log("using next proxy... " + proxyIdx);
+};
+
 // Get player's owned character ids (filtered by built characters)
 const fetchPlayerCharacters = async (server: string, currUid: number, i = 0, minLvl = 60) => {
   const apiUrl = `${userApiUrl}?server=os_${server}&role_id=${currUid}`;
 
   return axios
-    .get(apiUrl, { headers: getHeaders(i), withCredentials: true })
+    .get(proxyUrl + apiUrl, { headers: getHeaders(i), withCredentials: true })
     .then(async (resp) => {
       return handleResponse(
         resp.data,
@@ -573,13 +546,12 @@ const saveAbyssData = (abyssData: IAbyssResponse, i: number) => {
     filter(abyssData.floors, (floor) => floor.index > 8),
     (floor) => {
       forEach(
-        filter(floor.levels, (level) => level.star > 0),
+        filter(floor.levels, (level) => level.star > 2),
         (level) => {
           forEach(level.battles, async (battle) => {
             const abyssBattle = {
               floor_level: `${floor.index}-${level.index}`,
               battle_index: battle.index,
-              star: level.star,
               player: currRefs[i].playerRef._id,
               party: map(battle.avatars, (char) => currRefs[i].playerCharRefMap[char.id.toString()]),
             };
@@ -627,7 +599,7 @@ const fetchAndUpdatePlayerData = async (
   };
 
   return axios
-    .post(charApiUrl, reqBody, { headers: getHeaders(i), withCredentials: true })
+    .post(proxyUrl + charApiUrl, reqBody, { headers: getHeaders(i), withCredentials: true })
     .then(async (resp) => {
       return handleResponse(
         resp.data,
@@ -754,6 +726,7 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
           // }
 
           if (characterIds === null) {
+            await nextToken(i);
             // await handleBlock(i);
             continue;
           } else if (characterIds === undefined) {
@@ -765,6 +738,7 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
               await nextToken(i);
 
               if (result === null) {
+                await nextToken(i);
                 // await handleBlock(i);
                 continue;
               } else if (result === undefined) {
@@ -797,6 +771,23 @@ const collectDataFromPlayer = async (initUid = 0, i = 0) => {
 // let sampleChars: { data: { avatarss: ICharacterResponse[] } };
 // let sampleAbyss: { data: IAbyssResponse };
 
+const loadProxies = async () => {
+  await axios
+    .get('https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt', {
+      headers: {
+        accept: 'application/vnd.github.v3.raw+json',
+      },
+    })
+    .then((res) => res.data)
+    .then(
+      (data) =>
+        (PROXIES = map(data.split('\n'), (proxyStr) => {
+          const proxy = proxyStr.split(':');
+          return { ip: proxy[0], port: proxy[1] };
+        })),
+    );
+};
+
 const loadFromJson = () => {
   // TOKENS = shuffle(JSON.parse(fs.readFileSync(tokensPath, 'utf-8')));
   // PROXIES = shuffle(JSON.parse(fs.readFileSync(proxiesPath, 'utf-8')));
@@ -820,22 +811,8 @@ mongoose.connection.once('open', async () => {
   try {
     // await purgeOld();
 
-    // const uids =  _getBaseUid('asia');
-    // const oldPlayers = await playerModel.find({
-    //   uid: { $gt: uids },
-    // }).lean();
+    await loadProxies();
 
-    // await Promise.all(
-    //   map(oldPlayers, (player: any) => {
-    //     return Promise.all([
-    //       playerModel.deleteOne({ _id: player._id }),
-    //       abyssBattleModel.deleteMany({ player: player._id }),
-    //       playerCharacterModel.deleteMany({ player: player._id }),
-    //     ]);
-    //   }),
-    // );
-
-    loadFromJson();
     // blockedIndices = new Array(TOKENS.length).fill(false);
     const now = new Date();
     dailyUpdate = getNextDay(now);
