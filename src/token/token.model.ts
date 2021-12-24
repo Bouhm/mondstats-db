@@ -16,7 +16,11 @@ export class Token {
 
   @Field(() => String)
   @Prop({ required: true, unique: true })
-  _MHYUUID: string;
+  email: string;
+
+  @Field(() => String)
+  @Prop({ required: true, unique: true })
+  password: string;
 
   @Field(() => Date)
   @Prop()

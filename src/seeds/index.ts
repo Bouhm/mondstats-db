@@ -22,7 +22,7 @@ import { IAbyssResponse, ICharacterResponse } from './interfaces';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const proxyUrl = 'https://mondstats.bouhm.workers.dev/?';
+const proxyUrl = '';
 // const proxyUrls = [
 //   'https://boiling-ocean-32451.herokuapp.com/',
 //   'https://desolate-oasis-47778.herokuapp.com/',
@@ -159,6 +159,7 @@ const handleResponse = (
 
 const nextToken = async (i: number) => {
   const newToken = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
+  updateDS(i);
   currRefs[i].token = { ...currRefs[i].token, ...newToken } as unknown as TokenDocument & { DS: string };
   console.log(newToken.ltuid);
   _incrementProxyIdx();
@@ -193,12 +194,12 @@ async function _retry(promiseFactory, retryCount) {
 }
 
 // Grab DS
-const updateDS = async (i: number) => {
+const updateDS = (i: number) => {
   const randomString = (length) => {
     let result = '';
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
+    for (let n = 0; n < length; n++) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
@@ -216,7 +217,7 @@ const updateDS = async (i: number) => {
 
 const getHeaders = (i: number) => {
   proxyIdx = clamp(proxyIdx, 0, PROXIES.length - 1);
-  const Cookie = `ltoken=lffygF1C6X9z1sDOjOlNP8syq1ZtECzsu14NzwzY; ltuid=165799224; mi18nLang=en-us;`;
+  const Cookie = `ltoken=${currRefs[i].token.ltoken}; ltuid=${currRefs[i].token.ltuid}; mi18nLang=en-us;`;
 
   return {
     // Host: 'bbs-api-os.mihoyo.com',
@@ -638,7 +639,7 @@ const fetchAndUpdatePlayerData = async (
 
 const collectDataFromPlayer = async (initUid = 0, i = 0) => {
   currRefs[i].token = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
-  await updateDS(i);
+  updateDS(i);
 
   const baseUid = _getBaseUid(server);
   const end = baseUid + 99999999;
@@ -842,7 +843,6 @@ mongoose.connection.once('open', async () => {
       );
     } else {
       switch (process.env.npm_config_uid) {
-        default:
         case 'last': {
           console.log('Starting after last UID...');
           const lastPlayer = await playerModel
@@ -873,6 +873,7 @@ mongoose.connection.once('open', async () => {
           console.log('Starting from base UID...');
           await runParallel(async (i: number) => await collectDataFromPlayer(null, i));
           break;
+        default:
         case 'existing': {
           existingUids = true;
           console.log('Updating existing UIDs...');
