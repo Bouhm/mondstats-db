@@ -2,9 +2,26 @@
 'use strict';
 import Axios from 'axios';
 import https from 'https';
-import { clamp, every, filter, findIndex, flatten, forEach, map, orderBy, pick, some, uniq } from 'lodash';
+import {
+  clamp,
+  cloneDeep,
+  every,
+  filter,
+  find,
+  findIndex,
+  flatten,
+  forEach,
+  includes,
+  map,
+  orderBy,
+  padEnd,
+  pick,
+  some,
+  uniq,
+} from 'lodash';
 import md5 from 'md5';
 import mongoose, { ObjectId } from 'mongoose';
+import { firefox } from 'playwright-firefox';
 import parallel from 'run-parallel';
 
 import abyssBattleModel from '../abyss-battle/abyss-battle.model';
@@ -50,6 +67,7 @@ const axios = Axios.create({
 let currRefs: {
   token: TokenDocument;
   DS: string;
+  _MHYUUID?: string;
   playerRef: PlayerDocument;
   playerCharRefMap: { [oid: string]: any };
   playerAbyssData: IAbyssResponse;
@@ -134,7 +152,9 @@ const handleResponse = (
     return notOk();
   }
 
-  console.log(resp.message);
+  if (resp && resp.retcode) {
+    console.log(resp.retcode, resp.message);
+  }
 
   switch (resp.retcode) {
     case 10101: // Rate limit reached (30 per day)
@@ -161,7 +181,7 @@ const nextToken = async (i: number) => {
   const newToken = await TokenModel.findOne().sort({ used: 1 }).limit(1).lean();
   updateDS(i);
   currRefs[i].token = { ...currRefs[i].token, ...newToken } as unknown as TokenDocument & { DS: string };
-  console.log(newToken.ltuid);
+  // updateMHYUUID(i);
   _incrementProxyIdx();
 
   if (currRefs[i].token.used) {
@@ -215,12 +235,36 @@ const updateDS = (i: number) => {
   currRefs[i].DS = `${timestamp},${randomStr},${sign}`;
 };
 
+const updateMHYUUID = async (i: number) => {
+  const browser = await firefox.launch();
+  const Cookie = `ltoken=${currRefs[i].token.ltoken}; ltuid=${currRefs[i].token.ltuid}; mi18nLang=en-us;`;
+
+  const context = await browser.newContext({
+    extraHTTPHeaders: {
+      Cookie,
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36',
+      G_ENABLED_IDPS: 'google',
+      'x-rpc-client_type': '5',
+      'x-rpc-app_version': '1.5.0',
+    },
+  });
+
+  const page = await context.newPage();
+  await page.goto(`https://www.hoyolab.com/accountCenter/postList?id=${currRefs[i].token.ltuid}`, {
+    waitUntil: 'networkidle',
+  });
+  const cookies = await context.cookies();
+  const _MHYUUID = find(cookies, (cookie) => cookie.name === '_MHYUUID');
+  currRefs[i]._MHYUUID = _MHYUUID.value;
+};
+
 const getHeaders = (i: number) => {
   proxyIdx = clamp(proxyIdx, 0, PROXIES.length - 1);
   const Cookie = `ltoken=${currRefs[i].token.ltoken}; ltuid=${currRefs[i].token.ltuid}; mi18nLang=en-us;`;
 
   return {
-    // Host: 'bbs-api-os.mihoyo.com',
+    Host: 'bbs-api-os.mihoyo.com',
     'User-Agent':
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36',
     Accept: 'application/json, text/plain, */*',
@@ -235,11 +279,10 @@ const getHeaders = (i: number) => {
     // 'X-Requested-With': 'XMLHttpRequest',
     Connection: 'keep-alive',
     Referer: 'https://webstatic-sea.hoyolab.com/',
-    'x-cors-headers': JSON.stringify({
-      Cookie,
-      'X-Forwarded-For': PROXIES[proxyIdx].ip,
-      'X-Forwarded-Port': PROXIES[proxyIdx].port,
-    }),
+    G_ENABLED_IDPS: 'google',
+    Cookie,
+    'X-Forwarded-For': PROXIES[proxyIdx].ip,
+    'X-Forwarded-Port': PROXIES[proxyIdx].port,
     TE: 'trailers',
   };
 };

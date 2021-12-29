@@ -46,7 +46,7 @@ import { aggregateAll } from './writeStats';
 
   try {
     await updateDb();
-    await aggregateAll();
+    // await aggregateAll();
 
     await updateRepo(process.env.npm_config_branch || 'develop');
   } catch (err) {

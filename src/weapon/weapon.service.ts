@@ -43,13 +43,14 @@ export class WeaponService {
 
         weapon.baseAtk = `${baseatk}-${Math.round(attack)}`;
         weapon.subStat = substat;
-        if (specialized < 0) {
-          weapon.subValue = `${parseFloat(subvalue).toFixed(1)}-${(
+
+        if (specialized < 1) {
+          weapon.subValue = `${parseFloat(subvalue).toFixed(1)} - ${(
             (Math.round(specialized * 1000) / 1000) *
             100
-          ).toFixed(1)}`;
+          ).toFixed(1)}%`;
         } else {
-          weapon.subValue = `${subvalue}-${Math.round(specialized * 1000) / 1000}`;
+          weapon.subValue = `${subvalue} - ${Math.round(specialized)}`;
         }
         weapon.effectName = effectname;
         let modEffect = effect;

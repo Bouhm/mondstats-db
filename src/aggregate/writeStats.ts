@@ -282,13 +282,13 @@ export async function aggregateAll() {
   // }
   // console.log('Done floor parties');
 
-  const characterConstellationCounts = groupById(
-    await playerCharacterService.getCharacterConstellationCount(),
-  );
+  // const characterConstellationCounts = groupById(
+  //   await playerCharacterService.getCharacterConstellationCount(),
+  // );
 
-  const characterAbyssConstellationCounts = groupById(
-    await abyssBattleService.getCharacterAbyssConstellationCount(),
-  );
+  // const characterAbyssConstellationCounts = groupById(
+  //   await abyssBattleService.getCharacterAbyssConstellationCount(),
+  // );
 
   const characterAbyssStats: any = groupById(
     flatten(
@@ -301,17 +301,17 @@ export async function aggregateAll() {
   );
   console.log('Done character abyss stats');
 
-  const characterBuilds: any = groupById(
-    flatten(
-      await Promise.all(
-        flattenDeep(map(characterIds, (_id) => playerCharacterService.getCharacterBuilds(_id))),
-      ),
-    ),
-    'characterId',
-  );
+  // const characterBuilds: any = groupById(
+  //   flatten(
+  //     await Promise.all(
+  //       flattenDeep(map(characterIds, (_id) => playerCharacterService.getCharacterBuilds(_id))),
+  //     ),
+  //   ),
+  //   'characterId',
+  // );
 
-  const characterCounts: any = groupById(await playerCharacterService.getCharacterCounts());
-  console.log('Done character totals');
+  // const characterCounts: any = groupById(await playerCharacterService.getCharacterCounts());
+  // console.log('Done character totals');
 
   const characterBuildAbyssStats: any = groupById(
     flatten(
@@ -339,60 +339,60 @@ export async function aggregateAll() {
   //   };
   // });
 
-  const topCharacters = [];
-  const characterBuildAbyssData: any = {};
-  forEach(characterBuildAbyssStats, (stats, characterId) => {
-    characterBuildAbyssData[characterId] = {
-      constellations: map(
-        orderBy(characterAbyssConstellationCounts[characterId][0].constellations, 'constellation', 'asc'),
-        (c) => c.count,
-      ),
-      builds: orderBy(
-        map(values(stats), (stat) => omit(stat, 'characterId')),
-        'count',
-        'desc',
-      ),
-      count: characterAbyssStats[characterId][0].count,
-    };
-  });
+  // const topCharacters = [];
+  // const characterBuildAbyssData: any = {};
+  // forEach(characterBuildAbyssStats, (stats, characterId) => {
+  //   characterBuildAbyssData[characterId] = {
+  //     constellations: map(
+  //       orderBy(characterAbyssConstellationCounts[characterId][0].constellations, 'constellation', 'asc'),
+  //       (c) => c.count,
+  //     ),
+  //     builds: orderBy(
+  //       map(values(stats), (stat) => omit(stat, 'characterId')),
+  //       'count',
+  //       'desc',
+  //     ),
+  //     count: characterAbyssStats[characterId][0].count,
+  //   };
+  // });
 
-  forEach(characterIds, (characterId) => {
-    // const charData = {
-    //   _id: characterId,
-    //   data: characterBuildData[characterId],
-    // };
+  // forEach(characterIds, (characterId) => {
+  //   const charData = {
+  //     _id: characterId,
+  //     data: characterBuildData[characterId],
+  //   };
 
-    // const abyssCharData = {
-    //   _id: characterId,
-    //   data: characterBuildAbyssData[characterId],
-    // };
+  //   const abyssCharData = {
+  //     _id: characterId,
+  //     data: characterBuildAbyssData[characterId],
+  //   };
 
-    // fs.writeFileSync(`data/characters/${characterId.toString()}.json`, JSON.stringify(charData));
-    // fs.writeFileSync(
-    //   `data/characters/abyss/${characterId.toString()}.json`,
-    //   JSON.stringify(abyssCharData),
-    // );
+  //   fs.writeFileSync(`data/characters/${characterId.toString()}.json`, JSON.stringify(charData));
+  //   fs.writeFileSync(
+  //     `data/characters/abyss/${characterId.toString()}.json`,
+  //     JSON.stringify(abyssCharData),
+  //   );
 
-    if (characterCounts[characterId] && characterAbyssStats[characterId]) {
-      topCharacters.push({
-        _id: characterId,
-        count: characterCounts[characterId][0].count,
-        abyssCount: characterAbyssStats[characterId][0].count,
-      });
-    }
-  });
+  //   if (characterCounts[characterId] && characterAbyssStats[characterId]) {
+  //     topCharacters.push({
+  //       _id: characterId,
+  //       count: characterCounts[characterId][0].count,
+  //       abyssCount: characterAbyssStats[characterId][0].count,
+  //     });
+  //   }
+  // });
 
-  fs.writeFileSync(
-    `data/characters/stats/top-characters.json`,
-    JSON.stringify({
-      characters: orderBy(topCharacters, 'count', 'desc'),
-      totals: {
-        total: getTotal(topCharacters, 'count'),
-        abyssTotal: getTotal(topCharacters, 'abyssCount'),
-      },
-    }),
-  );
-  console.log('Done character builds');
+  // fs.writeFileSync(
+  //   `data/characters/stats/top-characters.json`,
+  //   JSON.stringify({
+  //     characters: orderBy(topCharacters, 'count', 'desc'),
+  //     totals: {
+  //       total: getTotal(topCharacters, 'count'),
+  //       abyssTotal: getTotal(topCharacters, 'abyssCount'),
+  //     },
+  //   }),
+  // );
+  // console.log('Done character builds');
 
   const weaponCounts = await playerCharacterService.getWeaponCounts();
   const weaponAbyssStats: any = groupById(await abyssBattleService.getWeaponAbyssStats());
@@ -405,27 +405,30 @@ export async function aggregateAll() {
   const topWeaponTotals = {};
   forEach(weaponCounts, (weaponCount) => {
     const weaponCharacters: { _id: string; count: number }[] = [];
-    // forEach(characterBuildAbyssStats, (buildStats) => {
-    //   forEach(buildStats, ({ weapons }) => {
-    //     const weaponStat = find(weapons, (weapon) => weapon._id.toString() === weaponCount._id.toString());
+    forEach(characterBuildAbyssStats, (buildStats) => {
+      forEach(buildStats, (buildStat) => {
+        const weaponStat = find(
+          buildStat.weapons,
+          (weapon) => weapon._id.toString() === weaponCount._id.toString(),
+        );
 
-    //     if (weaponStat) {
-    //       const charIdx = findIndex(
-    //         weaponCharacters,
-    //         (char) => char._id.toString() === weaponCount._id.toString(),
-    //       );
+        if (weaponStat) {
+          const charIdx = findIndex(
+            weaponCharacters,
+            (char) => char._id.toString() === buildStat.characterId.toString(),
+          );
 
-    //       if (charIdx > -1) {
-    //         weaponCharacters[charIdx].count += weaponStat.count;
-    //       } else {
-    //         weaponCharacters.push({
-    //           _id: weaponCount._id,
-    //           count: weaponStat.count,
-    //         });
-    //       }
-    //     }
-    //   });
-    // });
+          if (charIdx > -1) {
+            weaponCharacters[charIdx].count += weaponStat.count;
+          } else {
+            weaponCharacters.push({
+              _id: weaponCount._id,
+              count: weaponStat.count,
+            });
+          }
+        }
+      });
+    });
 
     if (weaponAbyssStats[weaponCount._id]) {
       // const { winCount, avgStar } = weaponAbyssStats[weaponCount._id][0];
@@ -464,7 +467,7 @@ export async function aggregateAll() {
           abyssTypeTotal: typeAbyssTotal,
         };
       }
-      // fs.writeFileSync(`data/weapons/${weaponCount._id.toString()}.json`, JSON.stringify(weaponData));
+      fs.writeFileSync(`data/weapons/${weaponCount._id.toString()}.json`, JSON.stringify(weaponData));
     }
   });
 
@@ -535,24 +538,24 @@ export async function aggregateAll() {
     }),
   );
 
-  // for (const data of artifactSetDb) {
-  //   const buildIds = map(
-  //     filter(artifactSetBuildDb, ({ sets }) =>
-  //       some(sets, (set) => data._id && set._id && data._id.toString() === set._id.toString()),
-  //     ),
-  //     (setBuild) => setBuild._id,
-  //   );
-  //   const allSetData = filter(
-  //     map(buildIds, (buildId) =>
-  //       find(artifactSetData, (set) => set._id.toString() === buildId.toString()),
-  //     ),
-  //     (data) => !!data,
-  //   );
+  for (const data of artifactSetDb) {
+    const buildIds = map(
+      filter(artifactSetBuildDb, ({ sets }) =>
+        some(sets, (set) => data._id && set._id && data._id.toString() === set._id.toString()),
+      ),
+      (setBuild) => setBuild._id,
+    );
+    const allSetData = filter(
+      map(buildIds, (buildId) =>
+        find(artifactSetData, (set) => set._id.toString() === buildId.toString()),
+      ),
+      (data) => !!data,
+    );
 
-  //   const setData = {
-  //     _id: data._id,
-  //     artifactSetBuilds: allSetData,
-  //   };
-  //   fs.writeFileSync(`data/artifactSets/${data._id.toString()}.json`, JSON.stringify(setData));
-  // }
+    const setData = {
+      _id: data._id,
+      artifactSetBuilds: allSetData,
+    };
+    fs.writeFileSync(`data/artifactSets/${data._id.toString()}.json`, JSON.stringify(setData));
+  }
 }
